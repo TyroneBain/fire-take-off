@@ -18,4 +18,4 @@ Distinguish host prerequisites, REA installation, registration/instructions heal
 
 ## ADR-0005 — GitHub connector fallback (accepted 2026-10-22)
 
-The connected GitHub account has admin/push permission on the private empty repository; shell Git cannot resolve github.com and gh is missing. Publish verified text files through GitHub Git-data/contents APIs with head checks, and reconcile local Git history if possible. Record this as API publication rather than a successful shell git push. Never replace unknown remote work.
+The connected GitHub account has admin/push permission on the private empty repository; shell Git cannot resolve github.com and gh is missing. Publish verified text files through GitHub Git-data/contents APIs with head checks, and reconcile local Git history by reproducing the authenticated remote commit/tree objects and verifying their hashes. Record this as API publication rather than a successful shell git push. Never replace unknown remote work.

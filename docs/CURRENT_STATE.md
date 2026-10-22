@@ -6,7 +6,7 @@ Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 is INCOMPLETE be
 
 Local root: `/Users/tyronebain/Projects/fire-take-off`. Branch: `main`. Origin: `https://github.com/TyroneBain/fire-take-off.git`.
 
-Authenticated GitHub connector confirms repository visibility PRIVATE and TyroneBain admin/push permission. Repository was empty before this work. Initial README published through the GitHub API at `4a733b80dabbbb7bd4ba0a16b3aebd59e44bcfd0`; that commit was reproduced and hash-verified locally. Foundation batch publication is pending at this handover revision. No shell push succeeded: shell Git cannot resolve github.com. Shell Git authentication is unverified; connector permissions do not establish shell credentials. gh and Homebrew are absent.
+Authenticated GitHub connector confirms repository visibility PRIVATE and TyroneBain admin/push permission. Repository was empty before this work. Initial README published through the GitHub API at `4a733b80dabbbb7bd4ba0a16b3aebd59e44bcfd0`. The complete 26-file foundation batch was published at `57b1d2af0448726cc3ebd4520b298f3f30b8b0b0`, tree `fceefbea6df6b57d50b563529bb003a35da40a23`; GitHub readback confirmed 26 files and PRIVATE visibility. Both published commits and their trees were reproduced and hash-verified locally, with a clean worktree. This delivery handover is maintained in a following commit; use `git log -1` for its own final SHA. All foundation documentation, fixture and sanitised evidence are committed and delivered through the authenticated API. No shell push succeeded: shell Git cannot resolve github.com. Shell Git authentication is unverified; connector permissions do not establish shell credentials. gh and Homebrew are absent.
 
 No existing repository files or unrelated work were overwritten. Project Git identity is derived from the authenticated account's observed initial commit; no global Git identity was changed.
 
@@ -38,7 +38,7 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 - `doctor --client codex --skill --json`: unhealthy, exit 1; skill/registration missing.
 - `analyze-javascript-application .../fixtures/rea-smoke --json`: failed, exit 1; partial static observations compared with source, seven checks passed. No end-to-end success or live MCP verification.
 - See [REA_SETUP](REA_SETUP.md) and the three JSON summaries under `docs/evidence/`. Raw outputs/runtime remain ignored under `.local/`.
-- `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks and whitespace review run before foundation publication; their evidence is recorded separately.
+- `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks passed (13 required files, 5 directory groups, 14 local Markdown links, 59 complete/unique parity rows); staged whitespace review passed. GitHub foundation tree and local index hashes matched, and the worktree was clean after synchronisation. The delivery handover update is checked and published separately. Evidence is recorded in `docs/evidence/foundation-checks.json`.
 
 ## Roadmap and architecture
 

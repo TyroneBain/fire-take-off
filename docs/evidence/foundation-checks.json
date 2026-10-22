@@ -19,6 +19,16 @@
   "limitations": [
     "No product application exists; no product acceptance or performance tests ran.",
     "REA setup and analysis failed; live MCP not verified.",
-    "Publication and final worktree status verified separately after this report."
-  ]
+    "This report records the foundation commit; the delivery-handover commit is verified separately by final remote readback and git status."
+  ],
+  "foundation_publication": {
+    "method": "authenticated GitHub connector API; not shell git push",
+    "commit": "57b1d2af0448726cc3ebd4520b298f3f30b8b0b0",
+    "tree": "fceefbea6df6b57d50b563529bb003a35da40a23",
+    "remote_files": 26,
+    "remote_tree_truncated": false,
+    "repository_visibility": "private",
+    "local_tree_matches_remote": true,
+    "clean_worktree_after_foundation_sync": true
+  }
 }
