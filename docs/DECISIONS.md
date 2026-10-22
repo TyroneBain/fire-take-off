@@ -1,5 +1,7 @@
 # Decision record
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 ## ADR-0010 — Working takeoff loop with bounded original matching (accepted 2026-10-22)
 
 Continue past the shell into selection → matching → review/correction → saved quantities and calibrated manual measures. Use an original binary-image overlap matcher in a cancellable browser worker over PDF.js renders, retaining example bounds, algorithm version, scores and source-page identity. Initial matching is same-scale and limited to bounded pages/pixels/operations; no claim of general recognition accuracy or Smart Select. Failed/cancelled runs commit nothing. Persist each result and explicit included/reviewed state; manual corrections survive because reruns do not replace saved marks. Audit inclusion/review changes. Quantities derive from included instances rather than editable totals.
@@ -14,7 +16,7 @@ Phase 0 is complete and remotely delivered. The global Phase 1 gate has prevente
 
 For the first runnable increment, adopt browser-native ES modules, a loopback Node 24 service, built-in SQLite metadata and immutable source files, and the PDF.js display API for original viewer controls. Plain modules avoid adding a UI framework before interaction requirements settle; they can later migrate behind the same domain/API contracts. SQLite in Node 24 is experimental, so retain explicit schema versioning and recovery tests. PDF.js must be pinned after installation and tested against the independent PDFKit oracle. No Countfire implementation or assets are reused. The service is local single-user software; cloud access/collaboration remain unmet.
 
-## ADR-0001 — Private original implementation (accepted 2026-10-22)
+## ADR-0001 — Private original implementation (accepted 2026-10-22; scope clarified by ADR-0012)
 
 Build Fire Take Off as a private functional equivalent using original code and authorised material. Keep full public takeoff/estimating parity as the objective. Do not extract Countfire source or reuse restricted assets. Consequence: public behavior research and our own acceptance fixtures drive implementation.
 
@@ -56,3 +58,7 @@ ExcelJS installation audit exposed its UUID <11.1.1 dependency advisory GHSA-w5h
 Persist discipline-level ordered zone headings and per-page simple polygon outlines in schema 5. With no polygons on a page, its whole page contributes; once a page has polygons, outside quantities are excluded. First heading wins overlaps, and same-heading polygons form a union. Count/point boundary ties and line segments lying on edges go to the first eligible heading (our explicit provisional policy, not observed Countfire boundary behavior). Split non-itemised line/area quantities geometrically between effective disjoint regions; itemised dominant-zone behavior remains separate F064 work. Editing, reordering and deletion recalculate allocations without changing source counts/geometry. Heading deletion cascades its polygons. Reject stale mutations and wrong-discipline outlines. Bound each outline to 200 vertices, 100 polygons/page and 100 headings/discipline; these are provisional capacities.
 
 Adopt polygon-clipping 0.15.7 (MIT) for server-side polygon union/intersection/difference, including concavity and holes in derived regions; original segment splitting handles lengths. Use analytic independent tests and conservation checks. Return derived allocation rows in the application state and write those exact rows into zone-aware XLSX, keeping raw instances as audit evidence. Preserve no-zone export compatibility. This addresses documented zone scope and priority; it does not establish reference boundary/tie parity, itemisation, zone multipliers or copy workflows.
+
+## ADR-0012 — Standing permission for a private functional and visual clone (accepted 2026-10-23)
+
+Record Tyrone's explicit standing permission in AUTHORIZATION.md and align all current project guidance with it. The objective includes Countfire's interface and interactions as well as functional workflows; a generic substitute or mockup is insufficient. Proceed with routine authorised research, implementation, tests and private-repository delivery without requesting the same permission again. Independent implementation and licensed dependencies remain the method. This records user authorisation, not an unprovided third-party source licence, a tool-policy override or evidence of completed parity. Earlier permission descriptions are superseded; historical evidence remains factual and unchanged.

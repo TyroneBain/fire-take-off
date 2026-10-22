@@ -1,5 +1,7 @@
 # Testing strategy
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 ## Foundation checks
 
 - Required files/directories exist, internal Markdown links resolve, every parity row has required fields and an allowed status.

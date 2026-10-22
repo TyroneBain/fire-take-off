@@ -1,10 +1,12 @@
 # Feature parity inventory
 
-Baseline researched 2026-10-22. The local project/PDF core is now partially implemented and tested; all other product features remain NOT STARTED. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
+Baseline researched 2026-10-22. Project/PDF, counting, measurements, zones and exports have partial tested scopes; individual rows record current status. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
 
 Statuses: NOT STARTED → IN DEVELOPMENT → IMPLEMENTED → TESTED → VERIFIED; BLOCKED records a real blocker with recovery action. VERIFIED requires relevant passing acceptance evidence. P0/P1/P2 indicate implementation order, not exclusions.
 
-Descriptions summarise capability; workflows and tests below are proposed Fire Take Off requirements, not assertions about Countfire internals or exact UI behavior. U denotes explicit user scope. Source claims need normal authorised UI confirmation. Historical controls may have changed. September 2026 items labelled coming soon remain unconfirmed. Every limitation also includes: no implementation or acceptance evidence yet.
+Descriptions summarise capability; workflows and tests below are proposed Fire Take Off requirements, not assertions about Countfire internals or exact UI behavior. U denotes explicit user scope. Source claims need normal authorised UI confirmation. Historical controls may have changed. September 2026 items labelled coming soon remain unconfirmed. Partial passing evidence does not establish full feature or interface parity.
 
 ## Sources
 

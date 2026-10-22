@@ -1,5 +1,7 @@
 # REA setup — live MCP verified
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 On 2026-10-22 this fresh Codex session called `binary_session` with expected package version 6.7.0 and `analyze_javascript_application` on our owned fixture. Live identity is aligned with workflow 42, Codex client 0.163.0 and 207 catalog tools. Analysis succeeded; all seven independent source comparisons passed; behavior tests passed 3/3. [Live evidence](evidence/rea-live-mcp-2026-10-22.json) preserves identity, digest, checks and limitations. Full bundle is retained locally at `.local/rea-live-mcp-2026-10-22.json`. Static graph coverage is complete; semantic coverage remains unknown with explicit dynamic-call/data-flow limitations. This proves the required fixture workflow, not native provider availability or runtime execution by REA. No configuration changes were needed.
 
 Historical recovery instructions and failed attempts follow; statements about absent tools describe prior sessions. Do not repeat repair for this now-resolved gate.

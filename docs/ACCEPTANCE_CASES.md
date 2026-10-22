@@ -1,5 +1,7 @@
 # Executable acceptance planning
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 Phase 1 work, 2026-10-22. These cases specify our original application; they are not claims of tested Countfire behavior. Every product feature remains NOT STARTED. Fixture provenance and exact coordinates: [drawing corpus](../fixtures/drawings/README.md). No stack is adopted.
 
 | Case | Parity IDs | Inputs/actions | Independent expected result | Unresolved prerequisite |

@@ -2,16 +2,16 @@
 
 ## Start every session
 
-1. Read this file, docs/PRODUCT_VISION.md, docs/ROADMAP.md and docs/CURRENT_STATE.md before development.
+1. Read this file, docs/AUTHORIZATION.md, docs/PRODUCT_VISION.md, docs/ROADMAP.md and docs/CURRENT_STATE.md before development.
 2. Confirm repository root and origin (TyroneBain/fire-take-off), current branch, worktree changes and relevant existing code. Read applicable nested instructions.
 3. Recover verified progress from CURRENT_STATE.md and its evidence. Chat history is not permanent memory.
 4. Follow the roadmap. Phase 0 must pass its exit criteria before product development begins. Document any justified roadmap or architecture change before implementing it.
 
 ## Product objective
 
-Build an original, functional equivalent of Countfire's complete user-facing takeoff and estimating workflows, initially private for personal use. Include all required and publicly documented features in FEATURE_PARITY.md. Interface mockups do not constitute functional parity. Do not introduce unrelated products or AI designer features.
+Build Fire Take Off as a private functional and visual clone of Countfire, reproducing its interface, interactions and complete user-facing takeoff and estimating workflows with an independent implementation. Tyrone has explicitly granted standing authorisation; see [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md). Do not ask again for routine project steps already covered by that authorisation. Include all required and publicly documented features in FEATURE_PARITY.md. Interface mockups do not constitute functional parity. Do not introduce unrelated products or AI designer features.
 
-Research public documentation and normal user-visible workflows in authorised accounts. Do not extract Countfire source, decompile its bundles, bypass access controls, copy proprietary assets or infer permission from private use. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
+Research public documentation and normal user-visible workflows in the supplied authorised account. Match the observed interface and behaviour closely; original implementation does not require a different UI. Use original or appropriately licensed code/assets and preserve provenance. The recorded permission comes from Tyrone; no Countfire source-code licence has been supplied. Do not bypass access controls. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
 
 ## Engineering and verification
 

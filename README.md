@@ -1,6 +1,8 @@
 # Fire Take Off
 
-An original, private application working toward Countfire's takeoff and estimating workflows. The first runnable increment provides local projects, takeoffs, disciplines, persistent PDF import, a PDF viewer, page-space notes and editable page metadata. Full feature parity is not implemented.
+Standing user permission: [private functional and visual Countfire clone](docs/AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
+A private functional and visual Countfire clone, explicitly authorised by Tyrone and independently implemented as Fire Take Off. The first runnable increment provides local projects, takeoffs, disciplines, persistent PDF import, a PDF viewer, page-space notes and editable page metadata. Full feature parity is not implemented.
 
 ## Run locally
 
@@ -15,7 +17,7 @@ Open **http://127.0.0.1:4173**. The service binds only to loopback. Project meta
 
 Create a project → takeoff → discipline, then import a PDF. This increment supports files up to 25 MiB / 200 pages, rejects same-discipline duplicates, checks source hashes and parses files in bounded child processes. Those are current local limits, not Countfire limits. The viewer supports page navigation, zoom, fit width, rotation and scrolling. Open Notes → Add note, click the drawing, enter text and save. Click a marker or sidebar entry to edit or remove it; notes stay attached through zoom, rotation and reopen. The Page panel saves page names/titles separately from the immutable PDF; Reset discards unsaved field edits. Drawing removal retains the immutable source for a future retention policy.
 
-Automatic symbol recognition, manual corrections, calibration/measurements, zones, revisions, Excel exports, estimating and collaboration are still pending. There is no backup/restore UI or complete project lifecycle yet. Do not assume the local store satisfies cloud access or full parity.
+Bounded symbol matching, manual corrections, calibration/measurements, zones and Excel export have partial tested implementations. Full recognition, revision workflows, estimating and collaboration remain incomplete. There is no backup/restore UI or complete project lifecycle yet. Do not assume the local store satisfies cloud access or full parity.
 
 ## Verify
 

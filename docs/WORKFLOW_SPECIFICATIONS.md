@@ -1,5 +1,7 @@
 # Countfire workflow specifications — initial observed baseline
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 Observed 2026-10-22 through the user's authenticated Chrome using Chrome DevTools MCP. Reference: **beta.countfire.com**, not a claim that every production release behaves identically. Only normal user-visible controls, text and navigation were inspected. No application bundles, network payloads, proprietary source, cookies or credentials were extracted. Private project identifiers, customer data, catalogue prices and drawing content are excluded from this specification.
 
 This Phase 1 research baseline now follows successful live REA verification. This document preserves the original research baseline. The local project/PDF core is now partially implemented and TESTED; no feature is VERIFIED. Every acceptance item below is a proposed test for our original implementation, not a test that has passed.
@@ -47,7 +49,7 @@ Evidence: [sanitised observation ledger](evidence/countfire-ui-observations-2026
 
 ## Next specification work
 
-After the Phase 0 gate is resolved or explicitly waived, agree an owned scratch workflow and original synthetic PDFs for behavior observation. Specify correction precedence, zone boundaries, scale units/rounding, revision migration and export schemas before implementing those subsystems. Define small/medium/large corpus and measurable hardware-based performance targets. No architecture adoption follows merely from the observed interface.
+Phase 0 is complete. Continue the already authorised owned-scratch workflow with original synthetic PDFs, subject to the recorded browser upload restriction; routine research does not need renewed user permission. Specify correction precedence, zone boundaries, scale units/rounding, revision migration and export schemas before implementing those subsystems. Define small/medium/large corpus and measurable hardware-based performance targets. No architecture adoption follows merely from the observed interface.
 
 ## Original acceptance corpus follow-up
 

@@ -1,5 +1,7 @@
 # Roadmap
 
+Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+
 Every phase updates CURRENT_STATE and parity IDs. Dependencies flow in order; Phase 1 research may refine later work but may not waive acceptance gates without a recorded decision.
 
 ADR-0008 changes sequencing after successful Phase 0: the project/PDF core may proceed while Phase 1 research continues. Unresolved rules gate their affected subsystems, and full baseline/benchmark obligations remain mandatory before parity validation. This is not a Phase 1 completion claim.
