@@ -17,3 +17,15 @@ Phase 1 work, 2026-10-22. These cases specify our original application; they are
 | A011 | F038,F041,F061 | Import approved quantity 6, set original unit buy 12.50 and labour 0.25 h at 100/h | Material 75.00; labour 1.5 h / 150.00 before adjustments | Currency, rate precedence, margins/markup and rounding policy |
 
 All cases require environment/date, fixture SHA, commands or UI steps, observed results and failures before a feature can be VERIFIED. A001–A011 have not run. They refine existing parity requirements without waiving roadmap gates.
+
+## Additional sourced cases
+
+| Case | Parity IDs | Inputs/actions | Independent expected result | Unresolved prerequisite |
+| --- | --- | --- | --- | --- |
+| A012 | F063,F021 | Outer zone contains six symbols; inner zone contains only (100,100); swap heading order | Inner first: 1 inner / 5 outer. Outer first: 0 inner / 6 outer. No duplicate allocation | Boundary cases separately specified; no live reference execution |
+| A013 | F062,F013 | Move one of six matches from heading A to B; save/reopen | A=5, B=1, total=6; origin retained; colors reflect destination | Recount/undo precedence |
+| A014 | F064,F018,F020 | Two runs of 30 m and 20 m under one heading; toggle itemisation | Aggregate 50 m; itemised 30 m and 20 m plus total 50 m | Exact workbook rows and equal cross-zone split |
+| A015 | F032,F033 | Compare original and revision fixture with six symbols each | Remove (100,100), add (350,150), retain five; equal totals must not hide changes | Revision transform/migration specification |
+| A016 | F065,F016,F036 | Generate review outputs; reclassify one match and save | Earlier output identified as stale; regenerated evidence agrees with five/one split | Output schema/lifecycle |
+
+A012–A016 are proposed and have not run in Fire Take Off. Their sources are in [REFERENCE_RULES](REFERENCE_RULES.md).

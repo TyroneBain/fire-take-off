@@ -6,4 +6,20 @@ The page is 595 × 842 PDF points, with a bottom-left origin. Six square-cross s
 
 All geometry and text are original project material. No Countfire asset, private drawing, account value or third-party template is included. This is a research fixture, not a construction plan or a trade accuracy benchmark. The generator is independent of any proposed application stack.
 
-Still required for Phase 1: raster variants, rotations/crops, multi-page and large sets, independent PDF rendering/inspection, revision pairs, overlapping/boundary zones, trade-specific evaluation labels and measured performance budgets. Passing PDF structural checks does not establish visual fidelity or product acceptance.
+Raster, rotated/cropped, repeated 10/100-page and revision variants are now generated and independently reopened with Apple PDFKit. Still required: realistic construction complexity, crop viewport checks, overlapping/boundary geometry, trade-specific labels and measured/accepted performance budgets. Research fixture passes do not establish product acceptance.
+
+
+## Reproduction on macOS
+
+```bash
+node scripts/generate-drawing-fixture.mjs
+swiftc -module-cache-path /private/tmp/fire-take-off-swift-cache scripts/inspect-drawing-fixture.swift -o /private/tmp/fire-take-off-inspect-pdf
+/private/tmp/fire-take-off-inspect-pdf .local/drawing-fixture/small-vector.pdf .local/drawing-fixture/render
+swiftc -module-cache-path /private/tmp/fire-take-off-swift-cache scripts/derive-drawing-corpus.swift -o /private/tmp/fire-take-off-derive-corpus
+/private/tmp/fire-take-off-derive-corpus .local/drawing-fixture/small-vector.pdf .local/drawing-fixture/render/page-1.png .local/drawing-corpus
+node scripts/generate-drawing-fixture.mjs .local/drawing-corpus/revision revision
+```
+
+Inspect a derived PDF with the same inspector; add `--metadata-only` to avoid rendering every page in repeated-page sets. Images/PDFs and compiler caches stay outside Git. The oracle uses installed macOS frameworks; this does not adopt Swift/PDFKit as the product stack.
+
+The revision removes (100,100) and adds (350,150), retaining five other centres and the aggregate count of six. IDs are local to each generated manifest; coordinate differences provide the independent revision oracle. Raster geometry derives from our inspected 2x render and has no selectable text layer. Derived PDF bytes can differ between runs because PDFKit may add metadata; evidence records the actual hashes.

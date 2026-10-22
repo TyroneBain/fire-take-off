@@ -52,3 +52,7 @@ After the Phase 0 gate is resolved or explicitly waived, agree an owned scratch 
 ## Original acceptance corpus follow-up
 
 [Concrete cases A001–A011](ACCEPTANCE_CASES.md) map original synthetic geometry to independent expected quantities. [Corpus provenance](../fixtures/drawings/README.md) documents generation and remaining gaps. These are implementation requirements, not observed reference behavior or passed product tests.
+
+## Public rule refinements and scratch research
+
+See [REFERENCE_RULES](REFERENCE_RULES.md) for eight sourced article summaries and exact remaining questions. Zone order, itemisation, workbook structure and match reclassification now have documented requirements. These refine earlier unknowns without claiming live behavior. A synthetic scratch project/takeoff/discipline was created successfully; upload was denied by browser tool path access. No drawings, counts, measures or exports were created. All earlier no-write observations refer to the earlier session.

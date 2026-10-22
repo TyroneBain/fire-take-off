@@ -23,4 +23,4 @@ Phase 1 must select small/medium/large authorised vector and raster drawing sets
 
 ## Next gate
 
-Live REA MCP owned-fixture verification passed on 2026-10-22; publish its evidence to finish the Phase 0 delivery checkpoint. Continue Phase 1 using WORKFLOW_SPECIFICATIONS.md and ACCEPTANCE_CASES.md. The original vector corpus generator is available; rendering, raster/multipage sets, P0 reference behavior, tolerances, budgets and stack ADR remain incomplete. Application scaffolding awaits Phase 1 exit.
+Phase 0 COMPLETE: live MCP evidence and foundation handover published as `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`, with matching local/remote trees. Phase 1 IN DEVELOPMENT: public rules and 71-entry inventory, 16 acceptance cases, independently inspected original corpus. Still incomplete: P0 reference import/correction/measurement/export execution, boundary/tie policies, realistic dataset complexity, measured/accepted budgets and stack ADR. Browser upload tool currently denies the fixture path. Do not waive these exit requirements based on repeated-page fixtures or documented behavior. Application scaffolding awaits Phase 1 exit.

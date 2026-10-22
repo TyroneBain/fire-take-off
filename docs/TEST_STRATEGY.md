@@ -34,3 +34,7 @@ The workflow specification matrix and 21-entry sanitised UI ledger are research 
 ## Fresh-session verification — 2026-10-22
 
 Live REA MCP analysis and seven source comparisons passed; Node behavior tests passed 3/3. See live MCP evidence. The original drawing generator ran successfully; independent byte checks validated SHA-256, xref offsets and stream length. See drawing-fixture checks evidence. No PDF rendering, reference behavior or product acceptance cases ran. A001–A011 in ACCEPTANCE_CASES.md remain proposed tests. Historical recovery-helper failures above are superseded by the successful Terminal and live MCP records.
+
+## Original corpus and public rules follow-up
+
+Apple PDFKit independently opened/rendered the original vector, raster and rotated media boxes; six symbols and other geometry were visually inspected. Fixed rotated output dimensions after the initial oracle clipped content. Crop metadata is verified but crop viewport fidelity remains untested. Reopened 10/100-page sets with metadata-only inspection, verified all dimensions, six-to-six revision coordinate differences, malformed-PDF failure and invalid-variant rejection. See `evidence/drawing-corpus-2026-10-22.json`. Diagnostic framework messages are retained there. No timing/memory budgets are adopted. Public source rules and A012–A016 are specifications, not product acceptance. Reference upload failed at browser path access; no reference numerical tests ran.

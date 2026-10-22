@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-22",
+  "environment": {
+    "os": "macOS 26.7.1 (25G241)",
+    "architecture": "x86_64",
+    "swift": "6.3.3",
+    "renderer": "Apple PDFKit"
+  },
+  "records": [
+    {
+      "file": "vector-10-pages.pdf",
+      "sha256": "3ee07d8e52524e1de715e84807033c2f49f45921998ed19369cc8b1cafbdf37b",
+      "pageCount": 10,
+      "inspection": ".local/drawing-corpus/ten-check/inspection.json"
+    },
+    {
+      "file": "vector-100-pages.pdf",
+      "sha256": "0fb72f9124e6f58e2a6e846ccbb4896d1aa05a29d73a9ca0cccfee5235aaab76",
+      "pageCount": 100,
+      "inspection": ".local/drawing-corpus/hundred-check/inspection.json"
+    },
+    {
+      "file": "small-raster.pdf",
+      "sha256": "0ac6a35299b030227c599f400d05b4ae5346bfcddc0485ed0c3024b7260f535b",
+      "pageCount": 1,
+      "inspection": ".local/drawing-corpus/raster-render/inspection.json"
+    },
+    {
+      "file": "rotated-cropped.pdf",
+      "sha256": "b4e963e6c716fa0addae1cf164212e8c03d4eec8af2a3b9526e9506157aa027b",
+      "pageCount": 1,
+      "inspection": ".local/drawing-corpus/rotated-render/inspection.json"
+    }
+  ],
+  "baseVisualReview": "Six square-cross symbols, run, area and enclosing zone visible at 2x",
+  "rasterVisualReview": "Same geometry visible; no text layer",
+  "rotatedVisualReview": "Full media box visible after rotated viewport fix; crop metadata checked separately",
+  "revisionChecks": {
+    "beforeCount": 6,
+    "afterCount": 6,
+    "removed": [
+      [
+        100,
+        100
+      ]
+    ],
+    "added": [
+      [
+        350,
+        150
+      ]
+    ],
+    "unchanged": 5
+  },
+  "failureChecks": {
+    "invalidPdfExit": 1,
+    "invalidVariantRejected": true
+  },
+  "diagnostics": [
+    "CoreGraphics PDF diagnostic during corpus derivation; outputs subsequently reopened and checked",
+    "Restricted sysctl diagnostic from Apple framework",
+    "Initial inspector clipped rotated page; fixed viewport dimensions and visually rechecked"
+  ],
+  "limitations": [
+    "Crop box metadata checked; cropped viewport rendering not implemented in oracle",
+    "10/100 page sets are repeated geometry, not representative complex construction corpus",
+    "No timing or memory benchmark and no adopted budgets",
+    "No Fire Take Off product tests; browser upload denied"
+  ]
+}

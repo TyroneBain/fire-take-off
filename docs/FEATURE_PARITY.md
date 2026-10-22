@@ -25,6 +25,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 - S14: [Authorised beta UI observations, 2026-10-22](WORKFLOW_SPECIFICATIONS.md) — control presence and navigation only; not implementation evidence.
 
+- S15: [Public help rules and article links, read 2026-10-22](REFERENCE_RULES.md) — documented behavior, not executed beta results.
+
 ## Inventory
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
@@ -49,7 +51,7 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F018 | Linear measurements | Measure connected drawing runs | U,S10,S14 | Trace run and inspect length | NOT STARTED | Independent lengths and snap effects | Length type observed; no measured reference length | P0 |
 | F019 | Point measurements | Record individual measure points | S8,S14 | Create named points and count | NOT STARTED | No duplicate points, saved quantities | Point type observed; point metadata/behavior untested | P1 |
 | F020 | Area measurements | Compute bounded polygon area | U,S8,S14 | Draw boundary and inspect area | NOT STARTED | Analytic shapes and invalid polygons | Area type observed; holes/overlap policy unresolved | P0 |
-| F021 | Zones and quantities | Split results by zone | U,S1,S14 | Draw zones before/after counting | NOT STARTED | Boundary cases and schedule reconciliation | Zone tool observed; boundary/overlap allocation untested | P0 |
+| F021 | Zones and quantities | Split results by zone | U,S1,S14 | Draw zones before/after counting | NOT STARTED | Boundary cases and schedule reconciliation | Zone order documented in S15/F063; exact boundary behavior untested | P0 |
 | F022 | Live zone totals | Refresh quantities during edits | S4 | Edit active zone and observe totals | NOT STARTED | No stale or double-counted results | Update timing unspecified | P1 |
 | F023 | Copy zones | Reuse zone definitions | U,S4 | Copy zones between selected sheets | NOT STARTED | Transforms and scope isolation | Scale handling requires observation | P1 |
 | F024 | Coverage visualisation | Display device coverage | S1 | Set radius and inspect coverage | NOT STARTED | Calibration and manual additions | No claim of regulatory certification | P1 |
@@ -63,7 +65,7 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F032 | Revision comparison | Inspect drawing changes | U,S1,S14 | Align original and revised drawings | NOT STARTED | Known added/removed/changed geometry | Layout Compare tab observed; comparison/recount behavior untested | P1 |
 | F033 | Revision recount | Reuse definitions on revisions | U,S1 | Import revision then review new counts | NOT STARTED | Original retained; corrections traced | Migration/matching constraints unknown | P1 |
 | F034 | Quantity schedules | Summarise approved quantities | U | Group by drawing, item and zone | NOT STARTED | Independent totals reconcile | Output schema not yet specified | P0 |
-| F035 | Takeoff Excel export | Export quantity breakdown | U,S1 | Export approved schedule to workbook | NOT STARTED | Reopen and reconcile every total | Exact workbook schema unknown | P0 |
+| F035 | Takeoff Excel export | Export quantity breakdown | U,S1 | Export approved schedule to workbook | NOT STARTED | Reopen and reconcile every total | Workbook sheet categories documented in S15; actual cell schema untested | P0 |
 | F036 | Output download lifecycle | Generate downloadable outputs | S6,S14 | Export then retrieve current package | NOT STARTED | Stale outputs, repeat downloads, failure | Export and download control observed; output behavior untested | P1 |
 | F037 | Dropbox/OneDrive output sync | Deliver exported files to storage | S6 | Connect account then export/sync | NOT STARTED | Auth revocation, retries and duplicates | No integration credentials configured | P1 |
 | F038 | Estimate quantity import | Transfer takeoff quantities | U,S2,S14 | Create estimate from accepted snapshot | NOT STARTED | Reconciliation and update handling | Optional takeoff import/default hourly rate observed; actual import untested | P1 |
@@ -90,6 +92,17 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F059 | Remaining documented features | Expand inventory without omissions | U,S12 | Review help centre and authorised UI | NOT STARTED | Trace sources to requirements/tests | Help index sparse; exhaustive audit pending | P1 |
 | F060 | Drawing title extraction | Extract and edit page metadata | S14 | Open Page, extract titles and review edits | NOT STARTED | Synthetic title-block accuracy and safe correction/cancellation | Control observed; extraction not executed | P1 |
 | F061 | Product catalogue | Maintain product identity, material and labour rates | S14 | Filter products, configure columns and maintain original records | NOT STARTED | Persistence, validation and independent labour/cost calculations | Columns observed; editing/calculation behavior untested | P1 |
+
+| F062 | Individual match reclassification | Move a match to a different heading with origin retained | S15 | Review matches, change heading, save and reopen | NOT STARTED | Totals and colors update; original heading remains traceable | Recount and undo precedence untested | P0 |
+| F063 | Zone heading order | Allocate overlaps using discipline heading priority | S15 | Reorder overlapping zone headings, save and export | NOT STARTED | Each interior point allocated once to first eligible heading; reorder reconciles | Point-on-edge, ties and crossing measures unresolved | P0 |
+| F064 | Itemised measurements | Export individual measures and their totals | S15 | Toggle itemisation per heading and regenerate workbook | NOT STARTED | Default aggregate and itemised rows reconcile; dominant-zone allocation tested | Equal zone split and exact workbook schema unknown | P0 |
+| F065 | Check sheet outputs | Generate inspectable evidence for automatic counts | S15 | Generate, review, correct and regenerate check sheets | NOT STARTED | Every accepted match traceable; corrections invalidate old outputs | Actual output layout and links untested | P0 |
+| F066 | Quantity multiplier | Apply documented count multiplication | S15 | Set multiplier then review and export quantities | NOT STARTED | Independent arithmetic and scope tests after specification | Article linked by public collection; full rules not yet read | P1 |
+| F067 | Measurement multiplier | Apply documented measure multiplication | S15 | Set measure multiplier and regenerate totals | NOT STARTED | Independent length/area/point multiplication and persistence | Article linked by public collection; units and scope unresolved | P1 |
+| F068 | Zone multiplier | Apply documented zone multiplication | S15 | Set multiplier on zone heading and export | NOT STARTED | Quantity reconciliation and visible multiplier indication | Composition with other multipliers and rounding unresolved | P1 |
+| F069 | Floating references | Use documented reference view while taking off | S15 | Open reference while selecting items | NOT STARTED | Reference lifecycle and drawing interaction tests after specification | Only article title discovered; detailed behavior unresolved | P1 |
+| F070 | Ignore classification | Classify examples as ignored material | S15 | Create Ignore heading and inspect resulting matches/output | NOT STARTED | Ignored matches do not inflate quantities; reclassification recoverable | Only article title discovered; suppression scope unresolved | P1 |
+| F071 | Symbols-removed output drawings | Produce drawings with counted symbols suppressed | S15 | Generate drawing record and review remaining material | NOT STARTED | Original retained; suppression tied to correct accepted source instances | Output control linked in help; precise format/options unresolved | P1 |
 
 ## Phase 1 questions
 

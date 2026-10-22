@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-22",
+  "links": "passed",
+  "parityRows": 71,
+  "completeUniqueRows": true,
+  "allProductStates": "NOT STARTED",
+  "acceptanceCases": 16,
+  "evidenceJson": "valid",
+  "diffCheck": "passed",
+  "productAcceptanceRun": false
+}

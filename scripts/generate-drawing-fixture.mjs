@@ -4,7 +4,11 @@ import { createHash } from 'node:crypto';
 
 // Original, inert vector drawing for research. PDF points, origin bottom left.
 const destination = resolve(process.argv[2] || '.local/drawing-fixture');
-const symbols = [[100, 100], [200, 100], [300, 100], [100, 200], [200, 200], [300, 200]];
+const variant = process.argv[3] || 'base';
+if (!['base', 'revision'].includes(variant)) throw new RangeError('Variant must be base or revision');
+const symbols = variant === 'base'
+  ? [[100, 100], [200, 100], [300, 100], [100, 200], [200, 200], [300, 200]]
+  : [[200, 100], [300, 100], [100, 200], [200, 200], [300, 200], [350, 150]];
 const content = [
   '0 0 0 RG 1 w',
   'BT /F1 16 Tf 50 790 Td (Fire Take Off - original synthetic fixture) Tj ET',
@@ -31,13 +35,14 @@ const xref = Buffer.byteLength(pdf);
 pdf += `xref\n0 6\n0000000000 65535 f \n${offsets.slice(1).map(n => `${String(n).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
 const manifest = {
   schema: 1, provenance: 'Original Fire Take Off synthetic geometry; no reference assets',
-  file: 'small-vector.pdf', sha256: createHash('sha256').update(pdf).digest('hex'),
+  variant, file: 'small-vector.pdf', sha256: createHash('sha256').update(pdf).digest('hex'),
   page: { width: 595, height: 842, units: 'PDF points', origin: 'bottom-left' },
   symbols: symbols.map(([x,y], index) => ({ id: `symbol-${index+1}`, family: 'square-cross', x, y })),
   calibration: { from: [50,400], to: [350,400], knownLengthMetres: 30 },
   polyline: { points: [[50,400],[350,400],[350,600]], expectedMetres: 50 },
   area: { points: [[50,450],[150,450],[150,550],[50,550]], expectedSquareMetres: 100 },
   zone: { bounds: [50,50,400,250], expectedSymbolCount: 6 },
+  revisionChanges: variant === 'revision' ? { removedCentres: [[100,100]], addedCentres: [[350,150]], unchangedCount: 5 } : null,
   limitations: ['Single page, vector only', 'No trade-specific recognition claim', 'No benchmark budget accepted', 'No renderer or product tested'],
 };
 await mkdir(destination, { recursive: true });

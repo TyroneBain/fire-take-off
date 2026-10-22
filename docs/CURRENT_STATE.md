@@ -1,135 +1,49 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22. Live REA MCP verification now PASSES in the fresh Codex session. Phase 0 technical requirements pass; delivery of this evidence commit is the final foundation checkpoint. Phase 1 is IN DEVELOPMENT; Phase 2 application development has not started.
-
-## Latest verified work and next action
-
-- Read root instructions, vision, roadmap, current state, REA setup and installed workflow 42. Root/origin confirmed, main initially clean at `4a0dc1732161df5e23e7370fbb256dc013fa63dd`; no nested AGENTS files.
-- Live REA 6.7.0 identity aligned; actual MCP owned-fixture analysis returned complete evidence. Seven source comparisons and 3/3 Node behavior tests passed. See `docs/evidence/rea-live-mcp-2026-10-22.json`. Complete raw bundle stays ignored locally. Static analysis does not establish execution; semantic unknowns remain recorded.
-- Continued Phase 1: dependency-free original vector PDF generator, provenance and labelled geometry; eleven concrete acceptance cases in ACCEPTANCE_CASES.md linked to parity IDs. No product stack adopted and all product features remain NOT STARTED.
-- Generated fixture SHA-256 `5134016a0ce1d885aead56527ef531f38b5ea0e0927ef939b691e1c45a41d0ca`; independent byte checks passed for manifest digest, xref, five object offsets and stream length. Rendering remains unverified. See drawing-fixture checks evidence.
-- GitHub connector reconfirmed PRIVATE visibility and remote main equal to starting local HEAD. Sandbox Git DNS failed; escalated read reached GitHub but failed because shell credentials are unavailable. Delivery must use the authenticated API with expected-head protection; no shell push is claimed.
-- No roadmap/architecture waiver. Phase 1 still needs actual controlled reference behavior for corrections, zones, revisions and outputs; raster/multipage/large drawing sets; measured/accepted tolerances and budgets; stack ADR.
-- Next executable task: independently render/inspect the generated PDF, extend the corpus with raster and revision variants, then observe normal reference workflows using only owned scratch inputs. Resolve P0 questions before starting Phase 2.
-- Commit/delivery: this session batch is prepared for API publication on main using the existing parent above. Use `git log -1` and authenticated remote readback for the final SHA. If delivery fails, retain this work and create tree/commit through GitHub API, update main with expected parent and reconcile local commit hash.
-
-Earlier handover below is historical; its pending-live-REA statements are superseded by this section.
+Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 IN DEVELOPMENT. No replacement application has been implemented; all 71 product requirements remain NOT STARTED.
 
 ## Repository and delivery
 
-Local root: `/Users/tyronebain/Projects/fire-take-off`. Branch: `main`. Origin: `https://github.com/TyroneBain/fire-take-off.git`.
+Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Session began clean at `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`, the published live-MCP/corpus foundation commit. Local/remote SHA and tree matched after prior API publication. Repository visibility was confirmed PRIVATE with authenticated push permission. Shell Git reached GitHub only outside sandbox, then failed for unavailable credentials. Use the GitHub connector with expected-head protection; do not claim shell push works.
 
-Authenticated GitHub connector confirms repository visibility PRIVATE and TyroneBain admin/push permission. Repository was empty before this work. Initial README published through the GitHub API at `4a733b80dabbbb7bd4ba0a16b3aebd59e44bcfd0`. The complete 26-file foundation batch was published at `57b1d2af0448726cc3ebd4520b298f3f30b8b0b0`, tree `fceefbea6df6b57d50b563529bb003a35da40a23`; GitHub readback confirmed 26 files and PRIVATE visibility. Both published commits and their trees were reproduced and hash-verified locally, with a clean worktree. This delivery handover is maintained in a following commit; use `git log -1` for its own final SHA. All foundation documentation, fixture and sanitised evidence are committed and delivered through the authenticated API. No shell push succeeded: shell Git cannot resolve github.com. Shell Git authentication is unverified; connector permissions do not establish shell credentials. gh and Homebrew are absent.
+This session's verified batch is prepared for API delivery using that parent. Its final SHA is available through `git log -1` after publication/reconciliation; verify the remote ref. If delivery fails, preserve all files/index, create a tree from these changed paths over the parent tree, create the commit, update main with expected SHA, and reproduce exact commit/tree objects locally. Never overwrite a changed remote head.
 
-No existing repository files or unrelated work were overwritten. Project Git identity is derived from the authenticated account's observed initial commit; no global Git identity was changed.
+## Completed and observed
 
-## Finished
+- Read AGENTS, vision, roadmap and prior state; confirmed root/origin/main and clean worktree. No nested AGENTS files.
+- REA 6.7.0 live MCP verification already passed in this fresh session: aligned workflow 42, actual owned-fixture analysis, seven source checks and 3/3 Node behavior tests. Evidence: `docs/evidence/rea-live-mcp-2026-10-22.json`; prior Terminal recovery separately recorded. No REA repair or third-party analysis performed in this follow-up.
+- Added Apple PDFKit independent inspection/render script and corpus derivation script. Original vector and raster renders visually show the six symbols/run/area/zone. Rotated media box now renders fully after fixing the initial clipped viewport. Crop metadata checked separately.
+- Derived/reopened 10/100-page repeated vector PDFs; all page dimensions checked. Generated a revision with six symbols but one removed, one added and five unchanged. Malformed PDF exits 1; unsupported generator variant rejects before writing output. Evidence/digests/environment: `docs/evidence/drawing-corpus-2026-10-22.json`.
+- Public help centre is accessible in Chrome. Read eight articles for zones/order, scale, false positives, reclassification, workbook layout, itemisation and checking outputs. `docs/REFERENCE_RULES.md` records sources/dates/rules/unknowns. Added F062–F071 and acceptance cases A012–A016. Earlier 61-entry reports remain historical.
+- Created unassigned reference project `Fire Take Off synthetic research 2026-10-22`, takeoff `Rev 0`, empty discipline `Synthetic fixture`. Successful creation and disabled empty export observed. Scratch content retained; no unrelated project edited and no assignments/messages sent.
+- Attempted normal Upload with our original PDF. Chrome tool rejected its path as outside configured workspace roots. No upload/count/measure/export happened. Private IDs/URLs, account data and third-party assets are not committed.
 
-- Requested repository layout and placeholders; root AGENTS.md provides persistent start/session/verification/commit/handover rules.
-- Product objective, eight-phase roadmap with exit criteria, development/testing rules and major decision log.
-- Initial public inventory contained 59 features. Authenticated beta UI research expands it to 61 with title extraction and product catalogue requirements. Each entry retains source, workflow, status, acceptance requirements, limitation and priority; all product statuses remain NOT STARTED. Exhaustive research remains incomplete.
-- Architecture comparison and recommendation, explicitly not adopted. No product scaffolding/dependencies or Countfire replacement development.
-- Original dependency-free JavaScript fixture. Its 3 behavior tests pass.
-- REA 6.7.0 runtime installed locally in ignored `.local/rea-runtime`, official archive and 149 dependency archive integrity checks passed; offline npm install succeeded with 146 packages. Optional native packages/apps were not installed.
-- Official dry-run/setup/doctor and actual CLI fixture analysis attempted. Sanitised failed-result evidence and partial observation comparison saved. Follow-up Codex doctor remains unhealthy.
-- Chrome DevTools MCP now connects to the authenticated beta Countfire session. Inspected normal project/create dialogs, demo takeoff/drawing tools, specification view and catalogue schemas. Saved 21 sanitised observations and an initial feature-linked workflow/acceptance matrix in WORKFLOW_SPECIFICATIONS.md. No proprietary source, private project identifiers, drawing assets or catalogue values saved; no persistent Countfire changes submitted.
+## Checks and limitations
 
-## Incomplete, broken or blocked
+Swift 6.3.3, x86_64 macOS 26.7.1 (25G241); Apple PDFKit/AppKit already installed. Both research scripts compiled and ran. Corpus metadata, revision-coordinate and invalid-input checks passed. Base structural checks and Node smoke tests are earlier evidence, not product functionality. No product acceptance cases have run.
 
-1. REA setup is RESOLVED: ordinary-Terminal helper returned ready/configured and backed up the Codex configuration.
-2. CLI analysis is RESOLVED: complete owned-fixture evidence returned; seven independent source-structure comparisons passed. Scoped doctor is healthy with aligned registration and workflow version 42.
-3. Live REA tools remain absent from this older session. Verify actual MCP analysis in the new Codex session launched after repair; this is the remaining Phase 0 gate.
-4. Chrome access is RESOLVED: active Chrome DevTools MCP tools reached authenticated beta Countfire. Research covered normal visible controls and demo navigation. Counting, measurements, correction, save/reload, export, estimating calculations and reference import behavior remain untested. No actual Countfire replacement has been built.
-5. Shell npm/npx DNS and shell Git connectivity fail. Permitted curl downloads and the authenticated GitHub connector work. Shell credentials/push are unverified; do not claim a successful git push.
-6. Countfire file limits, zone boundary/revision rules, workbook schemas, correction behavior and detailed estimating calculations remain unknown. Current visible controls are partially specified. Help centre discovery was sparse. Announced future features are not assumed shipped.
-7. Latest instruction is to unblock REA and build the equivalent. Ordinary-Terminal repair has now succeeded. No waiver is assumed; finish the live MCP check before product development.
+Observed diagnostics: CoreGraphics PDF message during derivation and restricted sysctl message from framework; outputs subsequently reopened successfully. Shell hardware sysctl and piped ps were denied. No hardware budget is inferred from those failures. Search returned no relevant help results; direct web fetch failed, but Chrome read the public pages normally.
 
-## Verification and evidence
+The rotated oracle renders the media box; crop viewport fidelity remains untested. Repeated-page fixtures have trivial geometry and are not representative construction or trade corpora. No timings/memory budgets are measured or accepted. Article text specifies documented behavior, not actual beta numerical results. Six-to-six revision oracle prevents aggregate-only validation.
 
-- Git 2.50.1 (Apple Git-155); Node 24.22.0; npm 11.19.1; Codex CLI 0.163.0.
-- `node --test fixtures/rea-smoke/app.test.mjs`: 3 passed, 0 failed.
-- `node .local/rea-runtime/scripts/rea.mjs --version`: 6.7.0.
-- `setup --client codex --dry-run --json`: planned, exit 0; `setup --client codex --yes --json`: needs_human, exit 1.
-- `doctor --client codex --skill --json`: unhealthy, exit 1; skill/registration missing.
-- `analyze-javascript-application .../fixtures/rea-smoke --json`: failed, exit 1; partial static observations compared with source, seven checks passed. No end-to-end success or live MCP verification.
-- See [REA_SETUP](REA_SETUP.md) and the three JSON summaries under `docs/evidence/`. Raw outputs/runtime remain ignored under `.local/`.
-- `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks passed (13 required files, 5 directory groups, 14 local Markdown links, 59 complete/unique parity rows); staged whitespace review passed. GitHub foundation tree and local index hashes matched, and the worktree was clean after synchronisation. The delivery handover update is checked and published separately. Evidence is recorded in `docs/evidence/foundation-checks.json`.
+## Architecture and roadmap
 
-## Successful ordinary-Terminal recovery
+No product stack adopted. ADR-0007 selects installed PDFKit only as an independent research oracle. Recommendations in ARCHITECTURE remain unaccepted. Full takeoff/estimating, cloud/collaboration and integrations scope remains intact. Original implementation only; no Countfire source, bundles, models or proprietary assets extracted.
 
-- User ran `bash scripts/repair-rea.sh && codex`; inspected its local reports at `.local/rea-recovery.pUqoHu/`.
-- Setup: ready/configured; doctor: healthy; registration and workflow aligned (version 42, 207 advertised tools).
-- Actual CLI analysis returned a complete evidence record without cleanup error. All seven source comparisons passed. The script runs fixture behavior tests before analysis, so this stage was reached after those checks succeeded.
-- Saved `docs/evidence/rea-terminal-recovery-success-2026-10-22.json`. Existing failed-attempt records remain historical.
-- Next: let the newly launched Codex session load REA, read the installed workflow, inspect live identity and analyse fixtures/rea-smoke through its actual MCP tool. Then record evidence and close Phase 0 if every requirement passes. Product implementation has not started.
+Phase 1 still needs P0 controlled drawing workflows, boundary/tie/correction/revision policies, representative small/medium/large vector/raster sets, hardware measurements and accepted tolerances/budgets, and stack ADR. Remaining discovered help articles also need full specification. Phase 2 remains gated.
 
-## Prior restricted-session unblock attempt
+## Next executable task
 
-- Refreshed official setup plan against current configuration; only Codex REA registration and matching workflow proposed, preserving the working Chrome registration.
-- Actual setup again returned exit 1, `needs_human`, failure reason `backup`, no applied actions.
-- Actual owned-fixture analysis again returned exit 1 `cleanup_incomplete`, process inspection `spawn EPERM`; direct permitted ps found no REA analysis worker remaining.
-- Added `scripts/repair-rea.sh`: ordinary-Terminal helper for pinned REA setup, scoped doctor, fixture behavior tests and actual CLI analysis. Bash syntax and official `--plan-only` invocation pass with no applied actions. Successful full recovery and live MCP analysis are NOT verified.
-- Saved `docs/evidence/rea-recovery-attempt-2026-10-22.json`. No product code, private input or third-party code added to the tracked repository. The runtime remains ignored.
-- This repair handover/script is published in the commit containing this update. Inspect `git log -1` for the final hash; remote head and local cleanliness are verified after publication.
+Read the remaining public takeoff/export/import articles and specify multipliers, Ignore behavior, floating references and symbols-removed records. Resolve the Chrome upload tool's workspace configuration through its supported access mechanism before uploading the owned fixture; do not bypass the rejection. Then execute scratch import/count/correct/scale/measure/zone/export and record sanitised results. Extend boundary and realistic drawing fixtures and benchmark candidate renderers before adopting a stack.
 
-## Authenticated browser session results
+## Evidence index
 
-- Chrome tools successfully listed the Countfire tab and read its logged-in dashboard. Normal UI navigation confirmed project → takeoff → discipline → drawing, separate project estimates/specification comparisons, six drawing modes, point/length/area types, layout actions and title extraction.
-- Creation/import/column dialogs were cancelled. No project, takeoff, estimate, mark, zone, catalogue value or upload was saved. No export was run.
-- Reference research is beta-specific and proves observed UI presence/navigation only. The specification matrix proposes tests; none are claimed passed.
-- Browser research files and current handover are delivered in the commit containing this update; use `git log -1` for the final SHA and verify remote head. Delivery uses the existing authenticated GitHub API workflow; shell Git push is still unverified.
+- `docs/evidence/rea-live-mcp-2026-10-22.json`: live identity, seven source checks, behavior tests and semantic limitations.
+- `docs/evidence/rea-terminal-recovery-success-2026-10-22.json`: earlier setup/doctor/CLI success; historical failed installation/analysis/recovery records remain alongside it.
+- `docs/evidence/drawing-fixture-checks-2026-10-22.json`: original PDF byte checks.
+- `docs/evidence/drawing-corpus-2026-10-22.json`: this session's rendered/derived corpus checks and known limits.
+- `docs/evidence/countfire-ui-observations-2026-10-22.json`: earlier 21-entry control/navigation ledger, before any reference writes.
+- `docs/REFERENCE_RULES.md`: current public sources and controlled scratch creation/upload-denial record.
+- `docs/WORKFLOW_SPECIFICATIONS.md` and `docs/ACCEPTANCE_CASES.md`: proposed requirements; none are product acceptance results.
 
-## Roadmap and architecture
-
-Phase 0 foundation → Phase 1 research/specification → Phase 2 PDF core → Phase 3 recognition/counting → Phase 4 measures/zones → Phase 5 revisions/advanced takeoff → Phase 6 schedules/estimating → Phase 7 full parity/performance acceptance.
-
-Recommended candidates: TypeScript/React UI, PDF.js worker rendering, Canvas overlays, loopback Node service or later Electron packaging, SQLite plus immutable local files, independent CV worker with OpenCV benchmark, ExcelJS evaluation and behavior-focused test tooling. No stack decision accepted. See ARCHITECTURE and ADR-0003.
-
-## Folder structure
-
-```text
-fire-take-off/
-├── AGENTS.md
-├── README.md
-├── .gitignore
-├── .editorconfig
-├── docs/
-│   ├── PRODUCT_VISION.md
-│   ├── FEATURE_PARITY.md
-│   ├── ROADMAP.md
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   ├── CURRENT_STATE.md
-│   ├── REA_SETUP.md
-│   ├── DEVELOPMENT_RULES.md
-│   ├── TEST_STRATEGY.md
-│   ├── WORKFLOW_SPECIFICATIONS.md
-│   └── evidence/
-│       ├── rea-installation-summary.json
-│       ├── rea-doctor-summary.json
-│       ├── rea-analysis-summary.json
-│       ├── foundation-checks.json
-│       ├── countfire-ui-observations-2026-10-22.json
-│       ├── research-checks-2026-10-22.json
-│       ├── rea-recovery-attempt-2026-10-22.json
-│       └── rea-terminal-recovery-success-2026-10-22.json
-├── scripts/repair-rea.sh
-├── apps/.gitkeep
-├── packages/.gitkeep
-├── tests/.gitkeep
-├── fixtures/rea-smoke/
-│   ├── README.md
-│   ├── package.json
-│   ├── app.mjs
-│   ├── calculation.mjs
-│   └── app.test.mjs
-└── .github/workflows/.gitkeep
-```
-
-`.git/` contains repository metadata. Ignored `.local/` contains this machine's diagnostic runtime and raw evidence. No CI workflow has been implemented.
-
-## Exact next action
-
-The ordinary-Terminal repair has succeeded. Use the fresh `codex` session launched by the user’s command; if it has not opened, run `cd ~/Projects/fire-take-off && codex` in Terminal. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
-
-Initial matrix is now written in WORKFLOW_SPECIFICATIONS.md. Next research work: extend it with actual controlled behavior observations for project → import → select/count → review/correct → calibrate/measure/zone → revision → export → estimate. Resolve P0 unknowns and establish drawing provenance, numerical tolerances and performance budgets before choosing a stack or building product code.
+Generated PDFs/images, raw REA bundle, local tools and reference URLs remain ignored under `.local/` or `/private/tmp`. apps/packages/tests are still placeholders; no CI workflow or product dependencies installed.
