@@ -8,7 +8,7 @@ import { quantityWorkbook } from './workbook.mjs';
 
 const publicRoot = fileURLToPath(new URL('./web/', import.meta.url));
 const vendorRoot = fileURLToPath(new URL('../../node_modules/pdfjs-dist/', import.meta.url));
-const types = { '.html': 'text/html', '.mjs': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm', '.bcmap': 'application/octet-stream', '.ttf': 'font/ttf', '.pfb': 'application/octet-stream' };
+const types = { '.html': 'text/html', '.mjs': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.bcmap': 'application/octet-stream', '.ttf': 'font/ttf', '.pfb': 'application/octet-stream' };
 export async function startApp({ directory = resolve('.local/app'), port = 4173 } = {}) {
   const store = await openStore(directory);
   const token = randomBytes(32).toString('hex');
@@ -94,6 +94,11 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       const counts=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/counts$/);
       if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
       const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);
+      const example=url.pathname.match(/^\/api\/items\/([\w-]+)\/examples$/);
+      const countItem=url.pathname.match(/^\/api\/items\/([\w-]+)$/);
+      if((example&&request.method==='POST'||countItem&&request.method==='PATCH')&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(example&&request.method==='POST')return send(200,store.addCountExample(example[1],body));
+      if(countItem&&request.method==='PATCH')return send(200,store.updateCountItem(countItem[1],body));
       if(request.method==='POST'&&manual){if(!body)throw new AppError(400,'JSON required');return send(201,store.addManualMark(manual[1],body));}
       const mark=url.pathname.match(/^\/api\/marks\/([\w-]+)$/);
       if(request.method==='PATCH'&&mark){if(!body)throw new AppError(400,'JSON required');return send(200,store.updateMark(mark[1],body));}

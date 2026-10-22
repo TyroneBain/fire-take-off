@@ -218,3 +218,120 @@ test('zones: HTTP creation, stale edits, ordered headings and removal use the re
   assert.equal((await request(`/api/zone-headings/${h.id}?version=2`,'DELETE')).status,200);
  }finally{await app.close();}
 });
+
+test('additional examples merge without duplicating or overwriting exclusions and reclassification',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100),hit(d,200,100)]});
+ const b=store.createCount(discipline.id,{name:'Special heads',color:'#dd4422'});
+ const [excluded,moved]=store.snapshot().countMarks;
+ store.updateMark(excluded.id,{included:false,reviewed:true,version:1});
+ store.updateMark(moved.id,{included:true,reviewed:true,version:1,item_id:b.id});
+ const before=store.snapshot().countMarks;
+ const second={...example(d),bounds:[290,90,310,110]};
+ const result=store.addCountExample(a.id,{version:1,example:second,matches:[hit(d,100,100),hit(d,200,100),hit(d,300,100),hit(d,300,100)]});
+ assert.equal(result.added,1);assert.equal(result.skipped,3);assert.equal(result.item.version,2);
+ let state=store.snapshot();assert.equal(state.countExamples.length,2);assert.equal(state.countMarks.length,3);
+ for(const m of before)assert.deepEqual(state.countMarks.find(v=>v.id===m.id),m);
+ const repeated=store.addCountExample(a.id,{version:2,example:second,matches:[hit(d,100,100),hit(d,200,100),hit(d,300,100)]});
+ assert.equal(repeated.added,0);assert.equal(repeated.skipped,3);assert.equal(repeated.item.version,2);assert.equal(store.snapshot().countExamples.length,2);
+ state=store.snapshot();store.close();store.close=()=>{};const reopened=await openStore(directory);assert.deepEqual(reopened.snapshot(),state);reopened.close();
+});
+
+test('example batches validate even skipped matches and roll back all new examples/results on error',async t=>{
+ const {store,discipline,drawing:d,bytes}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100)]});
+ const baseline=store.snapshot(),newExample={...example(d),bounds:[190,90,210,110]};
+ for(const payload of [
+  {version:0,example:newExample,matches:[]},
+  {version:1,example:{...newExample,digest:'stale'},matches:[]},
+  {version:1,example:newExample,matches:[hit(d,200,100),{...hit(d,100,100),digest:'stale'}]},
+  {version:1,example:newExample,matches:[hit(d,200,100),null]},
+  {version:1,example:newExample,matches:[hit(d,200,100),hit(d,99999,100)]}
+ ]){assert.throws(()=>store.addCountExample(a.id,payload));assert.deepEqual(store.snapshot(),baseline);}
+ const other=store.create('discipline',discipline.parent_id,'Other'),foreign=await store.importPdf(other.id,'Other.pdf',bytes);
+ assert.throws(()=>store.addCountExample(a.id,{version:1,example:newExample,matches:[hit(d,200,100),hit(foreign,100,100)]}),{status:400});
+ assert.equal(store.snapshot().countMarks.length,1);assert.equal(store.snapshot().countExamples.length,1);
+});
+
+test('reclassification preserves identity, original heading, quantities and history through repeated moves',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'A'}),b=store.createCount(discipline.id,{name:'B',color:'#ff4400'}),c=store.createCount(discipline.id,{name:'C'});
+ let m=store.addManualMark(a.id,{drawing_id:d.id,page:1,x:100,y:100});
+ const origin=m;
+ for(const target of [b,c,a]){
+  m=store.updateMark(m.id,{item_id:target.id,included:true,reviewed:true,version:m.version});
+  assert.equal(m.original_item_id,a.id);assert.equal(m.id,origin.id);assert.equal(m.x,origin.x);assert.equal(m.y,origin.y);
+  assert.equal(store.snapshot().countMarks.length,1);assert.equal(store.snapshot().quantitySchedule.reduce((n,r)=>n+r.value,0),1);assert.equal(store.snapshot().quantitySchedule[0].item_id,target.id);
+ }
+ assert.equal(store.events(a.id).length,3);assert.equal(store.events(b.id).length,2);assert.equal(store.events(c.id).length,2);
+ assert.ok(store.events(a.id).every(e=>e.action==='reclassify'));
+ const renamed=store.updateCountItem(a.id,{name:'Renamed',color:'#123456',version:1});assert.equal(renamed.version,2);assert.equal(store.snapshot().quantitySchedule[0].name,'Renamed');
+ assert.throws(()=>store.updateCountItem(a.id,{name:'Lost update',color:'#ffffff',version:1}),{status:409});
+ assert.throws(()=>store.updateCountItem(a.id,{name:'Invalid colour',color:'red',version:2}),{status:400});
+ const excluded=store.updateMark(m.id,{item_id:b.id,included:false,reviewed:true,version:m.version});assert.equal(excluded.included,0);assert.equal(store.snapshot().quantitySchedule.length,0);
+});
+
+test('reclassification rejects wrong scope, destination collisions and stale changes without audit edits',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'A'}),b=store.createCount(discipline.id,{name:'B'});
+ const other=store.create('discipline',discipline.parent_id,'Other'),foreign=store.createCount(other.id,{name:'Foreign'});
+ const m=store.addManualMark(a.id,{drawing_id:d.id,page:1,x:100,y:100});store.addManualMark(b.id,{drawing_id:d.id,page:1,x:100.1,y:100.1});
+ const baseline=store.snapshot();
+ for(const payload of [{item_id:b.id},{item_id:foreign.id},{item_id:a.id,version:0},{item_id:null}]){
+  assert.throws(()=>store.updateMark(m.id,{included:true,reviewed:true,version:1,...payload}));assert.deepEqual(store.snapshot(),baseline);
+ }
+});
+
+test('schema 5 migration retains original examples, reviewed decisions and source provenance',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Existing',example:example(d),matches:[hit(d,100,100)]});
+ const m=store.snapshot().countMarks[0];store.updateMark(m.id,{included:false,reviewed:true,version:1});
+ store.close();store.close=()=>{};const {DatabaseSync}=await import('node:sqlite');const db=new DatabaseSync(join(directory,'projects.sqlite'));
+ db.exec('DROP TABLE count_examples; ALTER TABLE count_items DROP COLUMN version; ALTER TABLE count_marks DROP COLUMN original_item_id; UPDATE schema_version SET version=5');db.close();
+ const reopened=await openStore(directory);try{
+  const state=reopened.snapshot();assert.equal(state.countItems[0].version,1);assert.equal(state.countExamples.length,1);assert.deepEqual(state.countExamples[0].example,example(d));assert.equal(state.countMarks[0].original_item_id,a.id);assert.equal(state.countMarks[0].included,0);assert.equal(state.countMarks[0].version,2);assert.equal(state.countEvents.length,1);assert.equal(state.drawings[0].digest,d.digest);
+ }finally{reopened.close();}
+});
+
+test('workbook uses reclassified totals and records original/current headings and correction history',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Original heads',example:example(d),matches:[hit(d,100,100),hit(d,200,100)]}),b=store.createCount(discipline.id,{name:'Special heads'});
+ const [one,two]=store.snapshot().countMarks;
+ store.updateMark(one.id,{item_id:b.id,included:true,reviewed:true,version:1});store.updateMark(two.id,{included:false,reviewed:true,version:1});
+ const result=await quantityWorkbook(store.snapshot(),discipline.parent_id),book=new ExcelJS.Workbook();await book.xlsx.load(result.bytes);
+ const rows=book.getWorksheet('Sprinkler').getSheetValues().slice(2).map(r=>r.slice(1));assert.equal(rows.length,1);assert.equal(rows[0][1],'Special heads');assert.equal(rows[0][6],1);
+ const instance=book.getWorksheet('Count instances').getSheetValues().slice(2).find(r=>r[11]===one.id);assert.equal(instance[2],'Special heads');assert.equal(instance[12],'Original heads');assert.equal(instance[13],a.id);assert.equal(instance[14],b.id);
+ const audit=book.getWorksheet('Review history').getRow(2);assert.equal(audit.getCell(2).value,'reclassify');assert.equal(audit.getCell(7).value,'Original heads');assert.equal(audit.getCell(8).value,'Special heads');
+ store.addCountExample(a.id,{version:1,example:{...example(d),bounds:[190,90,210,110]},matches:[]});assert.notEqual((await quantityWorkbook(store.snapshot(),discipline.parent_id)).snapshotDigest,result.snapshotDigest);
+});
+
+test('count heading/example and reclassification HTTP routes enforce token, versions and JSON validation',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Heads'}),b=store.createCount(discipline.id,{name:'Special'});
+ const {startApp}=await import('../apps/local/server.mjs'),app=await startApp({directory,port:0});
+ try{
+  const {token}=await(await fetch(app.origin+'/api/session')).json();
+  const request=(path,method,body,auth=true)=>fetch(app.origin+path,{method,headers:{'Content-Type':'application/json',...(auth?{'X-Fire-Token':token}:{})},body:JSON.stringify(body)});
+  const route=`/api/items/${a.id}/examples`,payload={version:1,example:example(d),matches:[hit(d,100,100)]};
+  assert.equal((await request(route,'POST',payload,false)).status,403);assert.equal((await request(route,'POST',null)).status,400);assert.equal((await request(route,'POST',payload)).status,200);assert.equal((await request(route,'POST',payload)).status,409);
+  const m=store.snapshot().countMarks[0];assert.equal((await request(`/api/marks/${m.id}`,'PATCH',{item_id:b.id,included:true,reviewed:true,version:1})).status,200);
+  assert.equal((await request(`/api/items/${b.id}`,'PATCH',{name:'Red heads',color:'#ff0000',version:1})).status,200);
+  const state=await(await fetch(app.origin+'/api/state')).json();assert.equal(state.countMarks[0].item_id,b.id);assert.equal(state.countMarks[0].original_item_id,a.id);assert.equal(state.countExamples.length,1);assert.equal(state.quantitySchedule[0].name,'Red heads');
+ }finally{await app.close();}
+});
+
+test('independent two-orientation corpus: additional example expands three matches to five distinct instances',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ const width=180,height=130,data=new Uint8Array(width*height),upright=[[25,25],[65,25],[105,25]],rotated=[[25,75],[65,75]];
+ // Independently declared asymmetric L glyphs; final shape is an unrelated straight line.
+ function glyph(cx,cy,turn){for(let i=-5;i<=5;i++)for(const [x,y]of [[-5,i],[i,5]]){const [dx,dy]=turn?[-y,x]:[x,y];data[(cy+dy)*width+cx+dx]=1;}}
+ upright.forEach(([x,y])=>glyph(x,y,false));rotated.forEach(([x,y])=>glyph(x,y,true));for(let y=70;y<=80;y++)data[y*width+150]=1;
+ const raster={data,width,height},first=findMatches(raster,exampleImage(raster,[15,15,35,35])),second=findMatches(raster,exampleImage(raster,[15,65,35,85]));
+ assert.equal(first.length,3);assert.equal(second.length,2);
+ for(const [group,oracle]of [[first,upright],[second,rotated]])for(const [x,y]of oracle)assert.ok(group.some(m=>Math.abs(m.left+m.width/2-x)<=1&&Math.abs(m.top+m.height/2-y)<=1));
+ const results=found=>found.map(m=>hit(d,m.left+m.width/2,m.top+m.height/2));
+ const item=store.createCount(discipline.id,{name:'Both orientations',example:{...example(d),bounds:[15,15,35,35]},matches:results(first)});
+ const addition=store.addCountExample(item.id,{version:1,example:{...example(d),bounds:[15,65,35,85]},matches:results(second)});
+ assert.equal(addition.added,2);assert.equal(addition.skipped,0);assert.equal(store.snapshot().countMarks.length,5);assert.equal(store.snapshot().countExamples.length,2);
+ // This raster is a domain oracle, not a claim that these glyphs occur in the PDF source fixture.
+});

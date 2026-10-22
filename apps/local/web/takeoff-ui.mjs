@@ -3,25 +3,26 @@ import { inkImage,exampleImage,MATCHER_VERSION } from './matcher.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode}) {
-  let mode=null,action=null,selectedItem=null,drag=null,draft=[],job=null,reviewing=null;
+  let mode=null,action=null,selectedItem=null,drag=null,draft=[],job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false;
   const json=(method,body)=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const items=()=>context().state?.countItems?.filter(i=>i.discipline_id===context().drawing?.discipline_id)||[];
   const marks=()=>context().state?.countMarks||[];
-  function deactivate(){mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
+  function deactivate(){reclassification=null;mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
   function point(event){const c=context();if(!c.viewport)return null;const p=pagePoint(c.viewport,$('pdf-canvas').getBoundingClientRect(),event.clientX,event.clientY),v=c.drawing.pages[c.pageNumber-1].view;return p[0]>=v[0]&&p[0]<=v[2]&&p[1]>=v[1]&&p[1]<=v[3]?p:null;}
   function paint(){
     const c=context();if(!c.state)return;
     const available=items();if(!available.some(i=>i.id===selectedItem))selectedItem=available[0]?.id||null;
     const list=$('count-items');list.replaceChildren();
-    for(const item of available){const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.length)));if(pending.length)b.append(node('small',`${pending.length} to review`));list.append(b);}
-    $('add-manual-match').disabled=!selectedItem||!!job;
+    for(const item of available){const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.length)));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));list.append(b);}
+    for(const id of ['add-manual-match','add-current-example','edit-count-item'])$(id).disabled=!selectedItem||!!job;
     const current=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);
     $('review-page').disabled=!current.length||!!job;
     $('review-all').disabled=!selectedItem||!!job;
     $('next-unreviewed').disabled=!marks().some(m=>m.item_id===selectedItem&&m.included&&!m.reviewed)||!!job;
+    $('reclassify-matches').disabled=!current.length||!!job;paintReclassification();
     const review=$('count-review-list');review.replaceChildren();
-    current.forEach((m,index)=>{const b=button(`${index+1}. ${m.included?'Included':'Excluded'}${m.reviewed?' · reviewed':' · needs review'}`,()=>openReview(m),'match-row');b.classList.toggle('excluded',!m.included);review.append(b);});
+    current.forEach((m,index)=>{const b=button(`${index+1}. ${m.included?'Included':'Excluded'}${m.reviewed?' · reviewed':' · needs review'}`,()=>openReview(m),'match-row');b.classList.toggle('excluded',!m.included);if(m.original_item_id!==m.item_id)b.append(node('small',` · originally ${c.state.countItems.find(i=>i.id===m.original_item_id)?.name||'Unknown'}`));review.append(b);});
     const calibration=c.state.calibrations?.find(v=>v.drawing_id===c.drawing?.id&&v.page===c.pageNumber);
     $('calibration-status').textContent=calibration?`Scale set · ${calibration.distance} ${calibration.unit} reference`:'No scale set for this page';
     const measurements=c.state.measurements?.filter(m=>m.drawing_id===c.drawing?.id&&m.page===c.pageNumber)||[];
@@ -36,16 +37,58 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const overlay=node('div',null,'takeoff-overlay');overlay.id='takeoff-overlay';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');overlay.append(svg);
     function shape(points,area,color,dashed=false){const p=document.createElementNS(svgNS,area?'polygon':'polyline');p.setAttribute('points',points.map(p=>viewPoint(c.viewport,...p).join(',')).join(' '));p.setAttribute('stroke',color);p.setAttribute('stroke-width','2');p.setAttribute('fill',area?color+'22':'none');if(dashed)p.setAttribute('stroke-dasharray','6 4');svg.append(p);}
     for(const m of c.state.measurements||[])if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){if(m.kind==='point'){const [x,y]=viewPoint(c.viewport,...m.points[0]);const circle=document.createElementNS(svgNS,'circle');for(const [k,v]of Object.entries({cx:x,cy:y,r:5,fill:'#c06c23'}))circle.setAttribute(k,v);svg.append(circle);}else shape(m.points,m.kind==='area','#c06c23');}
-    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item)continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
+    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item)continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
     if(drag){const [a,b]=drag;shape([a,[b[0],a[1]],b,[a[0],b[1]]],true,'#168a90',true);}
     if(draft.length)shape(draft,action==='area','#168a90',true);
     $('page-surface').append(overlay);
   }
-  function openReview(mark){reviewing=mark;const item=context().state.countItems.find(i=>i.id===mark.item_id);$('match-description').textContent=`${item?.name||'Item'} · page ${mark.page} · ${mark.origin}${mark.origin==='automatic'?` (${Math.round(mark.score*100)}% image overlap)`:''}`;$('match-included').checked=!!mark.included;$('match-error').textContent='';$('match-dialog').showModal();}
+  function openReview(mark){reviewing=mark;const item=context().state.countItems.find(i=>i.id===mark.item_id);$('match-description').textContent=`${item?.name||'Item'} · page ${mark.page} · ${mark.origin}${mark.origin==='automatic'?` (${Math.round(mark.score*100)}% image overlap)`:''}`;const original=context().state.countItems.find(i=>i.id===mark.original_item_id);$('match-original').textContent=`Original heading: ${original?.name||item?.name||'Unknown'}`;const select=$('match-heading');select.replaceChildren();for(const i of items()){const option=node('option',i.name);option.value=i.id;select.append(option);}select.value=mark.item_id;$('match-included').checked=!!mark.included;$('match-error').textContent='';$('match-dialog').showModal();}
   $('cancel-review').onclick=()=>$('match-dialog').close();
-  $('match-form').onsubmit=async e=>{e.preventDefault();$('save-review').disabled=true;try{await api(`/api/marks/${reviewing.id}`,json('PATCH',{included:$('match-included').checked,reviewed:true,version:reviewing.version}));$('match-dialog').close();await reload();paint();}catch(error){$('match-error').textContent=error.message;}finally{$('save-review').disabled=false;}};
+  $('match-form').onsubmit=async e=>{e.preventDefault();$('save-review').disabled=true;try{await api(`/api/marks/${reviewing.id}`,json('PATCH',{included:$('match-included').checked,reviewed:true,version:reviewing.version,item_id:$('match-heading').value}));$('match-dialog').close();await reload();paint();}catch(error){$('match-error').textContent=error.message;}finally{$('save-review').disabled=false;}};
   $('count-tool').onclick=()=>activate('count');$('measure-tool').onclick=()=>activate('measure');
-  $('select-example').onclick=()=>{if(job)return;if(!$('count-name').value.trim())return notice('Enter the item name first.',true);action='select';$('tool-help').textContent='Drag a box around one complete symbol';};
+  $('select-example').onclick=()=>{if(job)return;reclassification=null;paintReclassification();if(!$('count-name').value.trim())return notice('Enter the item name first.',true);selectionTarget=null;action='select';$('tool-help').textContent='Drag a box around one complete symbol';};
+  $('add-current-example').onclick=()=>{if(job||!selectedItem)return;reclassification=null;paintReclassification();selectionTarget=items().find(i=>i.id===selectedItem);action='select';$('tool-help').textContent=`Drag another example for ${selectionTarget.name}`;};
+  $('edit-count-item').onclick=()=>{editingItem=items().find(i=>i.id===selectedItem);if(!editingItem)return;$('item-name').value=editingItem.name;$('item-color').value=editingItem.color;$('item-error').textContent='';$('item-dialog').showModal();};
+  $('cancel-item').onclick=()=>$('item-dialog').close();
+  $('item-form').onsubmit=async e=>{e.preventDefault();$('save-item').disabled=true;try{await api(`/api/items/${editingItem.id}`,json('PATCH',{name:$('item-name').value,color:$('item-color').value,version:editingItem.version}));$('item-dialog').close();await reload();paint();}catch(error){$('item-error').textContent=error.message;}finally{$('save-item').disabled=false;}};
+  function paintReclassification(){
+    const c=context();if(reclassification&&(reclassification.drawingId!==c.drawing?.id||reclassification.page!==c.pageNumber))reclassification=null;
+    $('reclassify-panel').hidden=!reclassification;
+    if(!reclassification)return;
+    const m=marks().find(m=>m.id===reclassification.ids[reclassification.index]);if(!m){reclassification=null;$('reclassify-panel').hidden=true;return;}
+    const original=items().find(i=>i.id===m.original_item_id),current=items().find(i=>i.id===m.item_id);
+    $('reclassify-current').textContent=`Match ${reclassification.index+1} of ${reclassification.ids.length} · ${current?.name} · originally ${original?.name}${m.included?'':' · excluded'}`;
+    $('reclassify-previous').disabled=reclassifying||reclassification.index===0;
+    $('reclassify-next').disabled=reclassifying||reclassification.index===reclassification.ids.length-1;
+    const list=$('reclassify-headings');list.replaceChildren();
+    const all=items(),filter=$('reclassify-filter').value.toLowerCase();
+    all.forEach((i,index)=>{if(!i.name.toLowerCase().includes(filter))return;const b=button(`${all.length<=9?`${index+1}. `:''}${i.name}`,()=>reclassifyTo(i.id),'match-row');b.disabled=reclassifying||m.item_id===i.id;b.style.borderLeft=`5px solid ${i.color}`;list.append(b);});
+  }
+  function focusReclassification(){paint();const id=reclassification?.ids[reclassification.index];if(id)document.querySelector(`[data-mark-id="${id}"]`)?.scrollIntoView({block:'center',inline:'center'});}
+  function toggleReclassification(){
+    if(reclassifying)return;if(reclassification){reclassification=null;paint();return;}
+    const c=context();if(!c.viewport||!c.drawing)return;const rect=$('drawing-stage').getBoundingClientRect(),centre=pagePoint(c.viewport,$('pdf-canvas').getBoundingClientRect(),rect.left+rect.width/2,rect.top+rect.height/2);
+    const queue=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing.id&&m.page===c.pageNumber).sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1])||a.id.localeCompare(b.id));
+    if(!queue.length)return;action=null;drag=null;reclassification={ids:queue.map(m=>m.id),index:0,drawingId:c.drawing.id,page:c.pageNumber};$('reclassify-filter').value='';focusReclassification();
+  }
+  function moveReclassification(direction){if(!reclassification||reclassifying)return;reclassification.index=Math.max(0,Math.min(reclassification.ids.length-1,reclassification.index+direction));focusReclassification();}
+  async function reclassifyTo(itemId){
+    if(!reclassification||reclassifying)return;const m=marks().find(m=>m.id===reclassification.ids[reclassification.index]);if(!m||m.item_id===itemId)return;
+    reclassifying=true;paintReclassification();
+    try{await api(`/api/marks/${m.id}`,json('PATCH',{item_id:itemId,included:!!m.included,reviewed:true,version:m.version}));await reload();notice('Classification saved');}catch(error){notice(error.message,true);}finally{reclassifying=false;paint();}
+  }
+  $('reclassify-matches').onclick=toggleReclassification;$('reclassify-exit').onclick=toggleReclassification;
+  $('reclassify-previous').onclick=()=>moveReclassification(-1);$('reclassify-next').onclick=()=>moveReclassification(1);$('reclassify-filter').oninput=paintReclassification;
+  document.addEventListener('keydown',e=>{
+    if(mode!=='count'||job||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,[contenteditable]'))return;
+    if(e.key.toLowerCase()==='r'){e.preventDefault();toggleReclassification();}
+    else if(reclassification){
+      if(e.key==='Escape'){e.preventDefault();if(!reclassifying){reclassification=null;paint();}}
+      else if(e.key==='Tab'){e.preventDefault();moveReclassification(e.shiftKey?-1:1);}
+      else if(/^[1-9]$/.test(e.key)&&items().length<=9){e.preventDefault();const i=items()[Number(e.key)-1];if(i)reclassifyTo(i.id);}
+      else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const choices=[...$('reclassify-headings').querySelectorAll('button:not(:disabled)')],at=choices.indexOf(document.activeElement),next=(at+(e.key==='ArrowUp'?-1:1)+choices.length)%choices.length;choices[next]?.focus();}
+    }else if(e.key==='2'){e.preventDefault();$('add-current-example').click();}
+  });
   $('manual-item').onclick=async()=>{try{const c=context(),i=await api(`/api/disciplines/${c.drawing.discipline_id}/counts`,json('POST',{name:$('count-name').value,matches:[]}));selectedItem=i.id;await reload();paint();notice('Manual count created. Choose Add missing match.');}catch(e){notice(e.message,true);}};
   $('add-manual-match').onclick=()=>{action='manual';$('tool-help').textContent='Click each missing item to include it in the count';};
   $('review-page').onclick=async()=>{const c=context(),decisions=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing.id&&m.page===c.pageNumber).map(m=>({id:m.id,version:m.version,included:!!m.included,reviewed:true}));try{await api(`/api/items/${selectedItem}/review`,json('POST',{decisions}));await reload();paint();notice('Page matches reviewed');}catch(e){notice(e.message,true);}};
@@ -53,8 +96,9 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('next-unreviewed').onclick=async()=>{const c=context(),m=marks().find(m=>m.item_id===selectedItem&&m.included&&!m.reviewed);if(!m)return;try{if(m.drawing_id!==c.drawing.id||m.page!==c.pageNumber)await c.openDrawing(c.state.drawings.find(d=>d.id===m.drawing_id),m.page,'count');openReview(m);}catch(e){notice(e.message,true);}};
   const surface=$('page-surface');
   surface.addEventListener('pointerdown',e=>{if(mode!=='count'||action!=='select'||job||e.target.closest('button'))return;const p=point(e);if(!p)return;e.preventDefault();drag=[p,p];try{surface.setPointerCapture(e.pointerId);}catch{}paintOverlay();});
+  surface.addEventListener('pointercancel',()=>{drag=null;paintOverlay();});
   surface.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);if(p){drag[1]=p;paintOverlay();}});
-  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;action=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);runMatching(bounds).catch(e=>notice(e.message,true));});
+  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;action=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);runMatching(bounds,selectionTarget).catch(e=>notice(e.message,true));});
   surface.addEventListener('click',async e=>{
     if(e.target.closest('button'))return;const p=point(e);if(!p)return;const c=context();
     if(mode==='count'&&action==='manual'&&selectedItem){try{await api(`/api/items/${selectedItem}/marks`,json('POST',{drawing_id:c.drawing.id,page:c.pageNumber,x:p[0],y:p[1]}));await reload();paint();}catch(error){notice(error.message,true);}return;}
@@ -72,11 +116,11 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('calibration-form').onsubmit=async e=>{e.preventDefault();const c=context(),previous=c.state.calibrations.find(v=>v.drawing_id===c.drawing.id&&v.page===c.pageNumber);$('save-calibration').disabled=true;try{await api(`/api/drawings/${c.drawing.id}/calibration`,json('POST',{page:c.pageNumber,points:draft,distance:Number($('known-distance').value),unit:$('known-unit').value,version:previous?.version||0}));$('calibration-dialog').close();draft=[];action=null;await reload();paint();notice('Drawing scale saved');}catch(error){$('calibration-error').textContent=error.message;}finally{$('save-calibration').disabled=false;}};
   function cancelJob(){if(job){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
   $('cancel-match').onclick=cancelJob;
-  async function runMatching(bounds){
-    const c=context(),source=c.drawing,sourcePage=c.pageNumber,label=$('count-name').value.trim();
+  async function runMatching(bounds,targetItem){
+    const c=context(),source=c.drawing,sourcePage=c.pageNumber,label=targetItem?.name||$('count-name').value.trim();
     const targets=$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
     const total=targets.reduce((sum,d)=>sum+d.pages.length,0);if(total>20)throw new Error('Select a scope of at most 20 pages per matching run');
-    const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;
+    const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;paint();
     const opened=new Map();
     async function renderPage(d,number){
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
@@ -105,10 +149,12 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
         for(const hit of found){const [x,y]=rendered.viewport.convertToPdfPoint(hit.left+hit.width/2,hit.top+hit.height/2);matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
       }
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
-      const item=await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example:{drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:MATCHER_VERSION},matches}));selectedItem=item.id;
-      await reload();$('count-progress').textContent=`${matches.length} matches found. Review the marked instances.`;notice(`${matches.length} matches saved for ${label}`);
+      const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:MATCHER_VERSION};
+      const result=targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
+      selectedItem=targetItem?.id||result.id;
+      await reload();const message=targetItem?`${result.added} new matches; ${result.skipped} already saved. Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent=message;notice(`${label}: ${message}`);
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }
-  return {deactivate,paint,activate,get mode(){return mode;},clearDraft(){draft=[];drag=null;action=null;}};
+  return {deactivate,paint,activate,get mode(){return mode;},clearDraft(){draft=[];drag=null;action=null;reclassification=null;}};
 }

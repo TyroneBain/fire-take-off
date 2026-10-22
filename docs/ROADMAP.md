@@ -40,3 +40,5 @@ F003 manual page name/title editing is partially TESTED with source/note preserv
 ADR-0010 takeoff-loop increment: original bounded matching, corrections/review, calibrated point/length/area tools and XLSX are partially TESTED (27 passing suite tests including 3 REA diagnostics). Phases 3/4/6 remain IN DEVELOPMENT, with no exit gates met. Zones, representative recognition benchmarks, connected systems, estimating and full workbook parity remain outstanding.
 
 ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned export columns. Suite 34/34. Phase 4 remains IN DEVELOPMENT: boundary parity, live preview, copying, itemisation/multipliers and performance acceptance still open.
+
+2026-10-23 counting checkpoint: ADR-0013 implemented/tested multiple examples, correction-preserving merge, heading name/colour edits, individual reclassification, page keyboard review and export provenance (42/42 suite). Continue selection management/visibility and representative matching benchmarks; full Smart Select, cross-page reclassification/global-save semantics, revisions and estimating remain open.

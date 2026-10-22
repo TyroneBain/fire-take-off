@@ -31,3 +31,7 @@ All cases require environment/date, fixture SHA, commands or UI steps, observed 
 | A016 | F065,F016,F036 | Generate review outputs; reclassify one match and save | Earlier output identified as stale; regenerated evidence agrees with five/one split | Output schema/lifecycle |
 
 A012–A016 are proposed and have not run in Fire Take Off. Their sources are in [REFERENCE_RULES](REFERENCE_RULES.md).
+
+### A017 — Additional examples and classification (partial TESTED, 2026-10-23)
+
+Use owned examples and independently declared symbol coordinates. Add another example to the same heading: new matches appear once, repeated results do not duplicate, exclusions and reclassification survive. Reject stale example/destination/version/scope atomically. Move an instance A→B→C→A while retaining ID/origin and conserved totals, then export and reconcile original/current IDs and audit. Rename/recolour without changing quantities. Reopen schema 5 data as schema 6. Browser: Add to current, R/Tab/Shift+Tab/numbers/Escape, original-heading text and colour/count updates. Evidence and remaining reference gaps: [count classification](evidence/count-classification-2026-10-23.json).

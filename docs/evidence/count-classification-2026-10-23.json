@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-23",
+  "environment": {
+    "os": "macOS 26.7.1 x86_64",
+    "node": "24.22.0",
+    "npm": "11.19.1",
+    "storage": "SQLite schema 6",
+    "browser": "Chrome through Chrome DevTools MCP"
+  },
+  "scope": [
+    "F008 additional examples",
+    "F009 distinct-pattern recognition oracle",
+    "F012 heading name/colour editing",
+    "F013 correction preservation",
+    "F016 review",
+    "F062 individual reclassification",
+    "F034/F035 export provenance"
+  ],
+  "automated": {
+    "command": "npm test",
+    "passed": 42,
+    "failed": 0,
+    "product_tests": 39,
+    "unchanged_rea_behavior_tests": 3,
+    "cases": [
+      "schema 5 migration and reopen retain source examples, exclusions and audit",
+      "additional examples merge while preserving exclusions/reclassified marks",
+      "duplicate even within batch skipped, repeated identical example reused",
+      "stale/invalid/wrong-scope results roll back entire batch including example",
+      "same-location stale digest validated even when candidate would be skipped",
+      "A to B to C to A reclassification conserves identity and total; intermediate heading history accessible",
+      "destination collision and wrong-discipline/stale edits rejected without mutation",
+      "rename/colour stale edit rejected",
+      "workbook current totals, original/current IDs and event headings reconcile",
+      "HTTP token, JSON, version and real mutation routes",
+      "independent asymmetric L raster: three upright plus two rotated instances, distractor excluded; second example expands 3 to 5"
+    ]
+  },
+  "earlier_failure": {
+    "passed": 38,
+    "failed": 3,
+    "reason": "Default sandbox denied 127.0.0.1 listen EPERM for all three HTTP tests. Permitted rerun passed 41/41. After adding orientation oracle final suite passed 42/42."
+  },
+  "browser": {
+    "fixture": "Owned Original.pdf; pre-existing owned raster/rotated/ten-page counts retained",
+    "baseline_marks": 78,
+    "steps": [
+      "Created Special sprinkler heads through panel; edited colour to #df4829",
+      "Moved one match through review form; source count 78 to 77, destination 0 to 1; marker rgb(223,72,41); original heading retained",
+      "Excluded another match; included total 77",
+      "Pointer-handler selection of second complete symbol ran real PDF.js and matching worker; 0 added, 6 skipped; 78 raw marks, 77 included, one reclassified, two examples",
+      "Reload retained examples and decisions",
+      "R entered sidebar mode; focused nearest on-page match and scrolled to it",
+      "Tab and Shift+Tab navigated queue; key 2 moved a second match, key 1 restored it; Escape exited",
+      "Restored excluded match through review form: final 78 included, original heading 77, special heading 1",
+      "Actual workbook GET returned 200, XLSX content type, 21674 bytes and ZIP header 504b0304"
+    ],
+    "interaction_method": "Normal DOM controls plus synthetic pointer/keyboard events dispatched through the app handlers; not OS-level input automation",
+    "screenshot": "Inline screenshot reviewed; no screenshot file written",
+    "console": "Initial favicon.ico 404 diagnosed; added original favicon.svg with SVG MIME type, restarted service, reload returned icon 200/image/svg+xml with no console errors/warnings."
+  },
+  "sources": [
+    "https://help.countfire.com/en/articles/9792689-match-reclassification",
+    "https://help.countfire.com/en/articles/118318-making-multiple-selections",
+    "https://help.countfire.com/en/articles/89209-selecting-an-item",
+    "https://help.countfire.com/en/articles/89348-editing-selections"
+  ],
+  "limitations": [
+    "No complete Countfire UI or feature parity",
+    "Sidebar reclassification queue is current page; saves each decision immediately instead of global A save",
+    "No selection element erasing/restoration, deletion, group hierarchy, selection thumbnails or persistent visibility filters",
+    "Matcher remains same size/orientation per example; pixel oracle is not PDF recognition or representative construction validation",
+    "Duplicate merge tolerance remains 0.5 native PDF points; no shape-overlap deduplication",
+    "50 examples per heading, 5000 matches per batch, existing 20-page matching limit",
+    "No full feature promoted to VERIFIED; live REA not repeated, earlier owned-fixture evidence remains applicable"
+  ]
+}

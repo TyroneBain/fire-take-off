@@ -143,3 +143,5 @@ textarea{width:100%;font:inherit;line-height:1.6;padding:12px;border:1px solid #
 #page-surface.source-hidden #pdf-canvas{visibility:hidden}
 
 .zone-overlay{position:absolute;inset:0;pointer-events:none}.zone-heading-row{display:flex;gap:4px;margin:8px 0;align-items:center}.zone-heading-row button:first-child{flex:1;text-align:left}.zone-heading-row .selected{border-color:#3980b5;background:#eaf3fb}#zone-panel>button{margin-top:10px}#zone-totals p{font-size:12px;line-height:1.5}
+
+.takeoff-marker.reclassification-focus{outline:3px solid #242c4f;outline-offset:4px;z-index:2}#reclassify-panel{border-top:1px solid #c7d6d8;margin-top:18px;padding-top:10px}#reclassify-current{font-size:12px;line-height:1.6}#match-heading{width:100%;padding:10px;margin-bottom:14px}#item-color{height:44px;padding:4px}
