@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-22",
+  "environment": "macOS 26.7.1 x86_64, Node 24.22.0, npm 11.19.1, loopback application",
+  "implementation": "Original code and owned synthetic fixtures; no Countfire code or assets extracted",
+  "automated": {
+    "command": "npm test",
+    "passed": 27,
+    "failed": 0,
+    "productTests": 24,
+    "reaFixtureTests": 3,
+    "checks": [
+      "six labelled bitmap symbols and distractor",
+      "atomic count ingestion and stale review rejection",
+      "manual correction and audit",
+      "analytic 50 m length and 100 m\u00b2 area",
+      "recalibration and invalid polygons",
+      "XLSX reconciliation using ExcelJS and independent Python ZIP/XML reader",
+      "literal formula-like text stays a string"
+    ]
+  },
+  "browser": {
+    "ownedCorpusMatches": {
+      "vector": 6,
+      "raster": 6,
+      "croppedRotated": 6,
+      "tenPages": 60,
+      "total": 78
+    },
+    "correction": "78 to 77 to 78 included marks",
+    "cancel": "No item/marks committed after cancellation",
+    "calibration": "30 m known line selected by pointer",
+    "lengthMetres": 50.013506356157,
+    "areaSquareMetres": 100.13455405968745,
+    "manualPoint": 1,
+    "precisionNote": "Browser endpoint selection is quantized; exact 50/100 quantities verified independently by domain tests, not claimed for pointer-selected geometry",
+    "workbook": "Observed 409 with 72 unreviewed included marks; after review observed 200 and XLSX MIME, 19485 bytes. Subsequent source changes extend snapshot provenance; previous response digest is historical.",
+    "visibility": {
+      "hidden": "hidden",
+      "restored": "visible",
+      "pageMarkersRetained": 6,
+      "stateUnchanged": true,
+      "totalMarks": 78
+    }
+  },
+  "failuresResolved": [
+    "Workbook test helper initially omitted temporary directory; corrected then suite passed",
+    "UUID transitive advisory addressed using ExcelJS-scoped uuid 11.1.1 override; repeat npm audit zero advisories"
+  ],
+  "limitations": [
+    "Same-size/orientation binary image matching only",
+    "20 pages/run, 4 million pixels/page, bounded matching work",
+    "No realistic trade accuracy/performance target accepted",
+    "No zones, Smart Select, revision migration or estimating",
+    "No full parity acceptance passed",
+    "Native file picker automation blocked by browser tool workspace restriction"
+  ]
+}

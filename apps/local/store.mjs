@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { migrateTakeoff,takeoffStore } from './takeoff-store.mjs';
 const execute = promisify(execFile);
 export const MAX_PDF_BYTES = 25 * 1024 * 1024;
 
@@ -32,7 +33,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -49,6 +50,7 @@ export async function openStore(directory) {
     INSERT INTO page_metadata SELECT drawings.id, json_extract(value,'$.number'),
       'Page ' || json_extract(value,'$.number'), '', 1 FROM drawings,json_each(drawings.pages);
     UPDATE schema_version SET version=3; COMMIT;`);
+  migrateTakeoff(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -70,12 +72,14 @@ export async function openStore(directory) {
     if (typeof value !== 'string' || !value.trim() || value.trim().length > 4000) throw new AppError(400, 'Note must contain 1–4000 characters');
     return value.trim();
   }
+  const takeoff=takeoffStore(db,{drawing,requireEntity,name,AppError});
   return {
+    ...takeoff,
     close: () => db.close(),
     snapshot: () => ({ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
       drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
       notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all(),
-      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all() }),
+      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot() }),
     create(kind, parentId, value) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');

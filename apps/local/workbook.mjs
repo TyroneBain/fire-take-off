@@ -1,0 +1,34 @@
+import ExcelJS from 'exceljs';
+import {createHash} from 'node:crypto';
+
+export async function quantityWorkbook(state,takeoffId) {
+  const takeoff=state.entities.find(e=>e.id===takeoffId&&e.kind==='takeoff');
+  if(!takeoff)throw Object.assign(new Error('Takeoff not found'),{status:404});
+  const disciplines=state.entities.filter(e=>e.parent_id===takeoffId&&e.kind==='discipline'),disciplineIds=new Set(disciplines.map(d=>d.id));
+  const drawings=state.drawings.filter(d=>disciplineIds.has(d.discipline_id)),drawingIds=new Set(drawings.map(d=>d.id));
+  const marks=state.countMarks.filter(m=>drawingIds.has(m.drawing_id)),measurements=state.measurements.filter(m=>drawingIds.has(m.drawing_id));
+  const pending=marks.filter(m=>m.included&&!m.reviewed).length;
+  if(pending)throw Object.assign(new Error(`Review ${pending} included matches before exporting`),{status:409});
+  if(measurements.some(m=>m.quantity.value===null))throw Object.assign(new Error('Set a scale on every page with length or area measurements before exporting'),{status:409});
+  const workbook=new ExcelJS.Workbook();workbook.creator='Fire Take Off';workbook.created=new Date();
+  const snapshotDigest=createHash('sha256').update(JSON.stringify({takeoff,disciplines,drawings,marks,measurements,items:state.countItems.filter(i=>disciplineIds.has(i.discipline_id)),calibrations:state.calibrations.filter(c=>drawingIds.has(c.drawing_id)),events:(state.countEvents||[]).filter(e=>marks.some(m=>m.id===e.mark_id)),notes:state.notes.filter(n=>drawingIds.has(n.drawing_id)),pages:state.pageMetadata.filter(p=>drawingIds.has(p.drawing_id))})).digest('hex');
+  function sheet(label,headings){const s=workbook.addWorksheet(label);s.addRow(headings);s.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};s.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF13766F'}};s.views=[{state:'frozen',ySplit:1}];s.columns.forEach((c,i)=>c.width=i===0?28:22);return s;}
+  const overview=sheet('Takeoff overview',['Field','Value']);overview.addRows([['Takeoff',takeoff.name],['Exported',new Date().toISOString()],['Snapshot SHA-256',snapshotDigest],['Drawings',drawings.length],['Disciplines',disciplines.length],['Included reviewed matches',marks.filter(m=>m.included).length],['Excluded matches',marks.filter(m=>!m.included).length],['Measurement records',measurements.length]]);
+  const drawingSheet=sheet('Drawing list',['Discipline','Source file','Page','Page name','Title','Source SHA-256','Uploaded']);
+  for(const d of drawings)for(const p of d.pages){const metadata=state.pageMetadata.find(m=>m.drawing_id===d.id&&m.number===p.number);drawingSheet.addRow([disciplines.find(v=>v.id===d.discipline_id)?.name,d.name,p.number,metadata?.name||`Page ${p.number}`,metadata?.title||'',d.digest,d.created]);}
+  const noteSheet=sheet('Notes',['Drawing','Page','Note','PDF X','PDF Y']);
+  for(const n of state.notes.filter(n=>drawingIds.has(n.drawing_id)))noteSheet.addRow([drawings.find(d=>d.id===n.drawing_id)?.name,n.page,n.text,n.x,n.y]);
+  const instances=sheet('Count instances',['Discipline','Item','Drawing','Page','Included','Reviewed','Origin','Image score','PDF X','PDF Y','Instance ID']);
+  for(const m of marks){const i=state.countItems.find(i=>i.id===m.item_id),d=drawings.find(d=>d.id===m.drawing_id);instances.addRow([disciplines.find(v=>v.id===d.discipline_id)?.name,i?.name,d.name,m.page,m.included?'Yes':'No',m.reviewed?'Yes':'No',m.origin,m.score,m.x,m.y,m.id]);}
+  const audit=sheet('Review history',['Instance ID','Action','Before included','After included','Version','Date']);
+  for(const e of state.countEvents||[])if(marks.some(m=>m.id===e.mark_id))audit.addRow([e.mark_id,e.action,e.previous.included,e.current.included,e.current.version,e.created]);
+  const usedNames=new Set(workbook.worksheets.map(s=>s.name.toLowerCase()));
+  for(const discipline of disciplines){let label=discipline.name.replace(/[\\/*?:\[\]]/g,' ').replace(/^'+|'+$/g,'').slice(0,27)||'Discipline',suffix=1;const root=label;while(usedNames.has(label.toLowerCase()))label=root.slice(0,25)+' '+suffix++;usedNames.add(label.toLowerCase());
+    const s=sheet(label,['Section','Item','Type','Unit','Drawing','Page','Quantity']);
+    for(const item of state.countItems.filter(i=>i.discipline_id===discipline.id))for(const d of drawings.filter(d=>d.discipline_id===discipline.id))for(const p of d.pages){const quantity=marks.filter(m=>m.item_id===item.id&&m.drawing_id===d.id&&m.page===p.number&&m.included).length;if(quantity)s.addRow(['Count',item.name,'Automatic/manual count','ea',d.name,p.number,quantity]);}
+    for(const m of measurements.filter(m=>drawings.find(d=>d.id===m.drawing_id)?.discipline_id===discipline.id))s.addRow(['Measure',m.name,m.kind,m.quantity.unit,drawings.find(d=>d.id===m.drawing_id).name,m.page,m.quantity.value]);
+    s.getColumn(7).numFmt='0.000';
+  }
+  // All user text is assigned as string cells, never formulas or hyperlinks.
+  return {bytes:Buffer.from(await workbook.xlsx.writeBuffer()),snapshotDigest};
+}

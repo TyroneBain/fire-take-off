@@ -1,5 +1,6 @@
 import * as pdfjs from '/vendor/build/pdf.mjs';
 import { pagePoint, viewPoint } from './coordinates.mjs';
+import { setupTakeoff } from './takeoff-ui.mjs';
 pdfjs.GlobalWorkerOptions.workerSrc = '/vendor/build/pdf.worker.mjs';
 const $ = id => document.getElementById(id);
 let state, token, selectedProject = null, selectedTakeoff = null, createContext;
@@ -7,6 +8,7 @@ let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTa
 let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
+let takeoffUi;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
   clearTimeout(messageTimer); messageTimer = setTimeout(() => { $('message').hidden = true; }, error ? 10000 : 4500);
@@ -21,7 +23,7 @@ function node(tag, text, className) { const element = document.createElement(tag
 function button(text, action, className) { const b = node('button', text, className); b.addEventListener('click', action); return b; }
 function children(parent, kind) { return state.entities.filter(e => e.parent_id === parent && e.kind === kind); }
 function byId(id) { return state.entities.find(e => e.id === id); }
-async function refresh() { state = await api('/api/state'); paint(); }
+async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); }
 function create(kind, parentId) {
   createContext = { kind, parentId };
   $('dialog-title').textContent = `Create ${kind}`; $('entity-name').value = ''; $('dialog-error').textContent = '';
@@ -62,7 +64,7 @@ function paint() {
   const actions = $('actions'); actions.replaceChildren();
   const content = $('content'); content.replaceChildren();
   if (takeoff) {
-    actions.append(button('← Takeoffs', () => { selectedTakeoff = null; paint(); }), button('+ New discipline', () => create('discipline', takeoff.id), 'primary'));
+    actions.append(button('← Takeoffs', () => { selectedTakeoff = null; paint(); }), button('Export Excel', async()=>{try{const response=await fetch(`/api/takeoffs/${takeoff.id}/workbook`);if(!response.ok)throw new Error((await response.json()).error);const url=URL.createObjectURL(await response.blob()),link=document.createElement('a');link.href=url;link.download='Fire-Take-Off-quantities.xlsx';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);notice('Quantity workbook downloaded');}catch(error){notice(error.message,true);}}), button('+ New discipline', () => create('discipline', takeoff.id), 'primary'));
     const disciplines = children(takeoff.id, 'discipline');
     if (!disciplines.length) content.append(empty('Make room for your drawings', 'Create a discipline to keep related drawings together.', () => create('discipline', takeoff.id), 'Create discipline'));
     for (const discipline of disciplines) {
@@ -116,11 +118,12 @@ async function removeDrawing(d) {
     catch (error) { notice(error.message, true); }
   };
 }
-async function openDrawing(d) {
+async function openDrawing(d, targetPage=1, tool=null) {
   const generation = ++renderRevision;
   renderTask?.cancel(); await loadingTask?.destroy(); pdf = null;
   if (generation !== renderRevision) return;
-  drawing = d; pageNumber = 1; rotation = 0;
+  $('hide-source').checked = false; $('page-surface').classList.remove('source-hidden');
+  drawing = d; pageNumber = Math.max(1,Math.min(d.pages.length,targetPage)); rotation = 0;
   activeViewport = null; setNoteMode(false);
   resetPan = true;
   $('workspace').hidden = true; $('viewer').hidden = false; $('drawing-title').textContent = d.name;
@@ -130,7 +133,7 @@ async function openDrawing(d) {
     loadingTask = task;
     const loaded = await task.promise;
     if (generation !== renderRevision) { await task.destroy(); return; }
-    pdf = loaded; await fitWidth();
+    pdf = loaded; await fitWidth(); if(tool)takeoffUi.activate(tool);
   } catch (error) { if (generation === renderRevision) { $('render-status').textContent = 'Unable to display this PDF'; notice(error.message, true); } }
 }
 async function render() {
@@ -151,7 +154,7 @@ async function render() {
     renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: [factor,0,0,factor,0,0] });
     await renderTask.promise; if (generation !== renderRevision) return;
     canvas.id = 'pdf-canvas'; $('page-surface').replaceChildren(canvas);
-    activeViewport = viewport; paintNotes(); paintPage();
+    activeViewport = viewport; paintNotes(); paintPage(); takeoffUi?.paint();
     if (resetPan) { $('drawing-stage').scrollTo(0,0); resetPan = false; }
     $('page-label').textContent = `${pageNumber} / ${pdf.numPages}`; $('zoom-label').textContent = `${Math.round(scale * 100)}%`;
     $('previous-page').disabled = pageNumber <= 1; $('next-page').disabled = pageNumber >= pdf.numPages;
@@ -160,15 +163,18 @@ async function render() {
   } catch (error) { if (error.name !== 'RenderingCancelledException' && generation === renderRevision) { $('render-status').textContent = 'Rendering failed'; notice(error.message, true); } }
 }
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
-function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; $('viewer').hidden = true; $('workspace').hidden = false; }
+function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
-$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { pageNumber--; resetPan = true; render(); } };
-$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { pageNumber++; resetPan = true; render(); } };
+$('hide-source').onchange = () => $('page-surface').classList.toggle('source-hidden', $('hide-source').checked);
+$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
+$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
 $('zoom-in').onclick = () => { scale = Math.min(4, scale * 1.25); render(); };
 $('zoom-out').onclick = () => { scale = Math.max(.1, scale / 1.25); render(); };
 $('fit-page').onclick = fitWidth;
 $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
+$('drawing-select').onchange=()=>{const next=state.drawings.find(d=>d.id===$('drawing-select').value);if(next)openDrawing(next,1,takeoffUi?.mode);};
 function setNoteMode(enabled) {
+  takeoffUi?.deactivate();
   noteMode = enabled; placingNote = false;
   $('notes-panel').hidden = !enabled;
   $('page-panel').hidden = true; $('page-tool').classList.remove('tool-active'); $('page-tool').setAttribute('aria-pressed','false');
@@ -219,6 +225,8 @@ $('page-tool').onclick = ()=>{
 function currentPageMetadata() { return state?.pageMetadata?.find(p=>p.drawing_id===drawing?.id && p.number===pageNumber); }
 function paintPage() {
   const metadata=currentPageMetadata();
+  const selector=$('drawing-select');selector.replaceChildren();
+  for(const d of state?.drawings?.filter(d=>d.discipline_id===drawing?.discipline_id)||[]){const option=node('option',d.name);option.value=d.id;option.selected=d.id===drawing.id;selector.append(option);}
   if(drawing){ $('drawing-title').textContent=metadata&&metadata.name!==`Page ${pageNumber}` ? metadata.name : drawing.name; $('drawing-title').title=[drawing.name,metadata?.title].filter(Boolean).join(' — '); }
   $('page-name').value=metadata?.name || `Page ${pageNumber}`;
   $('page-title').value=metadata?.title || '';
@@ -270,5 +278,6 @@ $('remove-note').onclick = ()=>{
     } catch (error) { $('note-error').textContent = error.message; state = await api('/api/state').catch(()=>state); }
   };
 };
+takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

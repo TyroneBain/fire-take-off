@@ -126,3 +126,18 @@ textarea{width:100%;font:inherit;line-height:1.6;padding:12px;border:1px solid #
 #page-error{font-size:12px;color:#a3433d}
 @media(max-width:1000px){#page-panel{width:220px;padding:15px;height:calc(100vh - 268px)}}
 @media(max-width:650px){#page-panel{width:180px;padding:10px}}
+.takeoff-panel{background:white;border-left:1px solid #d5e0e2;width:300px;flex-shrink:0;padding:22px;overflow:auto;height:calc(100vh - 226px)}
+.takeoff-panel h2{font-size:18px;font-weight:550;margin:0 0 24px}.takeoff-panel h3{font-size:12px;margin:28px 0 12px;color:#547078}
+.takeoff-panel label{display:block;font-size:12px;margin:17px 0 8px}.takeoff-panel input,.takeoff-panel select{width:100%;padding:10px;border:1px solid #b5c9cc;border-radius:6px;background:white;color:#29444d;font:inherit}
+.tool-stack{display:flex;gap:8px;flex-direction:column;margin:15px 0}.tool-stack button{font-size:12px}.takeoff-panel .hint{line-height:1.7;font-size:11px}
+#count-progress{font-size:12px;color:#13766f;line-height:1.7}.count-item{display:flex;gap:8px;width:100%;align-items:center;text-align:left;flex-wrap:wrap;margin:9px 0;padding:12px;font-size:12px}.count-item strong{margin-left:auto;font-size:18px}.count-item small{width:100%;padding-left:20px;color:#977334;font-size:10px}.count-item.selected{border-color:#1b8a80;background:#f0f8f6}.item-colour{height:10px;width:10px;border-radius:50%;flex-shrink:0}
+.match-row{width:100%;text-align:left;font-size:11px;margin-bottom:6px;padding:9px}.match-row.excluded{text-decoration:line-through;color:#89969a}.takeoff-overlay{position:absolute;inset:0;pointer-events:none}.takeoff-overlay svg{position:absolute;inset:0;overflow:visible}.takeoff-marker{pointer-events:auto;position:absolute;transform:translate(-50%,-50%);border:2px solid white;color:white;border-radius:50%;width:24px;height:24px;padding:0;font-size:12px;box-shadow:0 1px 5px #0003}.takeoff-marker.unreviewed{border-style:dashed}.checkbox-label{display:flex;align-items:center;gap:9px}.checkbox-label input{width:auto}
+.measure-types{display:flex;gap:5px;margin:17px 0}.measure-types button{flex:1;padding:8px 3px;font-size:12px}.measure-row{border:1px solid #dce5e5;border-radius:6px;padding:12px;margin:10px 0;display:flex;flex-wrap:wrap;gap:8px}.measure-row strong{font-size:12px;width:100%}.measure-row span{font-size:12px;color:#598077}.measure-row button{margin-left:auto}#calibration-status{font-size:12px;padding:12px 0 17px;color:#75898e}#calibrate{font-size:12px;width:100%}
+#calibration-form input,#calibration-form select{width:100%;padding:10px;border:1px solid #b5c9cc;border-radius:6px;margin:5px 0 15px}#calibration-error,#match-error{font-size:12px;color:#a3433d}
+@media(max-width:1000px){.takeoff-panel{width:245px;padding:15px;height:calc(100vh - 268px)}}
+@media(max-width:650px){.takeoff-panel{width:190px;padding:10px}}
+#drawing-select{max-width:180px;min-width:90px;padding:8px;border:1px solid #d5dee1;border-radius:6px;color:#47656c;background:white;font:inherit;font-size:12px}
+@media(max-width:1200px){.viewer-toolbar{flex-wrap:wrap;height:auto}.viewer-toolbar strong{max-width:150px}.toolbar-controls{margin-left:auto}#drawing-select{max-width:145px}}
+
+/* Keep page dimensions and all takeoff overlays when hiding the source. */
+#page-surface.source-hidden #pdf-canvas{visibility:hidden}

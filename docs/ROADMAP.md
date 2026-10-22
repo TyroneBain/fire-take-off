@@ -34,3 +34,5 @@ Phase 2 IN DEVELOPMENT under ADR-0008. Local project/takeoff/discipline persiste
 F007 text notes now persist with edit/delete/cancel and crop/zoom/rotation checks. Phase 2 remains open for full geometry interactions, robust recovery/accessibility and representative performance; no complete parity or Phase 1 completion claim. Next: editable page metadata and original manual count/measurement workflows with separately specified policies.
 
 F003 manual page name/title editing is partially TESTED with source/note preservation. Next core/takeoff work: editable entity metadata, manual points and calibrated analytic measurements; automatic title extraction and all full-parity obligations remain pending.
+
+ADR-0010 takeoff-loop increment: original bounded matching, corrections/review, calibrated point/length/area tools and XLSX are partially TESTED (27 passing suite tests including 3 REA diagnostics). Phases 3/4/6 remain IN DEVELOPMENT, with no exit gates met. Zones, representative recognition benchmarks, connected systems, estimating and full workbook parity remain outstanding.

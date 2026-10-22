@@ -1,12 +1,12 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 research and Phase 2 core are IN DEVELOPMENT under the sequencing change in ADR-0008. The first local app now works; complete Countfire parity remains far from finished. F001–F007 are TESTED for partial scope, with limitations; no product feature is VERIFIED.
+Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 research and Phase 2 core are IN DEVELOPMENT under the sequencing change in ADR-0008. The first local app now works; complete Countfire parity remains far from finished. F001–F010, F013, F016–F020, F034–F035 have TESTED partial scopes, with limitations; no product feature is VERIFIED.
 
 ## Repository and delivery
 
 Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Core increment published as `f92e19931a1f71e241238a88e626f0f7446a49da` and notes as `92dca0d73b79753cb9b97f5e858c9ad5f948fc93`; exact local tree/commit hashes reproduced and local main reconciled. Prior local/remote commit/tree match was observed. Repository must remain PRIVATE. Shell Git has no usable credentials; use authenticated GitHub API with expected-head protection, never force-push or replace remote changes.
 
-The page-metadata follow-up is prepared for API delivery with parent `92dca0d73b79753cb9b97f5e858c9ad5f948fc93`. After publication/reconciliation, `git log -1` gives its final SHA; read remote ref back and confirm clean worktree. If delivery fails, retain all files/index, create the new tree over the parent tree, create commit with that parent, update main with expected SHA, reproduce exact commit/tree objects locally and advance local main only when hashes match.
+Page metadata was published and reconciled at `f9b71f5e1523a7f38089ba000a3d49269a577b5b` (tree `94d115813fc7bc3f19f5e5c9fc919f48dc07d284`). The current takeoff increment is UNCOMMITTED and has not been pushed. Preserve all pending files. Before delivery inspect/stage changes, verify tree, check remote main and publish with expected-head protection.
 
 ## Run the application
 
@@ -37,11 +37,23 @@ Original independent PDFKit corpus includes raster, rotated/cropped, repeated 10
 
 The authorised reference scratch project `Fire Take Off synthetic research 2026-10-22`, takeoff `Rev 0`, empty discipline `Synthetic fixture` remain in Countfire. Reference upload was denied by the browser tool; no reference count/measurement/export ran. No unrelated project edited; no assignments/messages sent. Public help research is separate from application acceptance.
 
+## Takeoff loop implemented and tested (pending delivery)
+
+ADR-0010 precedes implementation: schema 4 persists count items/examples, source-bound match instances, versioned inclusion/review decisions with append-only correction events, calibrations and native PDF point/length/polygon geometry. Browser workers execute our bounded original binary-overlap matcher; cancellation/failure commits no partial run. Scope can cover one drawing or all discipline drawings. Manual additions, exclusion/restoration, page/item batch review and next-unchecked navigation work. Same size/orientation only; this is not Smart Select or general recognition.
+
+Point/length/area creation and known-length scale calibration support m/mm/ft/in input and produce metres/metres². Unscaled quantities remain unknown. Recalibration recomputes measures. Invalid/crossed/degenerate geometry and stale versions are rejected. Source PDFs stay immutable.
+
+ExcelJS 4.4.0 produces an original snapshot workbook with overview, drawing list, notes, instances, review history and discipline count/measure rows. Export refuses pending included marks and unscaled measures. Snapshot hash now includes definitions, calibrations and review provenance. UUID advisory fixed with scoped 11.1.1 override; audit then zero advisories. Transitive dependency deprecation notices remain. Workbook UI/API transport observed; automated ExcelJS and independent Python ZIP/XML readers reconcile quantities and literal strings.
+
+Final repeated `npm test`: 27 passed, 0 failed (24 product, 3 REA diagnostic). Earlier workbook test helper failed due to missing directory return, then corrected. Browser found 78 owned-fixture matches (6 vector + 6 raster + 6 cropped/rotated + 60 ten-page), exclusion/restoration 78→77→78, cancellation left no committed results. Pointer-selected calibration gave 50.013506 m and 100.134554 m², reflecting endpoint quantization; domain tests independently establish exact analytic 50 m / 100 m². Evidence: `docs/evidence/takeoff-loop-2026-10-22.json`.
+
+Latest user explicitly reauthorised normal Countfire account analysis. Demo takeoff inspected through visible UI only; no source, bundles, customer drawings or account data copied into Git. The newer source-copy request does not establish a Countfire code licence; continue independently implementing behavior. The earlier overnight prohibition on authenticated inspection is superseded by the later explicit access instruction.
+
 ## Incomplete / next executable task
 
-Page names/titles are now editable. Next implement original manual point/length/area workflows with explicit calibration and units, plus behavior tests against analytic fixtures. Continue viewer cancellation/recovery and representative performance observations. Build original automatic symbol example/match/review against labelled fixtures after its policies are specified.
+Hide drawing browser verification passed: canvas hidden/restored, six current-page markers retained, full API state identical and 78 marks unchanged. Checkpoint/deliver this increment. Continue zone polygons and heading-priority allocation after documenting boundary and crossing-measure policies. Keep advanced measures/export limitations explicit. Research remaining normal UI workflows using demo/owned scope, without editing customer work.
 
-Project rename/archive/metadata, drawing/floor organisation, text/search, cloud annotations/note repositioning and exports, automatic recognition/Smart Select, manual corrections, calibration, points/lengths/areas, zones, overlays/revisions, schedules/Excel, estimating/kits/pricing, integrations and cloud collaboration remain incomplete. Full Phase 1 baseline, realistic trade corpus and accepted tolerances/budgets remain obligations. See FEATURE_PARITY for exact status and scope.
+No zones, reclassification, multi-example matching, Smart Select, revisions, connected systems/fittings, estimating or cloud collaboration. 20-page matching limit and 4-million-pixel per-page budget are provisional. No representative trade accuracy target, performance budget, undo, backup/GC or complete accessibility acceptance. No feature has full VERIFIED parity.
 
 ## Evidence and storage
 

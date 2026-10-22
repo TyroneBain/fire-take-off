@@ -28,3 +28,5 @@ Tests cover hierarchy/persistence, source bytes, bad and duplicate input, concur
 Start each development session with [AGENTS](AGENTS.md) and [CURRENT_STATE](docs/CURRENT_STATE.md). See [FEATURE_PARITY](docs/FEATURE_PARITY.md), [ROADMAP](docs/ROADMAP.md), [DECISIONS](docs/DECISIONS.md), [TEST_STRATEGY](docs/TEST_STRATEGY.md) and [third-party notices](THIRD_PARTY.md).
 
 Repository: https://github.com/TyroneBain/fire-take-off — must remain private. REA live MCP verification passed; see [setup and evidence](docs/REA_SETUP.md). REA fixture inspection never targets Countfire code.
+
+Count and measure: open a drawing, choose Count, enter an item name and drag one complete symbol example. Choose a drawing or discipline search scope, then inspect matches and save review decisions. Add missing matches manually. Measure supports points, connected lengths and simple polygon areas; set each page scale using a known length. Return to the takeoff to Export Excel; included matches must be reviewed and length/area pages calibrated. Matching currently requires the same symbol size/orientation and is limited to 20 pages and 4 million pixels/page.

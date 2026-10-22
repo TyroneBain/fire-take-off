@@ -4,6 +4,7 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { openStore, AppError, MAX_PDF_BYTES } from './store.mjs';
+import { quantityWorkbook } from './workbook.mjs';
 
 const publicRoot = fileURLToPath(new URL('./web/', import.meta.url));
 const vendorRoot = fileURLToPath(new URL('../../node_modules/pdfjs-dist/', import.meta.url));
@@ -41,11 +42,13 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         return Buffer.concat(chunks);
       }
       if (write && request.headers['content-type']?.startsWith('application/json')) {
-        try { body = JSON.parse((await readBody(32768)).toString()); }
+        try { body = JSON.parse((await readBody(2*1024*1024)).toString()); }
         catch (error) { if (error.status) throw error; throw new AppError(400, 'Invalid JSON'); }
       }
       if (request.method === 'GET' && url.pathname === '/api/session') return send(200, { token });
       if (request.method === 'GET' && url.pathname === '/api/state') return send(200, store.snapshot());
+      const workbook=url.pathname.match(/^\/api\/takeoffs\/([\w-]+)\/workbook$/);
+      if(request.method==='GET'&&workbook){const result=await quantityWorkbook(store.snapshot(),workbook[1]);response.setHeader('Content-Disposition','attachment; filename="Fire-Take-Off-quantities.xlsx"');response.setHeader('X-Snapshot-SHA256',result.snapshotDigest);return send(200,result.bytes,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');}
       if (request.method === 'POST' && url.pathname === '/api/entities') {
         if (!body || typeof body !== 'object') throw new AppError(400, 'JSON object required');
         return send(201, store.create(body.kind, body.parentId, body.name));
@@ -75,6 +78,22 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         if (!body || typeof body !== 'object') throw new AppError(400,'JSON object required');
         return send(200,store.updatePage(pageMetadata[1],Number(pageMetadata[2]),body));
       }
+      const counts=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/counts$/);
+      if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
+      const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);
+      if(request.method==='POST'&&manual){if(!body)throw new AppError(400,'JSON required');return send(201,store.addManualMark(manual[1],body));}
+      const mark=url.pathname.match(/^\/api\/marks\/([\w-]+)$/);
+      if(request.method==='PATCH'&&mark){if(!body)throw new AppError(400,'JSON required');return send(200,store.updateMark(mark[1],body));}
+      const review=url.pathname.match(/^\/api\/items\/([\w-]+)\/review$/);
+      if(request.method==='POST'&&review){return send(200,store.reviewMarks(review[1],body?.decisions));}
+      const events=url.pathname.match(/^\/api\/items\/([\w-]+)\/events$/);
+      if(request.method==='GET'&&events)return send(200,store.events(events[1]));
+      const calibration=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/calibration$/);
+      if(request.method==='POST'&&calibration){if(!body)throw new AppError(400,'JSON required');return send(200,store.calibrate(calibration[1],body));}
+      const measure=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/measurements$/);
+      if(request.method==='POST'&&measure){if(!body)throw new AppError(400,'JSON required');return send(201,store.createMeasure(measure[1],body));}
+      const removeMeasure=url.pathname.match(/^\/api\/measurements\/([\w-]+)$/);
+      if(request.method==='DELETE'&&removeMeasure){store.deleteMeasure(removeMeasure[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
       if (request.method !== 'GET' || url.pathname.startsWith('/api/')) throw new AppError(404, 'Not found');
       const vendor = url.pathname.startsWith('/vendor/');
       const base = vendor ? vendorRoot : publicRoot;
