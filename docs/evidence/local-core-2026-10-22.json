@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-22",
+  "environment": {
+    "node": "24.22.0",
+    "npm": "11.19.1",
+    "os": "macOS 26.7.1 x86_64",
+    "pdfjs": "6.4.299",
+    "sqlite": "3.53.4",
+    "browser": "connected Google Chrome via Chrome DevTools MCP"
+  },
+  "command": "npm test",
+  "tests": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "productCore": 9,
+    "diagnosticFixture": 3
+  },
+  "audit": {
+    "command": "npm audit --omit=dev --json",
+    "advisories": 0
+  },
+  "features": {
+    "F001": "TESTED (partial scope)",
+    "F002": "TESTED (partial scope)",
+    "F003": "TESTED (partial scope)",
+    "F004": "TESTED (partial scope)",
+    "F005": "TESTED (partial scope)",
+    "F006": "TESTED (partial scope)"
+  },
+  "automatedCoverage": [
+    "hierarchy validation and persistence across reopen",
+    "original PDF byte/hash and page geometry",
+    "malformed/oversized/duplicate rejection without prior-data loss",
+    "shared source isolation and drawing removal",
+    "source tampering detection",
+    "known viewport fiducials and inverse transforms through zoom/rotation",
+    "concurrent duplicate prevention",
+    "maximum two active parsers",
+    "loopback HTTP API, session token/origin rejection and static-file boundary"
+  ],
+  "browserObservations": [
+    "created original project/takeoff/discipline using visible UI",
+    "reloaded and reopened persisted four-drawing set",
+    "original vector rendered; zoom and rotation controls worked",
+    "ten-page drawing navigated from page 1 to page 2",
+    "rotated/cropped PDF rendered using crop view [40,40,440,740] and rotation 90",
+    "raster PDF rendered on 2944x4166 canvas; 60857 dark pixels; visual screenshot reviewed",
+    "after restart/reload browser console had no errors or warnings; initial scroll reset to zero",
+    "cancelled project form created no entity",
+    "dismissed removal dialog preserved all four drawing records"
+  ],
+  "fixtureImportMethod": "actual local API; native file picker untested due MCP path restriction",
+  "earlierFailures": [
+    "SQL insert had eight placeholders for seven columns, corrected",
+    "document.destroy removed in PDF.js 6; switched to loadingTask.destroy",
+    "sandbox denied loopback bind/connect; permission obtained for app/tests",
+    "sandbox npm audit DNS failed; permitted rerun succeeded",
+    "browser screenshot file write denied; inline screenshot review succeeded",
+    "raster ICC color wasm compile initially blocked by CSP; specific wasm policy fixed it"
+  ],
+  "limitations": [
+    "No feature VERIFIED; core acceptance subsets only",
+    "No notes, counting, calibration/measurements, zones, revisions, exports, estimating or collaboration",
+    "25 MiB/200-page provisional local intake limits; no accepted performance budgets",
+    "OS picker, encrypted inputs, realistic drawing complexity and crash recovery untested",
+    "source retention after deletion; no garbage collection or backup UI",
+    "no persisted viewer state or pointer-centred zoom"
+  ],
+  "architectureDecision": "ADR-0008; documented before implementation",
+  "runningUrl": "http://127.0.0.1:4173",
+  "dataLocation": ".local/app (ignored)",
+  "privacy": "original fixture input only; no third-party assets, account data or credentials in tracked files",
+  "documentationChecks": {
+    "links": "passed",
+    "parityRows": 71,
+    "partialTested": 6,
+    "notStarted": 65,
+    "diffCheck": "passed",
+    "sensitivePathsIgnored": true
+  }
+}

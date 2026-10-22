@@ -1,5 +1,11 @@
 # Decision record
 
+## ADR-0008 — Stage research gates by subsystem (accepted 2026-10-22)
+
+Phase 0 is complete and remotely delivered. The global Phase 1 gate has prevented any usable application while advanced behavior research and the reference upload tool remain blocked. Proceed with a reversible local project/PDF core using the already observed hierarchy and original fixtures. Keep unresolved reference rules as gates on their affected counting, measurement, revision and estimating subsystems. This changes sequencing, not scope or evidence standards: no feature is VERIFIED without passing its acceptance cases, and the full Phase 1 baseline/benchmark obligations remain required before parity validation. Do not claim that repeated-page PDFs establish representative performance.
+
+For the first runnable increment, adopt browser-native ES modules, a loopback Node 24 service, built-in SQLite metadata and immutable source files, and the PDF.js display API for original viewer controls. Plain modules avoid adding a UI framework before interaction requirements settle; they can later migrate behind the same domain/API contracts. SQLite in Node 24 is experimental, so retain explicit schema versioning and recovery tests. PDF.js must be pinned after installation and tested against the independent PDFKit oracle. No Countfire implementation or assets are reused. The service is local single-user software; cloud access/collaboration remain unmet.
+
 ## ADR-0001 — Private original implementation (accepted 2026-10-22)
 
 Build Fire Take Off as a private functional equivalent using original code and authorised material. Keep full public takeoff/estimating parity as the objective. Do not extract Countfire source or reuse restricted assets. Consequence: public behavior research and our own acceptance fixtures drive implementation.

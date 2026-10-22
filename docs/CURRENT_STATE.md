@@ -1,49 +1,48 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 IN DEVELOPMENT. No replacement application has been implemented; all 71 product requirements remain NOT STARTED.
+Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 research and Phase 2 core are IN DEVELOPMENT under the sequencing change in ADR-0008. The first local app now works; complete Countfire parity remains far from finished. F001–F006 are TESTED for partial scope, with limitations; no product feature is VERIFIED.
 
 ## Repository and delivery
 
-Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Session began clean at `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`, the published live-MCP/corpus foundation commit. Local/remote SHA and tree matched after prior API publication. Repository visibility was confirmed PRIVATE with authenticated push permission. Shell Git reached GitHub only outside sandbox, then failed for unavailable credentials. Use the GitHub connector with expected-head protection; do not claim shell push works.
+Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Session began clean at `4855f9edf75361f684e924628faeedf6b7ad4997`, the published corpus/research commit. Prior local/remote commit/tree match was observed. Repository must remain PRIVATE. Shell Git has no usable credentials; use authenticated GitHub API with expected-head protection, never force-push or replace remote changes.
 
-This session's verified batch is prepared for API delivery using that parent. Its final SHA is available through `git log -1` after publication/reconciliation; verify the remote ref. If delivery fails, preserve all files/index, create a tree from these changed paths over the parent tree, create the commit, update main with expected SHA, and reproduce exact commit/tree objects locally. Never overwrite a changed remote head.
+This implementation batch is prepared for API delivery using that parent. After publication/reconciliation, `git log -1` gives its final SHA; read remote ref back and confirm clean worktree. If delivery fails, retain all files/index, create the new tree over the parent tree, create commit with that parent, update main with expected SHA, reproduce exact commit/tree objects locally and advance local main only when hashes match.
 
-## Completed and observed
+## Run the application
 
-- Read AGENTS, vision, roadmap and prior state; confirmed root/origin/main and clean worktree. No nested AGENTS files.
-- REA 6.7.0 live MCP verification already passed in this fresh session: aligned workflow 42, actual owned-fixture analysis, seven source checks and 3/3 Node behavior tests. Evidence: `docs/evidence/rea-live-mcp-2026-10-22.json`; prior Terminal recovery separately recorded. No REA repair or third-party analysis performed in this follow-up.
-- Added Apple PDFKit independent inspection/render script and corpus derivation script. Original vector and raster renders visually show the six symbols/run/area/zone. Rotated media box now renders fully after fixing the initial clipped viewport. Crop metadata checked separately.
-- Derived/reopened 10/100-page repeated vector PDFs; all page dimensions checked. Generated a revision with six symbols but one removed, one added and five unchanged. Malformed PDF exits 1; unsupported generator variant rejects before writing output. Evidence/digests/environment: `docs/evidence/drawing-corpus-2026-10-22.json`.
-- Public help centre is accessible in Chrome. Read eight articles for zones/order, scale, false positives, reclassification, workbook layout, itemisation and checking outputs. `docs/REFERENCE_RULES.md` records sources/dates/rules/unknowns. Added F062–F071 and acceptance cases A012–A016. Earlier 61-entry reports remain historical.
-- Created unassigned reference project `Fire Take Off synthetic research 2026-10-22`, takeoff `Rev 0`, empty discipline `Synthetic fixture`. Successful creation and disabled empty export observed. Scratch content retained; no unrelated project edited and no assignments/messages sent.
-- Attempted normal Upload with our original PDF. Chrome tool rejected its path as outside configured workspace roots. No upload/count/measure/export happened. Private IDs/URLs, account data and third-party assets are not committed.
+`npm ci --ignore-scripts`, then `npm start`; open http://127.0.0.1:4173. Node 24.22.x required. The app is running from this session on loopback port 4173. Stop with Ctrl-C in its terminal or stop the owned server process. Data lives in ignored `.local/app/`; retain the whole directory. Optional `FIRE_TAKE_OFF_DATA` selects another store; `PORT` selects another port. No deployment or public hosting was performed.
 
-## Checks and limitations
+## Finished in this increment
 
-Swift 6.3.3, x86_64 macOS 26.7.1 (25G241); Apple PDFKit/AppKit already installed. Both research scripts compiled and ran. Corpus metadata, revision-coordinate and invalid-input checks passed. Base structural checks and Node smoke tests are earlier evidence, not product functionality. No product acceptance cases have run.
+- Documented ADR-0008 BEFORE implementation: allow the reversible project/PDF core after completed Phase 0 while reference behavior research continues. No full Phase 1 completion or parity waiver. Adopted native browser modules, Node loopback service, built-in SQLite and PDF.js 6.4.299. Earlier React/TypeScript recommendations remain unadopted alternatives.
+- Original workspace interface creates and filters projects, creates takeoffs and disciplines, lists drawings and removes drawing records with confirmation.
+- SQLite hierarchy/drawing metadata persist across reopen. Immutable source PDFs are hashed and checked when read; shared-source deletion preserves other drawings. Sources are retained after record removal; retention/garbage collection is not implemented.
+- PDF import: 25 MiB / 200-page local limits, isolated parsing with 256 MiB old-space / 20-second timeout, at most two concurrent parsers, corrupt-input and duplicate rejection. Limits are our provisional capacities, not Countfire facts or accepted performance budgets.
+- PDF.js worker viewer: vector/raster display, page navigation, fit width, zoom, quarter-turn rotation and scroll panning. Original crop/rotation geometry retained; backing canvas capped at 16 million pixels. No text layer, notes or persisted view context yet.
+- Installed pinned dependency and committed lockfile; lifecycle scripts disabled. PDF.js optional @napi-rs/canvas 1.0.13 installed from npm. Dependency licences/notices documented in THIRD_PARTY.md. Audit reported zero advisories.
 
-Observed diagnostics: CoreGraphics PDF message during derivation and restricted sysctl message from framework; outputs subsequently reopened successfully. Shell hardware sysctl and piped ps were denied. No hardware budget is inferred from those failures. Search returned no relevant help results; direct web fetch failed, but Chrome read the public pages normally.
+## Verification and evidence
 
-The rotated oracle renders the media box; crop viewport fidelity remains untested. Repeated-page fixtures have trivial geometry and are not representative construction or trade corpora. No timings/memory budgets are measured or accepted. Article text specifies documented behavior, not actual beta numerical results. Six-to-six revision oracle prevents aggregate-only validation.
+`npm test`: 12 passed, 0 failed (9 product-core tests and 3 unchanged owned-fixture tests). Includes reopen/persistence, bad input, duplicates/concurrency, source integrity, drawing removal, viewport fiducials/inversion and actual HTTP/token/origin behavior. Browser UI hierarchy creation and persisted reopen observed. Four original PDFs imported through our real API; browser rendered vector, raster, rotated/cropped and ten-page inputs, and navigated page 1→2. Zoom/rotation worked. Final raster browser console had no errors/warnings after the WebAssembly policy fix. Evidence: `docs/evidence/local-core-2026-10-22.json`.
 
-## Architecture and roadmap
+Initial failures are retained in evidence: SQL placeholder mismatch corrected; removed PDF.js document cleanup API replaced with loading-task cleanup; sandbox loopback and audit DNS denied then permitted reruns passed; screenshot-file path denied, inline screenshot reviewed; initial raster ICC/WebAssembly warning fixed. Scroll anchoring was disabled and new drawing/page opens reset pan. Final code also resets removal-dialog return value and closes the viewer when creating a different entity.
 
-No product stack adopted. ADR-0007 selects installed PDFKit only as an independent research oracle. Recommendations in ARCHITECTURE remain unaccepted. Full takeoff/estimating, cloud/collaboration and integrations scope remains intact. Original implementation only; no Countfire source, bundles, models or proprietary assets extracted.
+Native OS picker upload remains unautomated because the browser MCP rejects workspace file paths. Our API intake and browser rendering were tested independently; no reference-tool boundary was bypassed. Password-protected files, realistic large sheets, crash recovery, full accessibility and performance budgets remain untested. No tests establish full parity.
 
-Phase 1 still needs P0 controlled drawing workflows, boundary/tie/correction/revision policies, representative small/medium/large vector/raster sets, hardware measurements and accepted tolerances/budgets, and stack ADR. Remaining discovered help articles also need full specification. Phase 2 remains gated.
+## Earlier foundation and research preserved
 
-## Next executable task
+REA live MCP 6.7.0 passed against owned fixture with aligned workflow 42, seven source checks and 3/3 behavior tests. Full evidence/limitations remain in `docs/evidence/rea-live-mcp-2026-10-22.json`; no need to repeat repair. Phase 0 was delivered at `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`.
 
-Read the remaining public takeoff/export/import articles and specify multipliers, Ignore behavior, floating references and symbols-removed records. Resolve the Chrome upload tool's workspace configuration through its supported access mechanism before uploading the owned fixture; do not bypass the rejection. Then execute scratch import/count/correct/scale/measure/zone/export and record sanitised results. Extend boundary and realistic drawing fixtures and benchmark candidate renderers before adopting a stack.
+Original independent PDFKit corpus includes raster, rotated/cropped, repeated 10/100-page and six-to-six revision variants. See `docs/evidence/drawing-corpus-2026-10-22.json`; repeated geometry is not representative construction performance. Eight sourced help rules, 71 parity requirements and 16 proposed acceptance cases remain maintained.
 
-## Evidence index
+The authorised reference scratch project `Fire Take Off synthetic research 2026-10-22`, takeoff `Rev 0`, empty discipline `Synthetic fixture` remain in Countfire. Reference upload was denied by the browser tool; no reference count/measurement/export ran. No unrelated project edited; no assignments/messages sent. Public help research is separate from application acceptance.
 
-- `docs/evidence/rea-live-mcp-2026-10-22.json`: live identity, seven source checks, behavior tests and semantic limitations.
-- `docs/evidence/rea-terminal-recovery-success-2026-10-22.json`: earlier setup/doctor/CLI success; historical failed installation/analysis/recovery records remain alongside it.
-- `docs/evidence/drawing-fixture-checks-2026-10-22.json`: original PDF byte checks.
-- `docs/evidence/drawing-corpus-2026-10-22.json`: this session's rendered/derived corpus checks and known limits.
-- `docs/evidence/countfire-ui-observations-2026-10-22.json`: earlier 21-entry control/navigation ledger, before any reference writes.
-- `docs/REFERENCE_RULES.md`: current public sources and controlled scratch creation/upload-denial record.
-- `docs/WORKFLOW_SPECIFICATIONS.md` and `docs/ACCEPTANCE_CASES.md`: proposed requirements; none are product acceptance results.
+## Incomplete / next executable task
 
-Generated PDFs/images, raw REA bundle, local tools and reference URLs remain ignored under `.local/` or `/private/tmp`. apps/packages/tests are still placeholders; no CI workflow or product dependencies installed.
+Implement F007 persisted page-space notes using PDF.js inverse transforms, with create/edit/delete, cancel, reopen and zoom/rotation/crop tests. Add meaningful viewer render cancellation/recovery and performance observations. Then build original symbol example/match/review workflows against labelled fixtures, resolving their reference rules before parity claims.
+
+Project rename/archive/metadata, drawing/floor organisation, text/search, notes, automatic recognition/Smart Select, manual corrections, calibration, points/lengths/areas, zones, overlays/revisions, schedules/Excel, estimating/kits/pricing, integrations and cloud collaboration remain incomplete. Full Phase 1 baseline, realistic trade corpus and accepted tolerances/budgets remain obligations. See FEATURE_PARITY for exact status and scope.
+
+## Evidence and storage
+
+README gives reproducible run/test commands. ARCHITECTURE, ROADMAP, DECISIONS, TEST_STRATEGY, WORKFLOW_SPECIFICATIONS and FEATURE_PARITY reflect ADR-0008 and the partial core. Local raw fixture PDFs/images, DB, source uploads and runtime stay ignored under `.local/`; no private drawings or credentials are tracked. Product code is under `apps/local/`, tests under `tests/local-app.test.mjs`; no CI or distributable installer yet.

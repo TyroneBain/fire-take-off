@@ -1,0 +1,104 @@
+import { DatabaseSync } from 'node:sqlite';
+import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises';
+import { join } from 'node:path';
+import { randomUUID, createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const execute = promisify(execFile);
+export const MAX_PDF_BYTES = 25 * 1024 * 1024;
+
+export class AppError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+function name(value) {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > 160) throw new AppError(400, 'Name must contain 1–160 characters');
+  return value.trim();
+}
+
+export async function openStore(directory) {
+  await mkdir(join(directory, 'sources'), { recursive: true });
+  await mkdir(join(directory, 'pending'), { recursive: true });
+  const db = new DatabaseSync(join(directory, 'projects.sqlite'));
+  db.exec(`PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;
+    CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL);
+    INSERT INTO schema_version SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM schema_version);
+    CREATE TABLE IF NOT EXISTS entities (
+      id TEXT PRIMARY KEY, kind TEXT NOT NULL CHECK(kind IN ('project','takeoff','discipline')),
+      parent_id TEXT REFERENCES entities(id) ON DELETE CASCADE, name TEXT NOT NULL, created TEXT NOT NULL
+    ) STRICT;
+    CREATE TABLE IF NOT EXISTS drawings (
+      id TEXT PRIMARY KEY, discipline_id TEXT NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+      name TEXT NOT NULL, digest TEXT NOT NULL, bytes INTEGER NOT NULL, pages TEXT NOT NULL, created TEXT NOT NULL
+    ) STRICT;
+    CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
+  if (db.prepare('SELECT version FROM schema_version').get().version !== 1) { db.close(); throw new Error('Unsupported database schema'); }
+  const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
+  let parsing = 0;
+  function requireEntity(id, kind) {
+    const found = entity(id);
+    if (!found || found.kind !== kind) throw new AppError(404, `${kind} not found`);
+    return found;
+  }
+  function drawing(id) {
+    const row = db.prepare('SELECT * FROM drawings WHERE id=?').get(id);
+    if (!row) throw new AppError(404, 'Drawing not found');
+    return { ...row, pages: JSON.parse(row.pages) };
+  }
+  return {
+    close: () => db.close(),
+    snapshot: () => ({ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
+      drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })) }),
+    create(kind, parentId, value) {
+      const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
+      if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');
+      if (expectedParent[kind]) requireEntity(parentId, expectedParent[kind]);
+      else if (parentId != null) throw new AppError(400, 'Projects cannot have a parent');
+      const row = { id: randomUUID(), kind, parent_id: parentId ?? null, name: name(value), created: new Date().toISOString() };
+      db.prepare('INSERT INTO entities VALUES (?,?,?,?,?)').run(row.id, row.kind, row.parent_id, row.name, row.created);
+      return row;
+    },
+    async importPdf(disciplineId, filename, bytes) {
+      requireEntity(disciplineId, 'discipline');
+      const cleanName = name(filename);
+      if (parsing >= 2) throw new AppError(429, 'Two PDFs are importing. Try again when one finishes.');
+      if (!Buffer.isBuffer(bytes) || bytes.length === 0 || bytes.length > MAX_PDF_BYTES) throw new AppError(413, 'PDF must be between 1 byte and 25 MiB');
+      if (!bytes.subarray(0,1024).includes(Buffer.from('%PDF-'))) throw new AppError(422, 'File is not a PDF');
+      const pending = join(directory, 'pending', randomUUID());
+      let metadata;
+      parsing++;
+      try {
+        await writeFile(pending, bytes, { flag: 'wx', mode: 0o600 });
+        const result = await execute(process.execPath, ['--max-old-space-size=256', new URL('./pdf-inspect.mjs', import.meta.url).pathname, pending],
+          { timeout: 20000, maxBuffer: 1024 * 1024 });
+        metadata = JSON.parse(result.stdout);
+      } catch {
+        throw new AppError(422, 'Unable to import PDF: invalid, encrypted, too complex or over 200 pages');
+      } finally { parsing--; await unlink(pending).catch(() => {}); }
+      if (!metadata.pages?.length || metadata.pages.some(p => p.view.some(v => !Number.isFinite(v)) || p.view[2] <= p.view[0] || p.view[3] <= p.view[1])) throw new AppError(422, 'Invalid page geometry');
+      // Revalidate after asynchronous parsing: the parent may have been removed.
+      requireEntity(disciplineId, 'discipline');
+      const digest = createHash('sha256').update(bytes).digest('hex');
+      const existing = db.prepare('SELECT id FROM drawings WHERE discipline_id=? AND digest=?').get(disciplineId, digest);
+      if (existing) throw new AppError(409, 'This PDF is already in this discipline');
+      const finalPath = join(directory, 'sources', `${digest}.pdf`);
+      try { await writeFile(finalPath, bytes, { flag: 'wx', mode: 0o600 }); }
+      catch (error) { if (error.code !== 'EEXIST') throw error; }
+      const id = randomUUID();
+      try { db.prepare('INSERT INTO drawings VALUES (?,?,?,?,?,?,?)').run(id, disciplineId, cleanName, digest, bytes.length, JSON.stringify(metadata.pages), new Date().toISOString()); }
+      catch (error) { if (error.code === 'ERR_SQLITE_ERROR' && error.message.includes('UNIQUE')) throw new AppError(409, 'This PDF is already in this discipline'); throw error; }
+      return drawing(id);
+    },
+    drawing,
+    async source(id) {
+      const row = drawing(id);
+      const bytes = await readFile(join(directory, 'sources', `${row.digest}.pdf`)).catch(() => { throw new AppError(410, 'Source PDF is missing'); });
+      if (createHash('sha256').update(bytes).digest('hex') !== row.digest) throw new AppError(409, 'Source integrity check failed');
+      return bytes;
+    },
+    deleteDrawing(id) {
+      drawing(id);
+      db.prepare('DELETE FROM drawings WHERE id=?').run(id);
+      // Immutable source retained for later explicit retention/backup policy.
+    },
+  };
+}

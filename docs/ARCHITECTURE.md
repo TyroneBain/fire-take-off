@@ -1,6 +1,6 @@
-# Architecture evaluation — recommendation, not adopted
+# Architecture — local core adopted; later candidates remain under evaluation
 
-No product framework, runtime packaging or computer-vision dependency is installed in Phase 0. Validate these candidates against Phase 1 workflows and Phase 2 spikes before accepting an ADR.
+ADR-0008 adopts a reversible first increment: Node 24.22, built-in SQLite, immutable source files, browser-native ES modules and PDF.js 6.4.299. The app is local and single-user. React/TypeScript, packaging, computer vision and workbook candidates below remain unadopted. The earlier recommendation table is retained as alternatives for later evidence-led decisions.
 
 ## Candidate stack
 
@@ -31,7 +31,7 @@ Quantities must not depend on screen pixels. Use explicit document-to-screen tra
 
 ## Decision gates
 
-Phase 1: choose workflow scope, dataset provenance, benchmark budgets and output contracts. Phase 2 spike: compare large-PDF memory/render fidelity and mark interaction on actual hardware. Phase 3 spike: compare independent matching approaches against ground truth. Accept stack ADRs only after evidence; no claim of Countfire internals is needed.
+Phase 1: choose workflow scope, dataset provenance, benchmark budgets and output contracts. Phase 2 spike: compare large-PDF memory/render fidelity and mark interaction on actual hardware. Phase 3 spike: compare independent matching approaches against ground truth. The initial local core choice is ADR-0008; later stack choices still require their own evidence. No claim of Countfire internals is needed.
 
 ## Primary references consulted 2026-10-22
 
@@ -40,3 +40,12 @@ Phase 1: choose workflow scope, dataset provenance, benchmark budgets and output
 - [OpenCV template matching](https://docs.opencv.org/4.13.0/d4/dc6/tutorial_py_template_matching.html) — template comparison primitive, not a complete detector.
 - [SQLite appropriate uses](https://www.sqlite.org/whentouse.html) — local application storage versus shared server workloads.
 - [ExcelJS upstream](https://github.com/exceljs/exceljs) — candidate workbook library; current package suitability not yet verified.
+
+
+## Implemented core boundaries
+
+`apps/local/server.mjs` binds to 127.0.0.1, checks host/origin and requires a session token on writes. `store.mjs` owns SQLite entities/drawings and immutable hashed source files. `pdf-inspect.mjs` parses each import in a 256 MiB old-space child process with 20-second timeout, 200-page limit and at most two concurrent parsers. Intake is limited to 25 MiB per PDF. These provisional local capacity limits are not reference limits or accepted benchmark budgets.
+
+Browser controls use the PDF.js display layer with its own worker, character maps/fonts and WebAssembly codecs. CSP permits local scripts and WebAssembly compilation without permitting JavaScript eval; PDF eval support is disabled. Display canvases are capped at 16 million backing pixels and device scale 2. Document coordinates remain native PDF page coordinates. Source rotation/crop geometry is retained and PDF.js applies its viewport transform. Text search, annotations, persistent view transforms and tiled rendering are not implemented.
+
+SQLite schema version 1 is explicit. Database reopen, source integrity and shared-source deletion have passing tests. Removing a drawing retains source bytes; retention/garbage collection and backup/restore remain future work. Database/files are not one portable archive, so a backup must quiesce the service and include the full data directory.

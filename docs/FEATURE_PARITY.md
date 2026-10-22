@@ -1,6 +1,6 @@
 # Feature parity inventory
 
-Baseline researched 2026-10-22. All product features are NOT STARTED; no replacement application exists. This inventory is detailed but provisional, not an exhaustive parity certification.
+Baseline researched 2026-10-22. The local project/PDF core is now partially implemented and tested; all other product features remain NOT STARTED. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
 
 Statuses: NOT STARTED → IN DEVELOPMENT → IMPLEMENTED → TESTED → VERIFIED; BLOCKED records a real blocker with recovery action. VERIFIED requires relevant passing acceptance evidence. P0/P1/P2 indicate implementation order, not exclusions.
 
@@ -31,12 +31,12 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F001 | Project management | Create and resume takeoff projects | U,S2,S14 | Create, name, reopen and archive project | NOT STARTED | Persistence, isolation, archive recovery | Creation fields/status menu observed; archive and permission behavior untested | P0 |
-| F002 | Drawing upload/storage | Store construction PDF sources | U,S1,S14 | Import PDFs and reopen saved set | NOT STARTED | Corrupt files, duplicates, missing sources | Discipline PDF upload control observed; import limits/behavior untested | P0 |
-| F003 | Drawing organisation | Organise by discipline/floor | U,S8,S14 | Assign drawing metadata and browse groups | NOT STARTED | Isolation and ordering survive reopen | Project/takeoff/discipline hierarchy and Page controls observed; floor semantics unresolved | P0 |
-| F004 | High-resolution PDF viewer | Render drawings accurately | U | Open vector and scanned sheets | NOT STARTED | Fiducials, text, linework, large sheets | No renderer selected | P0 |
-| F005 | Zoom/pan | Navigate without altering geometry | U,S8 | Zoom to detail and pan back | NOT STARTED | Pointer coordinates invariant under transforms | Current shortcuts need confirmation | P0 |
-| F006 | Page/drawing navigation | Switch active drawing/page | U,S8,S14 | Choose another page while retaining context | NOT STARTED | State isolation and loading transitions | Drawing selector/navigation observed; multipage import behavior unknown | P0 |
+| F001 | Project management | Create and resume takeoff projects | U,S2,S14 | Create, name, reopen and archive project | TESTED | Persistence, isolation, archive recovery | Basic name/create/reopen/filter tested; archive, metadata, assignment and restore remain missing; evidence local-core-2026-10-22.json | P0 |
+| F002 | Drawing upload/storage | Store construction PDF sources | U,S1,S14 | Import PDFs and reopen saved set | TESTED | Corrupt files, duplicates, missing sources | Import/source integrity and rejection tests pass; 25 MiB/200-page local limits; native picker and encrypted-file acceptance untested; evidence local-core-2026-10-22.json | P0 |
+| F003 | Drawing organisation | Organise by discipline/floor | U,S8,S14 | Assign drawing metadata and browse groups | TESTED | Isolation and ordering survive reopen | Project/takeoff/discipline hierarchy tested; rename, reorder, floor grouping and title editing remain missing; evidence local-core-2026-10-22.json | P0 |
+| F004 | High-resolution PDF viewer | Render drawings accurately | U | Open vector and scanned sheets | TESTED | Fiducials, text, linework, large sheets | PDF.js vector/raster and rotated/cropped browser render observed; large-sheet fidelity and performance budgets unverified; evidence local-core-2026-10-22.json | P0 |
+| F005 | Zoom/pan | Navigate without altering geometry | U,S8 | Zoom to detail and pan back | TESTED | Pointer coordinates invariant under transforms | Zoom, fit width, rotation and scroll panning observed; pointer-centered zoom and saved view state missing; evidence local-core-2026-10-22.json | P0 |
+| F006 | Page/drawing navigation | Switch active drawing/page | U,S8,S14 | Choose another page while retaining context | TESTED | State isolation and loading transitions | Ten-page next navigation observed; reopen data tested; keyboard paging and view-context persistence missing; evidence local-core-2026-10-22.json | P0 |
 | F007 | Annotations/notes | Attach drawing notes | U,S1,S14 | Place, edit and remove note | NOT STARTED | Reopen, transforms and export inclusion | Note tool observed; formatting/editor/output behavior untested | P0 |
 | F008 | Symbol example selection | Define an example for matching | U,S1,S14 | Choose example and matching scope | NOT STARTED | Selection bounds and scope separation | Box-selection guidance observed; actual matching semantics untested | P0 |
 | F009 | Automatic symbol counts | Find repeated symbols | U,S1,S14 | Run detection and review instances | NOT STARTED | Ground-truth precision/recall and duplicates | Count control/guidance observed; no detector implemented or reference selection made | P0 |

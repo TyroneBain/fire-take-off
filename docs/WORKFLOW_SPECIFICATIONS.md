@@ -2,7 +2,7 @@
 
 Observed 2026-10-22 through the user's authenticated Chrome using Chrome DevTools MCP. Reference: **beta.countfire.com**, not a claim that every production release behaves identically. Only normal user-visible controls, text and navigation were inspected. No application bundles, network payloads, proprietary source, cookies or credentials were extracted. Private project identifiers, customer data, catalogue prices and drawing content are excluded from this specification.
 
-This Phase 1 research baseline now follows successful live REA verification. No Fire Take Off product functionality is implemented or VERIFIED. Every acceptance item below is a proposed test for our original implementation, not a test that has passed.
+This Phase 1 research baseline now follows successful live REA verification. This document preserves the original research baseline. The local project/PDF core is now partially implemented and TESTED; no feature is VERIFIED. Every acceptance item below is a proposed test for our original implementation, not a test that has passed.
 
 Evidence: [sanitised observation ledger](evidence/countfire-ui-observations-2026-10-22.json). B identifiers refer to that ledger. Controls were opened and cancelled, or tabs switched, without submitting changes. Opening a reference control proves its presence; it does not prove that its underlying operation succeeds.
 
@@ -43,7 +43,7 @@ Evidence: [sanitised observation ledger](evidence/countfire-ui-observations-2026
 - Drawing tabs and measure-type controls were switched. The drawing loaded and text became accessible; visual fidelity, zoom/pan interaction, actual matches and numerical measurements were not tested.
 - The demo project supplied drawing and specification screens. The organisation's live project content, drawings and rates were not copied into repository fixtures.
 - No reference output file or template was downloaded. Schemas/formulas remain unknown.
-- UI observation is separate from Fire Take Off implementation status. Every parity entry remains NOT STARTED.
+- UI observation is separate from Fire Take Off implementation status. That observation pass predates implementation. Current states are maintained in FEATURE_PARITY.md.
 
 ## Next specification work
 
@@ -56,3 +56,7 @@ After the Phase 0 gate is resolved or explicitly waived, agree an owned scratch 
 ## Public rule refinements and scratch research
 
 See [REFERENCE_RULES](REFERENCE_RULES.md) for eight sourced article summaries and exact remaining questions. Zone order, itemisation, workbook structure and match reclassification now have documented requirements. These refine earlier unknowns without claiming live behavior. A synthetic scratch project/takeoff/discipline was created successfully; upload was denied by browser tool path access. No drawings, counts, measures or exports were created. All earlier no-write observations refer to the earlier session.
+
+## Local core implementation follow-up
+
+ADR-0008 stages research by subsystem after Phase 0. A001/A002 core subsets have passing automated tests for hierarchy, reopen, imports, rejection and removal. A003 has passing viewport transform checks plus browser zoom/rotation/page observation. This does not complete all listed acceptance criteria or validate Countfire parity. Evidence: [local core](evidence/local-core-2026-10-22.json). All other cases remain pending.

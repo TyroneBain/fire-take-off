@@ -2,6 +2,8 @@
 
 Every phase updates CURRENT_STATE and parity IDs. Dependencies flow in order; Phase 1 research may refine later work but may not waive acceptance gates without a recorded decision.
 
+ADR-0008 changes sequencing after successful Phase 0: the project/PDF core may proceed while Phase 1 research continues. Unresolved rules gate their affected subsystems, and full baseline/benchmark obligations remain mandatory before parity validation. This is not a Phase 1 completion claim.
+
 | Phase | Deliverables | Measurable exit gate |
 | --- | --- | --- |
 | 0 — Foundation | Private repository, permanent memory, sourced inventory, roadmap, architecture evaluation, REA registration/instructions/health/owned-fixture evidence | Documents validated and committed remotely; private status confirmed; matching REA setup healthy; CLI and live Codex MCP analysis accurate on owned fixture; handover complete. Remains open if any mandatory check is blocked. |
@@ -23,4 +25,8 @@ Phase 1 must select small/medium/large authorised vector and raster drawing sets
 
 ## Next gate
 
-Phase 0 COMPLETE: live MCP evidence and foundation handover published as `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`, with matching local/remote trees. Phase 1 IN DEVELOPMENT: public rules and 71-entry inventory, 16 acceptance cases, independently inspected original corpus. Still incomplete: P0 reference import/correction/measurement/export execution, boundary/tie policies, realistic dataset complexity, measured/accepted budgets and stack ADR. Browser upload tool currently denies the fixture path. Do not waive these exit requirements based on repeated-page fixtures or documented behavior. Application scaffolding awaits Phase 1 exit.
+Phase 0 COMPLETE: live MCP evidence and foundation handover published as `53de3e8580c3a8d003c9ae6f75bd915dd29c760b`, with matching local/remote trees. Phase 1 IN DEVELOPMENT: public rules and 71-entry inventory, 16 acceptance cases, independently inspected original corpus. ADR-0008 permits the local project/PDF core next. Still incomplete: reference drawing execution, boundary/tie policies, realistic dataset complexity and measured/accepted budgets. Browser upload tool denies the reference fixture path. These obligations remain explicit and cannot be reported as passed based on documentation or repeated-page fixtures.
+
+## First runnable increment
+
+Phase 2 IN DEVELOPMENT under ADR-0008. Local project/takeoff/discipline persistence, bounded PDF intake, original viewer controls and drawing removal are implemented and partially TESTED (F001–F006). Phase 2 exit remains unmet: notes, full geometry interaction, recovery and representative performance evidence are incomplete. Full Phase 1 research continues; no reference requirements or acceptance standards were removed.

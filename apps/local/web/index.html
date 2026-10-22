@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fire Take Off</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <aside class="sidebar">
+    <a href="/" class="brand"><span class="brand-mark">F</span><span>Fire Take Off<small>YOUR ESTIMATING WORKSPACE</small></span></a>
+    <div class="workspace-label"><span class="status-dot"></span> Local workspace</div>
+    <div class="section-label">PROJECTS <button id="new-project" title="Create project" aria-label="Create project">+</button></div>
+    <input id="project-filter" type="search" placeholder="Find a project…" aria-label="Filter projects">
+    <nav id="projects" aria-label="Projects"></nav>
+    <footer>Private by design.<br>Your drawings stay on this computer.</footer>
+  </aside>
+  <main>
+    <header><div id="breadcrumb">Workspace</div><span class="local-badge">LOCAL</span></header>
+    <section id="workspace">
+      <div class="page-heading"><div><p class="eyebrow">WORKSPACE</p><h1 id="heading">Your projects</h1><p id="subtitle">A clear view of every drawing, from the first page onwards.</p></div><div id="actions"></div></div>
+      <div id="content"></div>
+    </section>
+    <section id="viewer" hidden>
+      <div class="viewer-toolbar"><button id="close-viewer">← Drawings</button><strong id="drawing-title"></strong><div class="toolbar-controls"><button id="previous-page" aria-label="Previous page">←</button><span id="page-label"></span><button id="next-page" aria-label="Next page">→</button><span class="divider"></span><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom-label"></span><button id="zoom-in" aria-label="Zoom in">+</button><button id="fit-page">Fit width</button><button id="rotate-page">Rotate ↻</button></div></div>
+      <div id="drawing-stage" tabindex="0" aria-label="Drawing viewer. Use scrollbars to pan."><div id="page-surface"><canvas id="pdf-canvas" aria-label="PDF drawing page"></canvas></div></div>
+      <div class="viewer-footer"><span id="render-status" role="status"></span><span>Scroll to pan · Page coordinates preserved</span></div>
+    </section>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+  </main>
+  <dialog id="name-dialog"><form id="name-form"><p class="eyebrow">FIRE TAKE OFF</p><h2 id="dialog-title"></h2><label for="entity-name">Name</label><input id="entity-name" required maxlength="160" autocomplete="off"><p id="dialog-error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog">Cancel</button><button class="primary" id="save-name">Create</button></div></form></dialog>
+  <dialog id="delete-dialog"><form method="dialog"><h2>Remove this drawing?</h2><p>It will be removed from this discipline. Other drawings stay in place.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button value="delete" class="danger">Remove drawing</button></div></form></dialog>
+  <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
+  <script type="module" src="/app.mjs"></script>
+</body></html>

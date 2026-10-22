@@ -38,3 +38,12 @@ Live REA MCP analysis and seven source comparisons passed; Node behavior tests p
 ## Original corpus and public rules follow-up
 
 Apple PDFKit independently opened/rendered the original vector, raster and rotated media boxes; six symbols and other geometry were visually inspected. Fixed rotated output dimensions after the initial oracle clipped content. Crop metadata is verified but crop viewport fidelity remains untested. Reopened 10/100-page sets with metadata-only inspection, verified all dimensions, six-to-six revision coordinate differences, malformed-PDF failure and invalid-variant rejection. See `evidence/drawing-corpus-2026-10-22.json`. Diagnostic framework messages are retained there. No timing/memory budgets are adopted. Public source rules and A012–A016 are specifications, not product acceptance. Reference upload failed at browser path access; no reference numerical tests ran.
+
+
+## Runnable local core — 2026-10-22
+
+`npm test` runs 12 tests (9 product-core tests plus 3 owned REA-fixture behavior tests). Product tests cover persistence/reopen, invalid hierarchy/name input, corrupt/oversized/duplicate files, drawing isolation/deletion, hash tampering, coordinate round trips at four zooms/four rotations, concurrent duplicates, bounded parser concurrency and the real HTTP workflow with token/origin failures. Tests use temporary stores and original generated PDFs. Loopback tests require host permission to listen/connect in restricted Codex sessions.
+
+Browser observation covered UI hierarchy creation, page reopen, vector/raster and rotated/cropped display, zoom/rotation and next-page navigation. Four original PDFs were imported through the actual API; this does not test the OS file picker. Screenshots were reviewed inline because MCP denied saving to the workspace path. Final browser error/warning check is clean after enabling local WebAssembly codecs. Full-corpus performance, crop/annotation interaction, crash recovery, encrypted PDFs, accessibility and multi-device operation remain unverified.
+
+An initial test run failed on a SQL placeholder mismatch and sandbox loopback denial; the mismatch was fixed and the loopback test rerun with permission. Initial PDF inspection called the removed document.destroy API; loading-task cleanup replaced it. Raster rendering initially logged an ICC/WebAssembly CSP warning; the specific wasm policy fixed it. Record: [local core evidence](evidence/local-core-2026-10-22.json). Product states are TESTED for partial F001–F006, never VERIFIED by these limited checks.
