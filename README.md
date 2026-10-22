@@ -16,6 +16,6 @@ Start with [permanent instructions](AGENTS.md) and [current verified state](docs
 
 Repository: https://github.com/TyroneBain/fire-take-off (must remain private).
 
-To repair REA from ordinary macOS Terminal: `bash scripts/repair-rea.sh`. Full successful recovery is not yet verified; follow [REA setup](docs/REA_SETUP.md) before starting product development.
+To repair REA from ordinary macOS Terminal: `bash scripts/repair-rea.sh`. Ordinary-Terminal setup, health check and CLI analysis have succeeded; live MCP verification is pending. Follow [REA setup](docs/REA_SETUP.md) before starting product development.
 
 `apps/` and `packages/` are placeholders; no application framework or product dependencies are selected. `fixtures/rea-smoke/` is a small owned JavaScript application for analysis verification, not a takeoff prototype. Run its behavior checks with `node --test fixtures/rea-smoke/app.test.mjs`.

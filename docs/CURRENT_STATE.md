@@ -1,6 +1,6 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney), REA repair follow-up after authenticated Chrome research. Phase 0 is INCOMPLETE because REA setup and actual analysis remain blocked. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
+Last meaningful session: 2026-10-22 (Australia/Sydney), successful ordinary-Terminal REA recovery. Phase 0 is INCOMPLETE only because live MCP verification in a fresh Codex session remains pending. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
 
 ## Repository and delivery
 
@@ -23,13 +23,13 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 
 ## Incomplete, broken or blocked
 
-1. REA setup: cannot back up protected `~/.codex/config.toml`; exit 1, `needs_human`, no applied actions. Registration and installed matching workflow remain missing. Codex doctor reports unhealthy.
-2. Actual REA analysis: exit 1 `cleanup_incomplete`, child process inspection `spawn EPERM`. Seven structural checks on partial observations match owned source, but this is not a successful analysis. Direct permitted process inspection found no reported worker remaining.
-3. Live REA tools absent from this session. Must configure successfully, restart Codex and perform actual fixture analysis through the active MCP tool before Phase 0 closes.
+1. REA setup is RESOLVED: ordinary-Terminal helper returned ready/configured and backed up the Codex configuration.
+2. CLI analysis is RESOLVED: complete owned-fixture evidence returned; seven independent source-structure comparisons passed. Scoped doctor is healthy with aligned registration and workflow version 42.
+3. Live REA tools remain absent from this older session. Verify actual MCP analysis in the new Codex session launched after repair; this is the remaining Phase 0 gate.
 4. Chrome access is RESOLVED: active Chrome DevTools MCP tools reached authenticated beta Countfire. Research covered normal visible controls and demo navigation. Counting, measurements, correction, save/reload, export, estimating calculations and reference import behavior remain untested. No actual Countfire replacement has been built.
 5. Shell npm/npx DNS and shell Git connectivity fail. Permitted curl downloads and the authenticated GitHub connector work. Shell credentials/push are unverified; do not claim a successful git push.
 6. Countfire file limits, zone boundary/revision rules, workbook schemas, correction behavior and detailed estimating calculations remain unknown. Current visible controls are partially specified. Help centre discovery was sparse. Announced future features are not assumed shipped.
-7. Latest instruction is to unblock REA and build the equivalent. Repair was retried and remains restricted; no waiver is assumed. Prepared `scripts/repair-rea.sh` for ordinary Terminal execution. Product build remains gated until REA succeeds.
+7. Latest instruction is to unblock REA and build the equivalent. Ordinary-Terminal repair has now succeeded. No waiver is assumed; finish the live MCP check before product development.
 
 ## Verification and evidence
 
@@ -42,7 +42,15 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 - See [REA_SETUP](REA_SETUP.md) and the three JSON summaries under `docs/evidence/`. Raw outputs/runtime remain ignored under `.local/`.
 - `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks passed (13 required files, 5 directory groups, 14 local Markdown links, 59 complete/unique parity rows); staged whitespace review passed. GitHub foundation tree and local index hashes matched, and the worktree was clean after synchronisation. The delivery handover update is checked and published separately. Evidence is recorded in `docs/evidence/foundation-checks.json`.
 
-## Latest unblock attempt
+## Successful ordinary-Terminal recovery
+
+- User ran `bash scripts/repair-rea.sh && codex`; inspected its local reports at `.local/rea-recovery.pUqoHu/`.
+- Setup: ready/configured; doctor: healthy; registration and workflow aligned (version 42, 207 advertised tools).
+- Actual CLI analysis returned a complete evidence record without cleanup error. All seven source comparisons passed. The script runs fixture behavior tests before analysis, so this stage was reached after those checks succeeded.
+- Saved `docs/evidence/rea-terminal-recovery-success-2026-10-22.json`. Existing failed-attempt records remain historical.
+- Next: let the newly launched Codex session load REA, read the installed workflow, inspect live identity and analyse fixtures/rea-smoke through its actual MCP tool. Then record evidence and close Phase 0 if every requirement passes. Product implementation has not started.
+
+## Prior restricted-session unblock attempt
 
 - Refreshed official setup plan against current configuration; only Codex REA registration and matching workflow proposed, preserving the working Chrome registration.
 - Actual setup again returned exit 1, `needs_human`, failure reason `backup`, no applied actions.
@@ -90,7 +98,8 @@ fire-take-off/
 │       ├── foundation-checks.json
 │       ├── countfire-ui-observations-2026-10-22.json
 │       ├── research-checks-2026-10-22.json
-│       └── rea-recovery-attempt-2026-10-22.json
+│       ├── rea-recovery-attempt-2026-10-22.json
+│       └── rea-terminal-recovery-success-2026-10-22.json
 ├── scripts/repair-rea.sh
 ├── apps/.gitkeep
 ├── packages/.gitkeep
@@ -108,6 +117,6 @@ fire-take-off/
 
 ## Exact next action
 
-Run `cd ~/Projects/fire-take-off && bash scripts/repair-rea.sh` in ordinary macOS Terminal. After it succeeds, start a fresh `codex` from this repository. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
+The ordinary-Terminal repair has succeeded. Use the fresh `codex` session launched by the user’s command; if it has not opened, run `cd ~/Projects/fire-take-off && codex` in Terminal. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
 
 Initial matrix is now written in WORKFLOW_SPECIFICATIONS.md. Next research work: extend it with actual controlled behavior observations for project → import → select/count → review/correct → calibrate/measure/zone → revision → export → estimate. Resolve P0 unknowns and establish drawing provenance, numerical tolerances and performance budgets before choosing a stack or building product code.

@@ -1,6 +1,6 @@
-# REA setup — not fully verified
+# REA setup — Terminal recovery successful; live MCP check pending
 
-Last checked 2026-10-22. Phase 0 remains open. No REA tool is exposed in this active Codex session, the default Codex registration and matching installed workflow are missing, and actual CLI analysis returned an error. Partial analysis observations are not a successful end-to-end test.
+Last checked 2026-10-22 after the user ran the repair helper in ordinary Terminal. Codex registration is now configured, the matching workflow is aligned, doctor reports healthy and the owned-fixture CLI analysis returned complete evidence. Seven comparisons against fixture source passed. Phase 0 remains open only for the required live MCP analysis in a fresh Codex session; this existing session still exposes no REA tools. Historical failures below are retained as prior attempts, not current installation state.
 
 ## Official references consulted
 
@@ -11,7 +11,13 @@ Last checked 2026-10-22. Phase 0 remains open. No REA tool is exposed in this ac
 
 Use Codex-specific setup and doctor commands. The official guide distinguishes registration checks from live tools and offers static JavaScript analysis without a native engine. Setup supports an explicit client scope and preserves unrelated configuration. Recheck current official documentation before future changes.
 
-## Observed installation
+## Successful ordinary-Terminal recovery
+
+Reports under ignored `.local/rea-recovery.pUqoHu/` show setup `status: ready`, Codex `configured` with a backup, doctor `healthy: true`, registration/workflow `aligned`, workflow version 42 and 207 tools. `analysis.json` is a complete `rea.javascript-application-analysis` evidence record, not a cleanup error. Compared expected modules, exports, import, parse success and absence of Electron boundaries against our fixture: all seven checks passed. The helper reaches analysis only after fixture behavior tests succeed. See [successful recovery evidence](evidence/rea-terminal-recovery-success-2026-10-22.json).
+
+Do not rerun repair merely because this older session lacks REA tools. Let the new Codex session launched by `bash scripts/repair-rea.sh && codex` start, read its installed workflow, confirm `/mcp`, call live REA identity/discovery and analyse the owned fixture through MCP. Record results before marking REA fully verified or Phase 0 complete.
+
+## Original observed installation
 
 Git 2.50.1 (Apple Git-155), Node 24.22.0, npm 11.19.1, Codex CLI 0.163.0. gh, Homebrew and a global rea executable are absent. Node satisfies the published REA requirement `^22.19.0 || ^24.11.0 || >=26.0.0`.
 
@@ -72,7 +78,7 @@ bash scripts/repair-rea.sh
 
 It uses the existing tested local runtime, or pinned official `rea-agents@6.7.0` if that runtime is absent. It plans and applies only the authorised Codex setup, checks the installed workflow/registration, runs our fixture tests and attempts actual CLI analysis. It stops on failure and retains reports under ignored `.local/rea-recovery.*`. It does not use sudo, install optional native applications or mark Phase 0 complete.
 
-Verified here: Bash syntax and `--plan-only` execution pass, and the official plan reports zero applied actions. Successful full execution outside the restricted session has **not** been observed. See [recovery evidence](evidence/rea-recovery-attempt-2026-10-22.json). After the helper succeeds, start a fresh `codex` session from this repository and perform the live MCP verification described below.
+Verified here: Bash syntax and `--plan-only` execution pass, and the official plan reports zero applied actions. Full setup, scoped doctor and CLI analysis have now succeeded in the user’s ordinary Terminal; live MCP verification remains pending. See [recovery evidence](evidence/rea-recovery-attempt-2026-10-22.json). After the helper succeeds, start a fresh `codex` session from this repository and perform the live MCP verification described below.
 
 ## Detailed recovery and restart
 

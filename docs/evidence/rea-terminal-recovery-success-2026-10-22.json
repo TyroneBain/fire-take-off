@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-22",
+  "execution": "User ran scripts/repair-rea.sh in ordinary macOS Terminal",
+  "setup_status": "ready",
+  "codex_client": "configured",
+  "doctor_healthy": true,
+  "installed_skill": {
+    "installed_version": "42",
+    "installed_tool_count": 207,
+    "state": "aligned",
+    "remediation": null
+  },
+  "registrations": [
+    {
+      "client": "codex",
+      "config_path": "/Users/tyronebain/.codex/config.toml",
+      "command": [
+        "/Users/tyronebain/Projects/fire-take-off/.local/rea-runtime/scripts/rea.mjs",
+        "mcp"
+      ],
+      "state": "aligned",
+      "remediation": null
+    }
+  ],
+  "analysis": {
+    "status": "SUCCESSFUL_CLI_EVIDENCE_RETURNED",
+    "evidence_id": "ev_86776a6624fc03990281d9674fdc53d26836cd39736dfdff1104e2996e2d3336",
+    "predicate_type": "rea.javascript-application-analysis",
+    "statistics": {
+      "relevant_files": 4,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 1266,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 3,
+      "skipped_javascript_files": 0,
+      "visited_ast_nodes": 183,
+      "findings": 12,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "source_comparison_checks": {
+      "parsed_three_javascript_files": true,
+      "zero_parse_failures": true,
+      "app_exports_quoteSummary": true,
+      "calculation_exports_totalCost": true,
+      "app_imports_calculation": true,
+      "no_electron_windows": true,
+      "no_preload_entrypoints": true
+    },
+    "limitations": [
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ]
+  },
+  "live_mcp_in_this_session": false,
+  "phase_0_remaining": "Fresh Codex must expose REA tools and analyse the owned fixture through live MCP before Phase 0 closes."
+}
