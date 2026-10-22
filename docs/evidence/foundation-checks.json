@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-22",
+  "required_files": 13,
+  "required_directories": 5,
+  "local_markdown_links_checked": 14,
+  "parity_entries": 59,
+  "all_product_features_not_started": true,
+  "unique_parity_ids": true,
+  "sensitive_path_examples_excluded": [
+    ".env",
+    ".local/rea-runtime/package.json",
+    "private/example.pdf",
+    "uploads/example.pdf",
+    "exports/example.xlsx",
+    "credentials-test.json"
+  ],
+  "fixture_tests_passed": 3,
+  "fixture_tests_failed": 0,
+  "limitations": [
+    "No product application exists; no product acceptance or performance tests ran.",
+    "REA setup and analysis failed; live MCP not verified.",
+    "Publication and final worktree status verified separately after this report."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-22",
+  "runtime": "project-local; not npm global or npx installation",
+  "version": "6.7.0",
+  "node": "24.22.0",
+  "npm": "11.19.1",
+  "codex": "0.163.0",
+  "runtime_requirement": "^22.19.0 || ^24.11.0 || >=26.0.0",
+  "registry_tarball": "https://registry.npmjs.org/rea-agents/-/rea-agents-6.7.0.tgz",
+  "registry_integrity": "sha512-yhIx2ioJYYT1C/tONfYeitC6LhnKmCh+ZwRUOgYuhSc733lGhkkt73zhug9WmLgxoMdKuqIYGCoBfD4fXkOhFw==",
+  "package_integrity_verified": true,
+  "dependency_archives_integrity_verified": 149,
+  "installed_packages": 146,
+  "install_command": "npm ci --offline --ignore-scripts --omit=dev --omit=optional --no-audit --no-fund",
+  "install_exit_code": 0,
+  "optional_native_dependencies": false,
+  "setup_status": "needs_human",
+  "setup_applied_actions": [],
+  "clients": {
+    "codex": {
+      "status": "failed",
+      "reason": "backup"
+    }
+  },
+  "remediation": "Agent configuration could not be backed up, so no change was made. Check file permissions, then rerun setup.",
+  "fixture_behavior_tests": {
+    "command": "node --test fixtures/rea-smoke/app.test.mjs",
+    "passed": 3,
+    "failed": 0
+  }
+}

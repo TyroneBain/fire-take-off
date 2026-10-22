@@ -1,0 +1,273 @@
+{
+  "date": "2026-10-22",
+  "rea_version": "6.7.0",
+  "command": "node .local/rea-runtime/scripts/rea.mjs analyze-javascript-application <repo>/fixtures/rea-smoke --json",
+  "exit_code": 1,
+  "status": "FAILED_WITH_PARTIAL_OBSERVATIONS",
+  "error_code": "cleanup_incomplete",
+  "failure_reason": "process table could not be inspected: spawn EPERM",
+  "raw_result_sha256": "44635fa00ccfc6a8de05780469a645497b3c2bd1c86bcabbacc6a45e96f01863",
+  "evidence_id": "ev_86776a6624fc03990281d9674fdc53d26836cd39736dfdff1104e2996e2d3336",
+  "fixture_sha256": {
+    "fixtures/rea-smoke/README.md": "de6f3e4a75cd32e58c555b6e439b61ec98e7befa270472623e0804c0fb44e6d5",
+    "fixtures/rea-smoke/app.mjs": "98c50acbb0a7a730d8fad270404dfb21fa774e53b5198f0014f80e491842c2ea",
+    "fixtures/rea-smoke/app.test.mjs": "3c2b2869d451c2ffc9564c48989ee25c21e5a0c78c6680fe1e3a2370b76fb66c",
+    "fixtures/rea-smoke/calculation.mjs": "0f43187221be1f8d855aa72ab5a88ae26f32e90d40edd41fe4fb595e244a9185",
+    "fixtures/rea-smoke/package.json": "5dc6d5a61cdc85345c924d6d484bd63d1e04252999b390692804208075a50376"
+  },
+  "comparison_checks": {
+    "three_source_modules": true,
+    "app_exports_quoteSummary": true,
+    "calculation_exports_totalCost": true,
+    "app_imports_calculation": true,
+    "no_electron_windows": true,
+    "no_preload_entrypoints": true,
+    "no_parse_failures": true
+  },
+  "source_modules": [
+    {
+      "semantic_role": "source-module",
+      "source_sha256": "0f43187221be1f8d855aa72ab5a88ae26f32e90d40edd41fe4fb595e244a9185",
+      "path": "calculation.mjs",
+      "logical_module_key": "calculation.mjs",
+      "module_format": "esm",
+      "import_relationships": 0,
+      "type_relationships": 0,
+      "export_relationships": 1,
+      "export_names": [
+        "totalCost"
+      ],
+      "type_export_names": [],
+      "omitted_export_names": 0
+    },
+    {
+      "semantic_role": "source-module",
+      "source_sha256": "98c50acbb0a7a730d8fad270404dfb21fa774e53b5198f0014f80e491842c2ea",
+      "path": "app.mjs",
+      "logical_module_key": "app.mjs",
+      "module_format": "esm",
+      "import_relationships": 1,
+      "type_relationships": 0,
+      "export_relationships": 1,
+      "export_names": [
+        "quoteSummary"
+      ],
+      "type_export_names": [],
+      "omitted_export_names": 0
+    },
+    {
+      "semantic_role": "source-module",
+      "source_sha256": "3c2b2869d451c2ffc9564c48989ee25c21e5a0c78c6680fe1e3a2370b76fb66c",
+      "path": "app.test.mjs",
+      "logical_module_key": "app.test.mjs",
+      "module_format": "esm",
+      "import_relationships": 4,
+      "type_relationships": 0,
+      "export_relationships": 0,
+      "export_names": [],
+      "type_export_names": [],
+      "omitted_export_names": 0
+    }
+  ],
+  "imports": [
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "kind": "static-import",
+        "specifier": "./app.mjs",
+        "expression": null,
+        "resolution_mode": "import",
+        "resolved_path": "app.mjs",
+        "resolution_status": "resolved"
+      }
+    },
+    {
+      "source": "app.mjs",
+      "relation": "imports",
+      "properties": {
+        "module_link_kind": "import",
+        "resolution_mode": "import",
+        "specifier": "./calculation.mjs",
+        "imported_name": "totalCost",
+        "imported_path": [
+          "totalCost"
+        ],
+        "local_name": "totalCost",
+        "exported_name": null,
+        "resolved_path": "calculation.mjs",
+        "resolution_status": "resolved",
+        "target_file_kind": "javascript",
+        "target_json_status": null
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "module_link_kind": "import",
+        "resolution_mode": "import",
+        "specifier": "node:test",
+        "imported_name": "default",
+        "imported_path": [
+          "default"
+        ],
+        "local_name": "test",
+        "exported_name": null,
+        "resolved_path": null,
+        "resolution_status": "external",
+        "target_file_kind": null,
+        "target_json_status": null
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "module_link_kind": "import",
+        "resolution_mode": "import",
+        "specifier": "./app.mjs",
+        "imported_name": "quoteSummary",
+        "imported_path": [
+          "quoteSummary"
+        ],
+        "local_name": "quoteSummary",
+        "exported_name": null,
+        "resolved_path": "app.mjs",
+        "resolution_status": "resolved",
+        "target_file_kind": "javascript",
+        "target_json_status": null
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "kind": "static-import",
+        "specifier": "node:test",
+        "expression": null,
+        "resolution_mode": "import",
+        "resolved_path": null,
+        "resolution_status": "external"
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "module_link_kind": "import",
+        "resolution_mode": "import",
+        "specifier": "node:assert/strict",
+        "imported_name": "default",
+        "imported_path": [
+          "default"
+        ],
+        "local_name": "assert",
+        "exported_name": null,
+        "resolved_path": null,
+        "resolution_status": "external",
+        "target_file_kind": null,
+        "target_json_status": null
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "kind": "static-import",
+        "specifier": "node:assert/strict",
+        "expression": null,
+        "resolution_mode": "import",
+        "resolved_path": null,
+        "resolution_status": "external"
+      }
+    },
+    {
+      "source": "app.mjs",
+      "relation": "imports",
+      "properties": {
+        "kind": "static-import",
+        "specifier": "./calculation.mjs",
+        "expression": null,
+        "resolution_mode": "import",
+        "resolved_path": "calculation.mjs",
+        "resolution_status": "resolved"
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "module_link_kind": "import",
+        "resolution_mode": "import",
+        "specifier": "./calculation.mjs",
+        "imported_name": "totalCost",
+        "imported_path": [
+          "totalCost"
+        ],
+        "local_name": "totalCost",
+        "exported_name": null,
+        "resolved_path": "calculation.mjs",
+        "resolution_status": "resolved",
+        "target_file_kind": "javascript",
+        "target_json_status": null
+      }
+    },
+    {
+      "source": "app.test.mjs",
+      "relation": "imports",
+      "properties": {
+        "kind": "static-import",
+        "specifier": "./calculation.mjs",
+        "expression": null,
+        "resolution_mode": "import",
+        "resolved_path": "calculation.mjs",
+        "resolution_status": "resolved"
+      }
+    }
+  ],
+  "summary": {
+    "browser_windows": 0,
+    "explicit_web_preferences": 0,
+    "preload_entrypoints": 0,
+    "context_bridge_apis": 0,
+    "exposed_api_members": 0,
+    "ipc": {
+      "operations": 0,
+      "literal_channels": 0,
+      "dynamic_channel_operations": 0,
+      "renderer_transmissions": 0,
+      "renderer_listeners": 0,
+      "main_handlers": 0,
+      "paired_renderer_transmissions": 0,
+      "ambiguous_renderer_transmissions": 0,
+      "unpaired_literal_renderer_transmissions": 0
+    },
+    "sender_validation_observations": 0,
+    "utility_processes": 0,
+    "resolved_utility_entrypoints": 0,
+    "native_addon_bindings": 0,
+    "resolved_native_addon_bindings": 0
+  },
+  "statistics": {
+    "relevant_files": 4,
+    "nested_asar_containers": 0,
+    "text_bytes_read": 1266,
+    "invalid_utf8_files": 0,
+    "parsed_javascript_files": 3,
+    "skipped_javascript_files": 0,
+    "visited_ast_nodes": 183,
+    "findings": 12,
+    "modules": 0,
+    "parse_failures": 0
+  },
+  "limitations": [
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "live_codex_mcp_verified": false,
+  "cleanup_followup": "Direct permitted ps inspection found no worker PID 39127 or rea-javascript analysis worker. REA itself could not confirm cleanup; no analysis retry attempted."
+}
