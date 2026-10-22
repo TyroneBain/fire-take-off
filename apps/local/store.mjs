@@ -31,7 +31,15 @@ export async function openStore(directory) {
       name TEXT NOT NULL, digest TEXT NOT NULL, bytes INTEGER NOT NULL, pages TEXT NOT NULL, created TEXT NOT NULL
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
-  if (db.prepare('SELECT version FROM schema_version').get().version !== 1) { db.close(); throw new Error('Unsupported database schema'); }
+  const version = db.prepare('SELECT version FROM schema_version').get().version;
+  if (![1,2].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (version === 1) db.exec(`BEGIN;
+    CREATE TABLE notes (
+      id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
+      page INTEGER NOT NULL, x REAL NOT NULL, y REAL NOT NULL, text TEXT NOT NULL,
+      version INTEGER NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL
+    ) STRICT;
+    UPDATE schema_version SET version=2; COMMIT;`);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -44,10 +52,20 @@ export async function openStore(directory) {
     if (!row) throw new AppError(404, 'Drawing not found');
     return { ...row, pages: JSON.parse(row.pages) };
   }
+  function note(id) {
+    const found = db.prepare('SELECT * FROM notes WHERE id=?').get(id);
+    if (!found) throw new AppError(404, 'Note not found');
+    return found;
+  }
+  function noteText(value) {
+    if (typeof value !== 'string' || !value.trim() || value.trim().length > 4000) throw new AppError(400, 'Note must contain 1–4000 characters');
+    return value.trim();
+  }
   return {
     close: () => db.close(),
     snapshot: () => ({ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
-      drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })) }),
+      drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
+      notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all() }),
     create(kind, parentId, value) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');
@@ -89,6 +107,26 @@ export async function openStore(directory) {
       return drawing(id);
     },
     drawing,
+    createNote(drawingId, { page, x, y, text } = {}) {
+      const d = drawing(drawingId);
+      if (!Number.isInteger(page) || page < 1 || page > d.pages.length) throw new AppError(400, 'Invalid note page');
+      const [left,bottom,right,top] = d.pages[page-1].view;
+      if (![x,y].every(v=>typeof v === 'number' && Number.isFinite(v)) || x < left || x > right || y < bottom || y > top) throw new AppError(400, 'Note position must be inside the page crop box');
+      const id = randomUUID(), now = new Date().toISOString();
+      db.prepare('INSERT INTO notes VALUES (?,?,?,?,?,?,?,?,?)').run(id,drawingId,page,x,y,noteText(text),1,now,now);
+      return note(id);
+    },
+    updateNote(id, text, version) {
+      const current = note(id);
+      if (!Number.isInteger(version) || version !== current.version) throw new AppError(409, 'This note changed. Reload it before editing.');
+      db.prepare('UPDATE notes SET text=?,version=version+1,updated=? WHERE id=? AND version=?').run(noteText(text),new Date().toISOString(),id,version);
+      return note(id);
+    },
+    deleteNote(id, version) {
+      const current = note(id);
+      if (!Number.isInteger(version) || version !== current.version) throw new AppError(409, 'This note changed. Reload it before removing.');
+      db.prepare('DELETE FROM notes WHERE id=? AND version=?').run(id,version);
+    },
     async source(id) {
       const row = drawing(id);
       const bytes = await readFile(join(directory, 'sources', `${row.digest}.pdf`)).catch(() => { throw new AppError(410, 'Source PDF is missing'); });

@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-22",
+  "feature": "F007 (partial TESTED)",
+  "acceptanceCases": [
+    "A008",
+    "A003"
+  ],
+  "environment": {
+    "node": "24.22.0",
+    "pdfjs": "6.4.299",
+    "os": "macOS 26.7.1 x86_64",
+    "browser": "Chrome via Chrome DevTools MCP"
+  },
+  "command": "npm test",
+  "tests": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "product": 13,
+    "diagnosticFixture": 3
+  },
+  "automated": [
+    "plain-text note CRUD and version conflicts",
+    "database reopen preserves coordinates/text/version",
+    "invalid pages, nonfinite/outside-crop coordinates and invalid text rejected",
+    "drawing deletion cascades notes",
+    "CSS pointer to page transform through zoom/rotation",
+    "rotated crop view [40,40,440,740] and source rotation 90",
+    "schema 1 to 2 migration preserves existing drawing/source bytes",
+    "HTTP note create/update/stale-delete/current-delete routes"
+  ],
+  "browser": [
+    "placed note through own viewer UI on rotated/cropped original fixture",
+    "saved native coordinates approximately [99.9186372671038,99.91847826086952] near requested [100,100]",
+    "zoomed 210% to 168% and rotated; saved coordinates unchanged; marker reprojection discrepancy below 0.001 CSS pixel",
+    "cancelled edit preserved text and version 1",
+    "saved edit reached version 2 and persisted through browser reload",
+    "cancelled removal retained one note; confirmed removal reduced count to zero; restored one demonstration note",
+    "console had no errors or warnings after reload"
+  ],
+  "baseFixtureSha256": "5134016a0ce1d885aead56527ef531f38b5ea0e0927ef939b691e1c45a41d0ca",
+  "schema": {
+    "from": 1,
+    "to": 2,
+    "transactional": true
+  },
+  "limitations": [
+    "No annotation clouds or note repositioning",
+    "No note export or unsaved-exit warning",
+    "Not full F007 acceptance or VERIFIED parity",
+    "Browser file path permissions remain unresolved",
+    "Numerical reprojection observations are not accepted measurement performance budgets"
+  ],
+  "otherFixes": [
+    "cleared note-placement instruction after entering editor",
+    "removed stale marker overlay while rerendering",
+    "reset drawing removal dialog return value in earlier core",
+    "corrected extra stylesheet EOF blank line found by staged diff check"
+  ],
+  "runningUrl": "http://127.0.0.1:4173"
+}

@@ -1,10 +1,12 @@
 import * as pdfjs from '/vendor/build/pdf.mjs';
+import { pagePoint, viewPoint } from './coordinates.mjs';
 pdfjs.GlobalWorkerOptions.workerSrc = '/vendor/build/pdf.worker.mjs';
 const $ = id => document.getElementById(id);
 let state, token, selectedProject = null, selectedTakeoff = null, createContext;
 let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTask, renderRevision = 0;
 let messageTimer;
 let resetPan = false;
+let activeViewport, noteMode = false, placingNote = false, editingNote = null;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
   clearTimeout(messageTimer); messageTimer = setTimeout(() => { $('message').hidden = true; }, error ? 10000 : 4500);
@@ -117,6 +119,7 @@ async function openDrawing(d) {
   renderTask?.cancel(); await loadingTask?.destroy(); pdf = null;
   if (generation !== renderRevision) return;
   drawing = d; pageNumber = 1; rotation = 0;
+  activeViewport = null; setNoteMode(false);
   resetPan = true;
   $('workspace').hidden = true; $('viewer').hidden = false; $('drawing-title').textContent = d.name;
   $('render-status').textContent = 'Opening drawing…'; $('pdf-canvas').hidden = true;
@@ -132,6 +135,7 @@ async function render() {
   if (!pdf) return;
   const generation = ++renderRevision;
   renderTask?.cancel();
+  activeViewport = null; $('note-overlay')?.remove();
   $('render-status').textContent = 'Rendering page…';
   try {
     const page = await pdf.getPage(pageNumber); if (generation !== renderRevision) return;
@@ -145,6 +149,7 @@ async function render() {
     renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: [factor,0,0,factor,0,0] });
     await renderTask.promise; if (generation !== renderRevision) return;
     canvas.id = 'pdf-canvas'; $('page-surface').replaceChildren(canvas);
+    activeViewport = viewport; paintNotes();
     if (resetPan) { $('drawing-stage').scrollTo(0,0); resetPan = false; }
     $('page-label').textContent = `${pageNumber} / ${pdf.numPages}`; $('zoom-label').textContent = `${Math.round(scale * 100)}%`;
     $('previous-page').disabled = pageNumber <= 1; $('next-page').disabled = pageNumber >= pdf.numPages;
@@ -153,7 +158,7 @@ async function render() {
   } catch (error) { if (error.name !== 'RenderingCancelledException' && generation === renderRevision) { $('render-status').textContent = 'Rendering failed'; notice(error.message, true); } }
 }
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
-function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; $('viewer').hidden = true; $('workspace').hidden = false; }
+function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
 $('previous-page').onclick = () => { if (pdf && pageNumber > 1) { pageNumber--; resetPan = true; render(); } };
 $('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { pageNumber++; resetPan = true; render(); } };
@@ -161,5 +166,82 @@ $('zoom-in').onclick = () => { scale = Math.min(4, scale * 1.25); render(); };
 $('zoom-out').onclick = () => { scale = Math.max(.1, scale / 1.25); render(); };
 $('fit-page').onclick = fitWidth;
 $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
+function setNoteMode(enabled) {
+  noteMode = enabled; placingNote = false;
+  $('notes-panel').hidden = !enabled;
+  $('note-tool').classList.toggle('tool-active',enabled); $('note-tool').setAttribute('aria-pressed',String(enabled));
+  $('pan-tool').classList.toggle('tool-active',!enabled); $('pan-tool').setAttribute('aria-pressed',String(!enabled));
+  $('tool-help').textContent = enabled ? 'Read a page note, or add one to the drawing' : 'Scroll to move around the drawing';
+  $('page-surface').classList.remove('placing-note');
+  paintNotes();
+}
+function paintNotes() {
+  const notes = (state?.notes || []).filter(n=>n.drawing_id === drawing?.id && n.page === pageNumber);
+  $('note-count').textContent = notes.length;
+  const list = $('notes-list'); list.replaceChildren();
+  $('note-overlay')?.remove();
+  if (activeViewport) {
+    const overlay = node('div',null,'note-overlay'); overlay.id = 'note-overlay';
+    notes.forEach((n,index) => {
+      const marker = button(String(index+1), event=>{ event.stopPropagation(); openNote(n); },'note-marker');
+      marker.setAttribute('aria-label',`Note ${index+1}: ${n.text.slice(0,80)}`);
+      marker.dataset.noteId = n.id;
+      const [x,y] = viewPoint(activeViewport,n.x,n.y);
+      marker.style.left = `${x}px`; marker.style.top = `${y}px`;
+      overlay.append(marker);
+    });
+    $('page-surface').append(overlay);
+  }
+  if (!notes.length) list.append(node('p','No notes on this page. Add one to keep a detail with the drawing.','hint'));
+  notes.forEach((n,index) => {
+    const entry = button('',()=>openNote(n),'note-entry');
+    entry.append(node('span',String(index+1),'note-number'),node('span',n.text)); list.append(entry);
+  });
+}
+function openNote(note) {
+  editingNote = note; placingNote = false; $('page-surface').classList.remove('placing-note');
+  $('tool-help').textContent = 'Read a page note, or add one to the drawing';
+  $('note-dialog-title').textContent = note.id ? 'Edit note' : 'Add note';
+  $('note-text').value = note.text || ''; $('note-error').textContent = '';
+  $('remove-note').hidden = !note.id; $('note-dialog').showModal(); $('note-text').focus();
+}
+$('note-tool').onclick = ()=>setNoteMode(true);
+$('pan-tool').onclick = ()=>setNoteMode(false);
+$('add-note').onclick = ()=>{
+  if (!activeViewport) return;
+  placingNote = true; $('page-surface').classList.add('placing-note');
+  $('tool-help').textContent = 'Click the drawing to place your note';
+};
+$('page-surface').onclick = event=>{
+  if (!noteMode || !placingNote || !activeViewport || !pdf || renderTask?.cancelled) return;
+  const rect = $('pdf-canvas').getBoundingClientRect();
+  const [x,y] = pagePoint(activeViewport,rect,event.clientX,event.clientY);
+  const [left,bottom,right,top] = drawing.pages[pageNumber-1].view;
+  if (x < left || x > right || y < bottom || y > top) return;
+  openNote({ drawing_id:drawing.id, page:pageNumber,x,y,text:'' });
+};
+$('cancel-note').onclick = ()=>$('note-dialog').close();
+$('note-form').onsubmit = async event=>{
+  event.preventDefault(); $('save-note').disabled = true;
+  const note = editingNote;
+  try {
+    await api(note.id ? `/api/notes/${note.id}` : `/api/drawings/${note.drawing_id}/notes`, {
+      method:note.id ? 'PATCH' : 'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...note,text:$('note-text').value}),
+    });
+    $('note-dialog').close(); await refresh(); paintNotes(); notice('Note saved');
+  } catch (error) { $('note-error').textContent = error.message; state = await api('/api/state').catch(()=>state); }
+  finally { $('save-note').disabled = false; }
+};
+$('remove-note').onclick = ()=>{
+  const note = editingNote; $('remove-note-dialog').returnValue = ''; $('remove-note-dialog').showModal();
+  $('remove-note-dialog').onclose = async ()=>{
+    if ($('remove-note-dialog').returnValue !== 'delete') return;
+    try {
+      await api(`/api/notes/${note.id}?version=${note.version}`,{method:'DELETE'});
+      $('note-dialog').close(); await refresh(); paintNotes(); notice('Note removed');
+    } catch (error) { $('note-error').textContent = error.message; state = await api('/api/state').catch(()=>state); }
+  };
+};
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

@@ -23,3 +23,5 @@ node scripts/generate-drawing-fixture.mjs .local/drawing-corpus/revision revisio
 Inspect a derived PDF with the same inspector; add `--metadata-only` to avoid rendering every page in repeated-page sets. Images/PDFs and compiler caches stay outside Git. The oracle uses installed macOS frameworks; this does not adopt Swift/PDFKit as the product stack.
 
 The revision removes (100,100) and adds (350,150), retaining five other centres and the aggregate count of six. IDs are local to each generated manifest; coordinate differences provide the independent revision oracle. Raster geometry derives from our inspected 2x render and has no selectable text layer. Derived PDF bytes can differ between runs because PDFKit may add metadata; evidence records the actual hashes.
+
+The dependency-free generator also accepts `cropped` as its third argument. This produces the same original geometry with CropBox `[40,40,440,740]` and source rotation 90 degrees for reproducible note-transform tests without a macOS framework dependency. Base PDF bytes remain unchanged (SHA-256 `5134016a0ce1d885aead56527ef531f38b5ea0e0927ef939b691e1c45a41d0ca`).

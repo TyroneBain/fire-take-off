@@ -33,3 +33,8 @@ Chrome DevTools MCP now connects to the user's authenticated beta Countfire tab.
 ## ADR-0007 — Independent research PDF oracle (accepted 2026-10-22)
 
 Use installed Apple PDFKit/AppKit through small Swift research scripts to independently render and inspect original fixture PDFs. The future product renderer remains undecided. Repeated 10/100-page sets test page indexing only; they do not represent complex construction sheets or establish performance budgets. Keep generated assets ignored and record actual digests. Preserve source-specific documented rules separately from executed reference behavior; browser upload denial cannot be treated as import success or bypassed.
+
+
+## ADR-0009 — Page-space notes and explicit schema migration (accepted 2026-10-22)
+
+Persist plain-text notes against immutable drawing ID and 1-based page number using native PDF coordinates within the actual crop box. Derive marker positions from PDF.js viewports and invert CSS pointer coordinates without storing backing-canvas pixels. Text edits/deletion require the current integer version to reject stale changes. Schema 1 migrates transactionally to schema 2; existing drawing records and sources remain intact. Drawing deletion cascades its notes. Text note anchors are the first annotation increment; cloud shapes, repositioning, exports and unsaved-exit handling remain separate work.

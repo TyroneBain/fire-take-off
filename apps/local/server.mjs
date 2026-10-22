@@ -41,7 +41,7 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         return Buffer.concat(chunks);
       }
       if (write && request.headers['content-type']?.startsWith('application/json')) {
-        try { body = JSON.parse((await readBody(8192)).toString()); }
+        try { body = JSON.parse((await readBody(32768)).toString()); }
         catch (error) { if (error.status) throw error; throw new AppError(400, 'Invalid JSON'); }
       }
       if (request.method === 'GET' && url.pathname === '/api/session') return send(200, { token });
@@ -59,6 +59,17 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if (request.method === 'GET' && source) return send(200, await store.source(source[1]), 'application/pdf');
       const drawing = url.pathname.match(/^\/api\/drawings\/([\w-]+)$/);
       if (request.method === 'DELETE' && drawing) { store.deleteDrawing(drawing[1]); return send(200, { deleted: true }); }
+      const noteCollection = url.pathname.match(/^\/api\/drawings\/([\w-]+)\/notes$/);
+      if (request.method === 'POST' && noteCollection) {
+        if (!body || typeof body !== 'object') throw new AppError(400, 'JSON object required');
+        return send(201, store.createNote(noteCollection[1], body));
+      }
+      const note = url.pathname.match(/^\/api\/notes\/([\w-]+)$/);
+      if (request.method === 'PATCH' && note) {
+        if (!body || typeof body !== 'object') throw new AppError(400, 'JSON object required');
+        return send(200, store.updateNote(note[1],body.text,body.version));
+      }
+      if (request.method === 'DELETE' && note) { store.deleteNote(note[1],Number(url.searchParams.get('version'))); return send(200, { deleted: true }); }
       if (request.method !== 'GET' || url.pathname.startsWith('/api/')) throw new AppError(404, 'Not found');
       const vendor = url.pathname.startsWith('/vendor/');
       const base = vendor ? vendorRoot : publicRoot;

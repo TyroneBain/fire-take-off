@@ -95,4 +95,26 @@ header{padding:0 18px}
 .toolbar-controls{flex-wrap:wrap}
 .viewer-footer>span:last-child{display:none}
 }
-
+.viewer-tools{height:48px;background:white;border-bottom:1px solid #dce5e6;padding:7px 24px;display:flex;gap:8px;align-items:center}
+.viewer-tools button{padding:7px 13px;border-color:transparent;font-size:12px}
+.viewer-tools .tool-active{background:#e6f2ee;border-color:#b4d8ce;color:#106b60}
+#tool-help{font-size:11px;color:#7c8f94;margin-left:10px}
+#note-count{display:inline-block;padding:1px 5px;background:#d4e6df;border-radius:4px;margin-left:4px;font-size:10px}
+.viewer-body{display:flex;min-width:0}
+#drawing-stage{height:calc(100vh - 226px);flex:1;min-width:0}
+#page-surface{position:relative}
+.note-overlay{position:absolute;inset:0;pointer-events:none}
+.note-marker{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;background:#ffcb6b;border:2px solid white;box-shadow:0 2px 7px #47311045;color:#513800;padding:0;width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:700}
+.note-marker:hover{background:#f9b840}
+.placing-note{cursor:crosshair}
+#notes-panel{background:white;border-left:1px solid #d5e0e2;width:280px;flex-shrink:0;padding:20px;overflow:auto;height:calc(100vh - 226px)}
+.notes-heading{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.notes-heading h2{font-size:16px;font-weight:550;margin:0}
+.notes-heading button{padding:7px 10px;font-size:11px}
+#notes-help{font-size:11px;color:#84969c;line-height:1.5;margin:18px 0}
+.note-entry{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;font-size:12px;line-height:1.6;margin-bottom:12px;padding:12px 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.note-number{border-radius:50%;width:21px;height:21px;display:grid;place-items:center;flex-shrink:0;background:#fff0d4;color:#8c641c;font-size:10px;font-weight:650}
+textarea{width:100%;font:inherit;line-height:1.6;padding:12px;border:1px solid #b5c9cc;border-radius:7px;resize:vertical}
+#note-error{font-size:12px;color:#a3433d}
+@media(max-width:1000px){#notes-panel{width:220px;padding:15px}#drawing-stage,#notes-panel{height:calc(100vh - 268px)}.viewer-tools{padding-left:12px}}
+@media(max-width:650px){#notes-panel{width:180px;padding:10px}#tool-help{display:none}}

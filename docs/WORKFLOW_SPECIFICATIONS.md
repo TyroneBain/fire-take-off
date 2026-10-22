@@ -60,3 +60,5 @@ See [REFERENCE_RULES](REFERENCE_RULES.md) for eight sourced article summaries an
 ## Local core implementation follow-up
 
 ADR-0008 stages research by subsystem after Phase 0. A001/A002 core subsets have passing automated tests for hierarchy, reopen, imports, rejection and removal. A003 has passing viewport transform checks plus browser zoom/rotation/page observation. This does not complete all listed acceptance criteria or validate Countfire parity. Evidence: [local core](evidence/local-core-2026-10-22.json). All other cases remain pending.
+
+F007/A008 now has partial text-note implementation and passing CRUD/reopen/crop/zoom/rotation checks. Clouds, repositioning, note exports and unsaved-exit rules remain unimplemented. [Notes evidence](evidence/notes-2026-10-22.json) distinguishes browser observations from automated tests.

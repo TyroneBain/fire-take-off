@@ -5,8 +5,8 @@ import { createHash } from 'node:crypto';
 // Original, inert vector drawing for research. PDF points, origin bottom left.
 const destination = resolve(process.argv[2] || '.local/drawing-fixture');
 const variant = process.argv[3] || 'base';
-if (!['base', 'revision'].includes(variant)) throw new RangeError('Variant must be base or revision');
-const symbols = variant === 'base'
+if (!['base', 'revision', 'cropped'].includes(variant)) throw new RangeError('Variant must be base, revision or cropped');
+const symbols = variant !== 'revision'
   ? [[100, 100], [200, 100], [300, 100], [100, 200], [200, 200], [300, 200]]
   : [[200, 100], [300, 100], [100, 200], [200, 200], [300, 200], [350, 150]];
 const content = [
@@ -21,7 +21,7 @@ const content = [
 const objects = [
   '<< /Type /Catalog /Pages 2 0 R >>',
   '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-  '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+  `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842]${variant === 'cropped' ? ' /CropBox [40 40 440 740] /Rotate 90' : ''} /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>`,
   '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
   `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}endstream`,
 ];
