@@ -111,3 +111,5 @@ Resolve document/page limits, supported units, revision migration, zone overlap 
 Acceptance planning now includes [cases A001–A011](ACCEPTANCE_CASES.md) and an [original drawing corpus](../fixtures/drawings/README.md). Feature statuses remain unchanged; fixture generation is not product implementation.
 
 Partial takeoff-loop scope: F008–F010 same-scale/orientation example matching across up to 20 pages; F013 inclusion corrections/manual additions with audit; F016 explicit review; F017–F020 calibrated points/lengths/simple polygons; F034–F035 original XLSX with reviewed/scaled quantities, no zones. Tests: 27/27 including prior core/REA checks. Evidence: [takeoff loop](evidence/takeoff-loop-2026-10-22.json). None implies complete parity.
+
+F014 source visibility subset: Hide drawing hides/restores only the PDF canvas while preserving six current-page overlays and identical saved state (78 total marks). Individual heading visibility and Countfire background classification semantics remain unimplemented; full F014 stays incomplete.
