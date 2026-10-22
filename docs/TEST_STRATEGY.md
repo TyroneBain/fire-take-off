@@ -26,3 +26,7 @@ Later CI should run deterministic domain and workflow tests, dependency/security
 ## Authenticated research follow-up — 2026-10-22
 
 The workflow specification matrix and 21-entry sanitised UI ledger are research evidence only. No reference writes, imports, counts, measurements, exports or pricing calculations were executed. No Fire Take Off product acceptance test ran. Documentation checks cover local links, all 61 parity entries and observation-to-spec traceability; the historical foundation report retains its original 59-entry result. See `docs/evidence/research-checks-2026-10-22.json`. The unchanged owned fixture was not retested during documentation-only work.
+
+## REA recovery helper verification
+
+`scripts/repair-rea.sh` passed `bash -n` and an actual official `--plan-only` run with `status: planned` and empty applied actions. Full normal-Terminal recovery has not been run here. Separate actual setup/analysis retries failed and are recorded in the recovery evidence; these failures cannot be reported as successful functional tests. Live MCP analysis remains mandatory.

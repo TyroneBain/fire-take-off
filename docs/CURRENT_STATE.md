@@ -1,6 +1,6 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney), authenticated Chrome research follow-up. Phase 0 is INCOMPLETE because REA setup and actual analysis remain blocked. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
+Last meaningful session: 2026-10-22 (Australia/Sydney), REA repair follow-up after authenticated Chrome research. Phase 0 is INCOMPLETE because REA setup and actual analysis remain blocked. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
 
 ## Repository and delivery
 
@@ -29,7 +29,7 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 4. Chrome access is RESOLVED: active Chrome DevTools MCP tools reached authenticated beta Countfire. Research covered normal visible controls and demo navigation. Counting, measurements, correction, save/reload, export, estimating calculations and reference import behavior remain untested. No actual Countfire replacement has been built.
 5. Shell npm/npx DNS and shell Git connectivity fail. Permitted curl downloads and the authenticated GitHub connector work. Shell credentials/push are unverified; do not claim a successful git push.
 6. Countfire file limits, zone boundary/revision rules, workbook schemas, correction behavior and detailed estimating calculations remain unknown. Current visible controls are partially specified. Help centre discovery was sparse. Announced future features are not assumed shipped.
-7. Asked asynchronously whether to retain the original REA gate or proceed without REA verification. No explicit waiver has been received at this handover; retain the original gate.
+7. Latest instruction is to unblock REA and build the equivalent. Repair was retried and remains restricted; no waiver is assumed. Prepared `scripts/repair-rea.sh` for ordinary Terminal execution. Product build remains gated until REA succeeds.
 
 ## Verification and evidence
 
@@ -41,6 +41,15 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 - `analyze-javascript-application .../fixtures/rea-smoke --json`: failed, exit 1; partial static observations compared with source, seven checks passed. No end-to-end success or live MCP verification.
 - See [REA_SETUP](REA_SETUP.md) and the three JSON summaries under `docs/evidence/`. Raw outputs/runtime remain ignored under `.local/`.
 - `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks passed (13 required files, 5 directory groups, 14 local Markdown links, 59 complete/unique parity rows); staged whitespace review passed. GitHub foundation tree and local index hashes matched, and the worktree was clean after synchronisation. The delivery handover update is checked and published separately. Evidence is recorded in `docs/evidence/foundation-checks.json`.
+
+## Latest unblock attempt
+
+- Refreshed official setup plan against current configuration; only Codex REA registration and matching workflow proposed, preserving the working Chrome registration.
+- Actual setup again returned exit 1, `needs_human`, failure reason `backup`, no applied actions.
+- Actual owned-fixture analysis again returned exit 1 `cleanup_incomplete`, process inspection `spawn EPERM`; direct permitted ps found no REA analysis worker remaining.
+- Added `scripts/repair-rea.sh`: ordinary-Terminal helper for pinned REA setup, scoped doctor, fixture behavior tests and actual CLI analysis. Bash syntax and official `--plan-only` invocation pass with no applied actions. Successful full recovery and live MCP analysis are NOT verified.
+- Saved `docs/evidence/rea-recovery-attempt-2026-10-22.json`. No product code, private input or third-party code added to the tracked repository. The runtime remains ignored.
+- This repair handover/script is published in the commit containing this update. Inspect `git log -1` for the final hash; remote head and local cleanliness are verified after publication.
 
 ## Authenticated browser session results
 
@@ -80,7 +89,9 @@ fire-take-off/
 │       ├── rea-analysis-summary.json
 │       ├── foundation-checks.json
 │       ├── countfire-ui-observations-2026-10-22.json
-│       └── research-checks-2026-10-22.json
+│       ├── research-checks-2026-10-22.json
+│       └── rea-recovery-attempt-2026-10-22.json
+├── scripts/repair-rea.sh
 ├── apps/.gitkeep
 ├── packages/.gitkeep
 ├── tests/.gitkeep
@@ -97,6 +108,6 @@ fire-take-off/
 
 ## Exact next action
 
-Complete the ordinary-Terminal setup/doctor/analysis commands in REA_SETUP, then `/quit` and launch `codex` from this repository. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
+Run `cd ~/Projects/fire-take-off && bash scripts/repair-rea.sh` in ordinary macOS Terminal. After it succeeds, start a fresh `codex` from this repository. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
 
 Initial matrix is now written in WORKFLOW_SPECIFICATIONS.md. Next research work: extend it with actual controlled behavior observations for project → import → select/count → review/correct → calibrate/measure/zone → revision → export → estimate. Resolve P0 unknowns and establish drawing provenance, numerical tolerances and performance budgets before choosing a stack or building product code.

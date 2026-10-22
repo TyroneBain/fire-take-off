@@ -59,7 +59,22 @@ The error carries a partial observation. Compared it against source: all three J
 
 Raw local outputs remain in ignored `.local/rea-plan.json`, `rea-setup.json`, `rea-doctor.json`, `rea-analysis.json`; the version-controlled records are selected, sanitised evidence with actual exit states, not raw-report replacements. No account data, credentials or third-party application code is included.
 
-## Exact recovery and restart
+## One-command recovery from ordinary Terminal
+
+A fresh repair attempt after Chrome connected still failed: setup exit 1 (`needs_human`, backup failure, no applied actions); owned-fixture analysis exit 1 (`cleanup_incomplete`, child process inspection `spawn EPERM`). A permitted direct process check found no REA JavaScript analysis worker remaining. These restrictions were not bypassed, and native applications were not installed.
+
+Run the prepared helper from ordinary macOS Terminal:
+
+```bash
+cd ~/Projects/fire-take-off
+bash scripts/repair-rea.sh
+```
+
+It uses the existing tested local runtime, or pinned official `rea-agents@6.7.0` if that runtime is absent. It plans and applies only the authorised Codex setup, checks the installed workflow/registration, runs our fixture tests and attempts actual CLI analysis. It stops on failure and retains reports under ignored `.local/rea-recovery.*`. It does not use sudo, install optional native applications or mark Phase 0 complete.
+
+Verified here: Bash syntax and `--plan-only` execution pass, and the official plan reports zero applied actions. Successful full execution outside the restricted session has **not** been observed. See [recovery evidence](evidence/rea-recovery-attempt-2026-10-22.json). After the helper succeeds, start a fresh `codex` session from this repository and perform the live MCP verification described below.
+
+## Detailed recovery and restart
 
 Run these from an ordinary macOS Terminal with access to your own Codex configuration (outside this restricted session):
 
