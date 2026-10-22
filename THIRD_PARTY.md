@@ -12,3 +12,5 @@ The committed package lock records package URLs and integrity hashes, including 
 `npm audit --omit=dev --json` reported zero advisories on 2026-10-22. This records that check, not a blanket security guarantee.
 
 ExcelJS 4.4.0 (MIT, https://github.com/exceljs/exceljs) writes original XLSX workbooks. Its scoped UUID dependency is pinned to 11.1.1 (MIT) to address GHSA-w5hq-g745-h8pq; CommonJS v4 usage was checked and workbook tests pass. The initial audit reported one moderate advisory; the repeat after this override reported zero. npm emitted transitive deprecation notices (rimraf, inflight, fstream, lodash.isequal, glob and uuid). All exact dependencies/integrity hashes remain in package-lock.json; lifecycle scripts disabled.
+
+[polygon-clipping](https://github.com/mfogel/polygon-clipping) 0.15.7 (MIT), with robust-predicates and splaytree, provides server-side zone union/intersection/difference. Pinned installation with scripts disabled reported zero advisories (2026-10-22). Preserve its bundled MIT notices in future distribution. Initial sandbox DNS install failed; permitted network install succeeded.

@@ -78,6 +78,19 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         if (!body || typeof body !== 'object') throw new AppError(400,'JSON object required');
         return send(200,store.updatePage(pageMetadata[1],Number(pageMetadata[2]),body));
       }
+      const zoneHeadings=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/zone-headings$/);
+      if(zoneHeadings&&request.method==='POST'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(zoneHeadings&&request.method==='POST')return send(201,store.createZoneHeading(zoneHeadings[1],body));
+      if(zoneHeadings&&request.method==='PATCH')return send(200,store.reorderZoneHeadings(zoneHeadings[1],body?.order));
+      const zoneHeading=url.pathname.match(/^\/api\/zone-headings\/([\w-]+)$/);
+      if(zoneHeading&&request.method==='DELETE'){store.deleteZoneHeading(zoneHeading[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
+      const zoneCollection=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/zones$/);
+      if(zoneCollection&&request.method==='POST'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(zoneCollection&&request.method==='POST')return send(201,store.createZone(zoneCollection[1],body));
+      const zone=url.pathname.match(/^\/api\/zones\/([\w-]+)$/);
+      if(zone&&request.method==='PATCH'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(zone&&request.method==='PATCH')return send(200,store.updateZone(zone[1],body));
+      if(zone&&request.method==='DELETE'){store.deleteZone(zone[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
       const counts=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/counts$/);
       if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
       const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);

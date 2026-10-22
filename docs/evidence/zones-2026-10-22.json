@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-22",
+  "environment": "macOS 26.7.1 x86_64; Node 24.22.0; loopback browser; owned synthetic drawings",
+  "tests": {
+    "command": "npm test",
+    "passed": 34,
+    "failed": 0,
+    "product": 31,
+    "reaDiagnostic": 3,
+    "coverage": [
+      "heading priority and reordering",
+      "six labelled point instances and same-heading union",
+      "edge allocation and outside exclusion",
+      "analytic crossing line 15/5 metres",
+      "analytic area 150/50 square metres",
+      "concavity, derived holes and reversed geometry",
+      "stale edits, scope rejection and invalid polygons",
+      "deletion cascade and return to whole page",
+      "schema 4 migration and schema 5 reopen",
+      "real token-protected HTTP routes",
+      "zoned workbook columns reconcile with allocated quantities"
+    ]
+  },
+  "browser": {
+    "creation": "West outline includes 4/6 original-page symbols",
+    "overlapBefore": {
+      "West": 4,
+      "East": 2
+    },
+    "overlapAfterReorder": {
+      "West": 2,
+      "East": 4
+    },
+    "rawMarksUnchanged": 78,
+    "nodeEdit": {
+      "firstVertex": [
+        75,
+        50
+      ],
+      "version": 2
+    },
+    "cancelEdit": "Full saved API state identical before/after cancel"
+  },
+  "failuresResolved": [
+    "schema 5 missing from reopen whitelist caused three old tests to fail; corrected",
+    "migration test cleanup double-closed database; corrected helper ownership",
+    "HTTP test incorrectly sent empty JSON on DELETE; fixed request helper",
+    "initial dependency installation denied DNS; permitted install succeeded with zero advisories"
+  ],
+  "limitations": [
+    "No exact Countfire point-on-edge or crossing-measure parity established",
+    "First-heading boundary policy is provisional and explicit",
+    "Save per outline operation rather than reference global save",
+    "No zone copy, multipliers or dominant-zone itemisation",
+    "No live allocation preview while dragging; totals recompute after save",
+    "Node insertion/removal, whole-outline dragging and right-click completion implemented but not yet browser acceptance-tested",
+    "Capacity bounds provisional; representative performance unmeasured"
+  ],
+  "dependency": {
+    "polygon-clipping": "0.15.7",
+    "license": "MIT",
+    "source": "https://github.com/mfogel/polygon-clipping"
+  },
+  "reference": "https://help.countfire.com/en/articles/90849-zones",
+  "delivery": "Prepared, not yet committed/published at evidence capture"
+}

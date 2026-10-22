@@ -1,6 +1,6 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 research and Phase 2 core are IN DEVELOPMENT under the sequencing change in ADR-0008. The first local app now works; complete Countfire parity remains far from finished. F001–F010, F013, F016–F020, F034–F035 have TESTED partial scopes, with limitations; no product feature is VERIFIED.
+Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 1 research and Phase 2 core are IN DEVELOPMENT under the sequencing change in ADR-0008. The first local app now works; complete Countfire parity remains far from finished. F001–F010, F013, F016–F020, F021, F063, F034–F035 have TESTED partial scopes, with limitations; no product feature is VERIFIED.
 
 ## Repository and delivery
 
@@ -49,11 +49,23 @@ Final repeated `npm test`: 27 passed, 0 failed (24 product, 3 REA diagnostic). E
 
 Latest user explicitly reauthorised normal Countfire account analysis. Demo takeoff inspected through visible UI only; no source, bundles, customer drawings or account data copied into Git. The newer source-copy request does not establish a Countfire code licence; continue independently implementing behavior. The earlier overnight prohibition on authenticated inspection is superseded by the later explicit access instruction.
 
+## Zone increment (prepared; delivery pending)
+
+ADR-0011 precedes implementation. Schema 5 persists discipline headings/order/version and page outlines. Same-heading outlines union; first heading wins overlaps; pages with no outlines contribute whole-page quantities, outlined pages exclude outside. Counts/points allocate once; lengths split at boundary intersections; areas use polygon-clipping 0.15.7 union/difference/intersection, including concave and derived-hole cases. Boundary ties go to first eligible heading as an explicit original provisional policy, not a measured Countfire fact.
+
+Zone UI creates headings and outlines, reorders/deletes headings, deletes outlines, edits vertices/whole outlines with Save/Cancel, and implements node insertion/removal and right-click completion. Totals recompute after saved operations, not continuously while dragging. Source instances/geometry stay intact. Workbook discipline sheets now contain separate zone quantity columns with reconciled row totals. Only allocated included marks require review and only allocated unscaled measures block output. No-zone output stays compatible.
+
+Final suite: 34/34 passed (31 product + 3 owned REA diagnostics). Includes analytic 15/5 m and 150/50 m² crossing allocations, six-symbol overlap/edge cases, concavity/holes, scope/version errors, schema 4 migration/reopen, real HTTP routes and workbook columns. Earlier failures: schema 5 absent from version whitelist, migration test cleanup double-close, test HTTP helper sending empty JSON on DELETE; fixed before final run. Initial npm dependency install DNS denied; permitted install succeeded with zero advisories. Browser: West/East counts 4/2→2/4 on reorder; vertex saved near [75,50] at version 2; cancelled edit preserved full API state. Raw 78 marks retained. Evidence: `docs/evidence/zones-2026-10-22.json`.
+
+Two demonstration headings/outlines remain on Original.pdf in ignored local data, East first then West. Other fixture pages have no zones. App remains running on 4173; session 82302 loaded initial zone server, but latest workbook pivot and request-validation changes require a restart before manual live export verification. Automated tests run fresh code. `caffeinate -i` runs in session 23172 as explicitly requested.
+
+Parent local/remote baseline `81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d`, tree `2bdf4ace5999ffa6fcfb238a1ed59334339abe74`. Zone increment is currently uncommitted/unpublished. Preserve all changes. User explicitly requests NO further approval prompts; use permitted actions. If publication or local reconciliation is sandbox-blocked, retain exact recovery steps rather than claiming delivery. Shell Git auth remains unavailable; API delivery needs expected-head protection.
+
 ## Incomplete / next executable task
 
-Hide drawing browser verification passed: canvas hidden/restored, six current-page markers retained, full API state identical and 78 marks unchanged. The implementation increment is delivered. Continue zone polygons and heading-priority allocation after documenting boundary and crossing-measure policies. Keep advanced measures/export limitations explicit. Research remaining normal UI workflows using demo/owned scope, without editing customer work.
+Deliver the tested zone increment; if local Git object/ref writes are blocked, preserve the index/files and record the remote SHA/tree for later hash-verified reconciliation. Restart the owned loopback server in a session already permitted to bind port 4173, then verify workbook download with zone columns. Continue zone gesture acceptance, keyboard pan/delete, live drag previews, copying, multipliers and itemisation; do not mark complete zone parity. Next counting work: multiple examples, reclassification and stronger matching benchmarks.
 
-No zones, reclassification, multi-example matching, Smart Select, revisions, connected systems/fittings, estimating or cloud collaboration. 20-page matching limit and 4-million-pixel per-page budget are provisional. No representative trade accuracy target, performance budget, undo, backup/GC or complete accessibility acceptance. No feature has full VERIFIED parity.
+Full Smart Select, revisions, connected systems/fittings, estimating and cloud collaboration remain absent. Same-size/orientation matching, 20-page/4M-pixel limits remain provisional. No full feature is VERIFIED. Original implementation uses visible/public behavior; no Countfire source or assets copied.
 
 ## Evidence and storage
 

@@ -1,3 +1,4 @@
+import {setupZones} from './zone-ui.mjs';
 import * as pdfjs from '/vendor/build/pdf.mjs';
 import { pagePoint, viewPoint } from './coordinates.mjs';
 import { setupTakeoff } from './takeoff-ui.mjs';
@@ -8,7 +9,7 @@ let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTa
 let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
-let takeoffUi;
+let takeoffUi,zoneUi;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
   clearTimeout(messageTimer); messageTimer = setTimeout(() => { $('message').hidden = true; }, error ? 10000 : 4500);
@@ -23,7 +24,7 @@ function node(tag, text, className) { const element = document.createElement(tag
 function button(text, action, className) { const b = node('button', text, className); b.addEventListener('click', action); return b; }
 function children(parent, kind) { return state.entities.filter(e => e.parent_id === parent && e.kind === kind); }
 function byId(id) { return state.entities.find(e => e.id === id); }
-async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); }
+async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); zoneUi?.paint(); }
 function create(kind, parentId) {
   createContext = { kind, parentId };
   $('dialog-title').textContent = `Create ${kind}`; $('entity-name').value = ''; $('dialog-error').textContent = '';
@@ -140,7 +141,7 @@ async function render() {
   if (!pdf) return;
   const generation = ++renderRevision;
   renderTask?.cancel();
-  activeViewport = null; $('note-overlay')?.remove();
+  activeViewport = null; $('note-overlay')?.remove(); $('takeoff-overlay')?.remove(); $('zone-overlay')?.remove();
   $('render-status').textContent = 'Rendering page…';
   try {
     const page = await pdf.getPage(pageNumber); if (generation !== renderRevision) return;
@@ -154,7 +155,7 @@ async function render() {
     renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: [factor,0,0,factor,0,0] });
     await renderTask.promise; if (generation !== renderRevision) return;
     canvas.id = 'pdf-canvas'; $('page-surface').replaceChildren(canvas);
-    activeViewport = viewport; paintNotes(); paintPage(); takeoffUi?.paint();
+    activeViewport = viewport; paintNotes(); paintPage(); takeoffUi?.paint(); zoneUi?.paint();
     if (resetPan) { $('drawing-stage').scrollTo(0,0); resetPan = false; }
     $('page-label').textContent = `${pageNumber} / ${pdf.numPages}`; $('zoom-label').textContent = `${Math.round(scale * 100)}%`;
     $('previous-page').disabled = pageNumber <= 1; $('next-page').disabled = pageNumber >= pdf.numPages;
@@ -163,18 +164,18 @@ async function render() {
   } catch (error) { if (error.name !== 'RenderingCancelledException' && generation === renderRevision) { $('render-status').textContent = 'Rendering failed'; notice(error.message, true); } }
 }
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
-function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
+function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
 $('hide-source').onchange = () => $('page-surface').classList.toggle('source-hidden', $('hide-source').checked);
-$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
-$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
+$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
+$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
 $('zoom-in').onclick = () => { scale = Math.min(4, scale * 1.25); render(); };
 $('zoom-out').onclick = () => { scale = Math.max(.1, scale / 1.25); render(); };
 $('fit-page').onclick = fitWidth;
 $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
 $('drawing-select').onchange=()=>{const next=state.drawings.find(d=>d.id===$('drawing-select').value);if(next)openDrawing(next,1,takeoffUi?.mode);};
 function setNoteMode(enabled) {
-  takeoffUi?.deactivate();
+  takeoffUi?.deactivate(); zoneUi?.deactivate();
   noteMode = enabled; placingNote = false;
   $('notes-panel').hidden = !enabled;
   $('page-panel').hidden = true; $('page-tool').classList.remove('tool-active'); $('page-tool').setAttribute('aria-pressed','false');
@@ -279,5 +280,6 @@ $('remove-note').onclick = ()=>{
   };
 };
 takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
+zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

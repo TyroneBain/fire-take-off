@@ -36,3 +36,5 @@ F007 text notes now persist with edit/delete/cancel and crop/zoom/rotation check
 F003 manual page name/title editing is partially TESTED with source/note preservation. Next core/takeoff work: editable entity metadata, manual points and calibrated analytic measurements; automatic title extraction and all full-parity obligations remain pending.
 
 ADR-0010 takeoff-loop increment: original bounded matching, corrections/review, calibrated point/length/area tools and XLSX are partially TESTED (27 passing suite tests including 3 REA diagnostics). Phases 3/4/6 remain IN DEVELOPMENT, with no exit gates met. Zones, representative recognition benchmarks, connected systems, estimating and full workbook parity remain outstanding.
+
+ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned export columns. Suite 34/34. Phase 4 remains IN DEVELOPMENT: boundary parity, live preview, copying, itemisation/multipliers and performance acceptance still open.

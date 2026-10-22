@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "exceljs": "4.4.0",
-    "pdfjs-dist": "6.4.299"
+    "pdfjs-dist": "6.4.299",
+    "polygon-clipping": "0.15.7"
   },
   "overrides": {
     "exceljs": {

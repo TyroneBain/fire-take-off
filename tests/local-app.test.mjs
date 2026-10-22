@@ -184,7 +184,7 @@ test('A003/A008: rotated cropped page anchors use the actual crop and inverse tr
   }
 });
 
-test('schema 1 migrates to schema 3 without losing stored drawings or original bytes', async t => {
+test('schema 1 migrates to the latest schema without losing stored drawings or original bytes', async t => {
   const { directory,bytes } = await fixture(t);let store=await openStore(directory);
   const discipline=hierarchy(store),d=await store.importPdf(discipline.id,'Old workspace.pdf',bytes);store.close();
   const db=new DatabaseSync(join(directory,'projects.sqlite'));db.exec('DROP TABLE notes; DROP TABLE page_metadata; UPDATE schema_version SET version=1');db.close();
