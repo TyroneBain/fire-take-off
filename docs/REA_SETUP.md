@@ -1,6 +1,8 @@
-# REA setup — Terminal recovery successful; live MCP check pending
+# REA setup — live MCP verified
 
-Last checked 2026-10-22 after the user ran the repair helper in ordinary Terminal. Codex registration is now configured, the matching workflow is aligned, doctor reports healthy and the owned-fixture CLI analysis returned complete evidence. Seven comparisons against fixture source passed. Phase 0 remains open only for the required live MCP analysis in a fresh Codex session; this existing session still exposes no REA tools. Historical failures below are retained as prior attempts, not current installation state.
+On 2026-10-22 this fresh Codex session called `binary_session` with expected package version 6.7.0 and `analyze_javascript_application` on our owned fixture. Live identity is aligned with workflow 42, Codex client 0.163.0 and 207 catalog tools. Analysis succeeded; all seven independent source comparisons passed; behavior tests passed 3/3. [Live evidence](evidence/rea-live-mcp-2026-10-22.json) preserves identity, digest, checks and limitations. Full bundle is retained locally at `.local/rea-live-mcp-2026-10-22.json`. Static graph coverage is complete; semantic coverage remains unknown with explicit dynamic-call/data-flow limitations. This proves the required fixture workflow, not native provider availability or runtime execution by REA. No configuration changes were needed.
+
+Historical recovery instructions and failed attempts follow; statements about absent tools describe prior sessions. Do not repeat repair for this now-resolved gate.
 
 ## Official references consulted
 

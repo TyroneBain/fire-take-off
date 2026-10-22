@@ -23,4 +23,4 @@ Phase 1 must select small/medium/large authorised vector and raster drawing sets
 
 ## Next gate
 
-Finish all unresolved Phase 0 checks in CURRENT_STATE. Then write a workflow specification matrix for create/import/count/review/measure/zone/revision/export/estimate, linked to FEATURE_PARITY IDs. Do not start application scaffolding during foundation work.
+Live REA MCP owned-fixture verification passed on 2026-10-22; publish its evidence to finish the Phase 0 delivery checkpoint. Continue Phase 1 using WORKFLOW_SPECIFICATIONS.md and ACCEPTANCE_CASES.md. The original vector corpus generator is available; rendering, raster/multipage sets, P0 reference behavior, tolerances, budgets and stack ADR remain incomplete. Application scaffolding awaits Phase 1 exit.

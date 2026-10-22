@@ -30,3 +30,7 @@ The workflow specification matrix and 21-entry sanitised UI ledger are research 
 ## REA recovery helper verification
 
 `scripts/repair-rea.sh` passed `bash -n` and an actual official `--plan-only` run with `status: planned` and empty applied actions. Full normal-Terminal recovery has not been run here. Separate actual setup/analysis retries failed and are recorded in the recovery evidence; these failures cannot be reported as successful functional tests. Live MCP analysis remains mandatory.
+
+## Fresh-session verification — 2026-10-22
+
+Live REA MCP analysis and seven source comparisons passed; Node behavior tests passed 3/3. See live MCP evidence. The original drawing generator ran successfully; independent byte checks validated SHA-256, xref offsets and stream length. See drawing-fixture checks evidence. No PDF rendering, reference behavior or product acceptance cases ran. A001–A011 in ACCEPTANCE_CASES.md remain proposed tests. Historical recovery-helper failures above are superseded by the successful Terminal and live MCP records.

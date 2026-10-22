@@ -94,3 +94,5 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 ## Phase 1 questions
 
 Resolve document/page limits, supported units, revision migration, zone overlap rules, detector scope, output schemas, kit/labour details, pricing rounding, roles and concurrent edits. Audit help articles and normal authorised workflows; record source URLs and dates without private account data. Confirm current behavior where 2022/2025 documentation conflicts with September 2026 changes. Determine whether announced features have shipped before treating them as available reference functionality.
+
+Acceptance planning now includes [cases A001–A011](ACCEPTANCE_CASES.md) and an [original drawing corpus](../fixtures/drawings/README.md). Feature statuses remain unchanged; fixture generation is not product implementation.

@@ -1,6 +1,19 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney), successful ordinary-Terminal REA recovery. Phase 0 is INCOMPLETE only because live MCP verification in a fresh Codex session remains pending. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
+Last meaningful session: 2026-10-22. Live REA MCP verification now PASSES in the fresh Codex session. Phase 0 technical requirements pass; delivery of this evidence commit is the final foundation checkpoint. Phase 1 is IN DEVELOPMENT; Phase 2 application development has not started.
+
+## Latest verified work and next action
+
+- Read root instructions, vision, roadmap, current state, REA setup and installed workflow 42. Root/origin confirmed, main initially clean at `4a0dc1732161df5e23e7370fbb256dc013fa63dd`; no nested AGENTS files.
+- Live REA 6.7.0 identity aligned; actual MCP owned-fixture analysis returned complete evidence. Seven source comparisons and 3/3 Node behavior tests passed. See `docs/evidence/rea-live-mcp-2026-10-22.json`. Complete raw bundle stays ignored locally. Static analysis does not establish execution; semantic unknowns remain recorded.
+- Continued Phase 1: dependency-free original vector PDF generator, provenance and labelled geometry; eleven concrete acceptance cases in ACCEPTANCE_CASES.md linked to parity IDs. No product stack adopted and all product features remain NOT STARTED.
+- Generated fixture SHA-256 `5134016a0ce1d885aead56527ef531f38b5ea0e0927ef939b691e1c45a41d0ca`; independent byte checks passed for manifest digest, xref, five object offsets and stream length. Rendering remains unverified. See drawing-fixture checks evidence.
+- GitHub connector reconfirmed PRIVATE visibility and remote main equal to starting local HEAD. Sandbox Git DNS failed; escalated read reached GitHub but failed because shell credentials are unavailable. Delivery must use the authenticated API with expected-head protection; no shell push is claimed.
+- No roadmap/architecture waiver. Phase 1 still needs actual controlled reference behavior for corrections, zones, revisions and outputs; raster/multipage/large drawing sets; measured/accepted tolerances and budgets; stack ADR.
+- Next executable task: independently render/inspect the generated PDF, extend the corpus with raster and revision variants, then observe normal reference workflows using only owned scratch inputs. Resolve P0 questions before starting Phase 2.
+- Commit/delivery: this session batch is prepared for API publication on main using the existing parent above. Use `git log -1` and authenticated remote readback for the final SHA. If delivery fails, retain this work and create tree/commit through GitHub API, update main with expected parent and reconcile local commit hash.
+
+Earlier handover below is historical; its pending-live-REA statements are superseded by this section.
 
 ## Repository and delivery
 

@@ -2,7 +2,7 @@
 
 Observed 2026-10-22 through the user's authenticated Chrome using Chrome DevTools MCP. Reference: **beta.countfire.com**, not a claim that every production release behaves identically. Only normal user-visible controls, text and navigation were inspected. No application bundles, network payloads, proprietary source, cookies or credentials were extracted. Private project identifiers, customer data, catalogue prices and drawing content are excluded from this specification.
 
-This is research prework while Phase 0's REA gate remains open. No Fire Take Off product functionality is implemented or VERIFIED. Every acceptance item below is a proposed test for our original implementation, not a test that has passed.
+This Phase 1 research baseline now follows successful live REA verification. No Fire Take Off product functionality is implemented or VERIFIED. Every acceptance item below is a proposed test for our original implementation, not a test that has passed.
 
 Evidence: [sanitised observation ledger](evidence/countfire-ui-observations-2026-10-22.json). B identifiers refer to that ledger. Controls were opened and cancelled, or tabs switched, without submitting changes. Opening a reference control proves its presence; it does not prove that its underlying operation succeeds.
 
@@ -48,3 +48,7 @@ Evidence: [sanitised observation ledger](evidence/countfire-ui-observations-2026
 ## Next specification work
 
 After the Phase 0 gate is resolved or explicitly waived, agree an owned scratch workflow and original synthetic PDFs for behavior observation. Specify correction precedence, zone boundaries, scale units/rounding, revision migration and export schemas before implementing those subsystems. Define small/medium/large corpus and measurable hardware-based performance targets. No architecture adoption follows merely from the observed interface.
+
+## Original acceptance corpus follow-up
+
+[Concrete cases A001–A011](ACCEPTANCE_CASES.md) map original synthetic geometry to independent expected quantities. [Corpus provenance](../fixtures/drawings/README.md) documents generation and remaining gaps. These are implementation requirements, not observed reference behavior or passed product tests.

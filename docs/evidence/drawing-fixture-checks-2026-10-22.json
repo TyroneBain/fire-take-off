@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-22",
+  "fixture_sha256": "5134016a0ce1d885aead56527ef531f38b5ea0e0927ef939b691e1c45a41d0ca",
+  "checks": {
+    "manifest_digest": true,
+    "xref_pointer": true,
+    "five_object_offsets": true,
+    "stream_byte_length": true,
+    "declared_geometry": true
+  },
+  "limitations": [
+    "No independent PDF render yet",
+    "No product acceptance tests run"
+  ]
+}
