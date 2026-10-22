@@ -1,0 +1,278 @@
+{
+  "date": "2026-10-22",
+  "reference_origin": "https://beta.countfire.com",
+  "method": "Authenticated Chrome DevTools MCP normal user-visible interaction",
+  "observation_level": "UI_CONTROLS_AND_NAVIGATION_ONLY",
+  "private_values_and_identifiers_saved": false,
+  "proprietary_source_extracted": false,
+  "persistent_user_data_mutations_submitted": false,
+  "fire_take_off_product_features_implemented": 0,
+  "observations": [
+    {
+      "id": "B001",
+      "workflow": "Project discovery",
+      "route_template": "/",
+      "observed_controls": [
+        "Active/Own/Archived navigation",
+        "Filter projects",
+        "Project/customer/building type/owner/status/created/due-date columns"
+      ],
+      "limits": "Filter used to locate demo; full search semantics untested"
+    },
+    {
+      "id": "B002",
+      "workflow": "Project creation",
+      "route_template": "/",
+      "observed_controls": [
+        "Required name",
+        "Owner",
+        "Customer",
+        "Building type",
+        "Due date",
+        "Cancel/Create actions"
+      ],
+      "limits": "Opened and cancelled; no project created"
+    },
+    {
+      "id": "B003",
+      "workflow": "Project statuses",
+      "route_template": "/project/<project>",
+      "observed_controls": [
+        "Takeoff",
+        "Estimate",
+        "Client review",
+        "Won",
+        "Lost",
+        "On hold"
+      ],
+      "limits": "Menu opened and dismissed without choosing status"
+    },
+    {
+      "id": "B004",
+      "workflow": "Project contents",
+      "route_template": "/project/<project>",
+      "observed_controls": [
+        "Takeoffs",
+        "Estimates",
+        "Specifications",
+        "Separate create actions"
+      ],
+      "limits": "Read-only navigation"
+    },
+    {
+      "id": "B005",
+      "workflow": "Takeoff creation",
+      "route_template": "/project/<project>",
+      "observed_controls": [
+        "Required name",
+        "Revision-style suggested name"
+      ],
+      "limits": "Opened and cancelled"
+    },
+    {
+      "id": "B006",
+      "workflow": "Takeoff organisation",
+      "route_template": "/project/<project>/takeoff/<takeoff>",
+      "observed_controls": [
+        "Discipline sections",
+        "Drawing cards",
+        "PDF upload and drag/drop guidance",
+        "New discipline",
+        "Export and download"
+      ],
+      "limits": "No upload/export/creation executed"
+    },
+    {
+      "id": "B007",
+      "workflow": "Drawing navigation/loading",
+      "route_template": "/project/<project>/takeoff/<takeoff>/takeoff/drawing/<drawing>",
+      "observed_controls": [
+        "Drawing selector with discipline/name",
+        "Project/takeoff breadcrumbs",
+        "Loading state then drawing text"
+      ],
+      "limits": "Rendering fidelity/performance not measured"
+    },
+    {
+      "id": "B008",
+      "workflow": "Workspace modes",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Count",
+        "Measure",
+        "Zone",
+        "Note",
+        "Layout",
+        "Page",
+        "Save changes disabled when untouched"
+      ],
+      "limits": "Tabs switched; no content edit submitted"
+    },
+    {
+      "id": "B009",
+      "workflow": "Count mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Box-selection instruction for counting across drawings",
+        "Smart select",
+        "Add to current"
+      ],
+      "limits": "Control guidance only; no reference count executed"
+    },
+    {
+      "id": "B010",
+      "workflow": "Global view/calibration",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Hide Background switch",
+        "Scale ratio input"
+      ],
+      "limits": "Neither toggled nor edited"
+    },
+    {
+      "id": "B011",
+      "workflow": "Measure mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "point",
+        "length",
+        "area",
+        "Create action changes with selected type",
+        "Snapping switch for length"
+      ],
+      "limits": "Selected length type only; no geometry created"
+    },
+    {
+      "id": "B012",
+      "workflow": "Zone mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Outline area to split quantities guidance",
+        "Snapping switch"
+      ],
+      "limits": "No zone drawn"
+    },
+    {
+      "id": "B013",
+      "workflow": "Note mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Cloud/annotation guidance"
+      ],
+      "limits": "No note created"
+    },
+    {
+      "id": "B014",
+      "workflow": "Layout mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Floor plan",
+        "Overlay",
+        "Compare",
+        "Add drawing",
+        "Overlay guidance includes other disciplines/projects"
+      ],
+      "limits": "No drawing added or positioned"
+    },
+    {
+      "id": "B015",
+      "workflow": "Page mode",
+      "route_template": "drawing workspace",
+      "observed_controls": [
+        "Name",
+        "Title",
+        "Extract titles"
+      ],
+      "limits": "No metadata changed or extraction executed"
+    },
+    {
+      "id": "B016",
+      "workflow": "Estimate creation",
+      "route_template": "/project/<project>",
+      "observed_controls": [
+        "Name",
+        "Optional existing takeoff search",
+        "Default hourly rate"
+      ],
+      "limits": "Opened and cancelled; no estimate created"
+    },
+    {
+      "id": "B017",
+      "workflow": "Products",
+      "route_template": "/catalogue/products",
+      "observed_controls": [
+        "Filter",
+        "Columns dialog",
+        "Category",
+        "Manufacturer",
+        "Part code",
+        "Description",
+        "Unit material buy",
+        "Unit labour hours",
+        "Hourly rate"
+      ],
+      "limits": "Column dialog cancelled; private values excluded"
+    },
+    {
+      "id": "B018",
+      "workflow": "Kits",
+      "route_template": "/catalogue/kits",
+      "observed_controls": [
+        "Kit name",
+        "Total labour hours",
+        "Quantity",
+        "Labour hours",
+        "Category",
+        "Manufacturer",
+        "Part code",
+        "Description"
+      ],
+      "limits": "Viewed schema only; private values excluded"
+    },
+    {
+      "id": "B019",
+      "workflow": "Prelims",
+      "route_template": "/catalogue/prelims",
+      "observed_controls": [
+        "Type",
+        "Category",
+        "Name",
+        "Markup %",
+        "Unit buy"
+      ],
+      "limits": "Viewed schema only; private values excluded"
+    },
+    {
+      "id": "B020",
+      "workflow": "Price lists",
+      "route_template": "/catalogue/price-lists",
+      "observed_controls": [
+        "Filter price lists",
+        "Upload dialog",
+        "Required name",
+        "CSV/Excel file",
+        "Template link",
+        "Update catalogue initially checked",
+        "Upload initially disabled"
+      ],
+      "limits": "Opened and cancelled; no file/template downloaded or uploaded"
+    },
+    {
+      "id": "B021",
+      "workflow": "Specification comparison",
+      "route_template": "/project/<project>/specification-comparison/<comparison>",
+      "observed_controls": [
+        "Original/revised documents",
+        "Missing text red",
+        "New/revised text green"
+      ],
+      "limits": "Demo comparison opened; numerical/content correctness and exports untested"
+    }
+  ],
+  "limitations": [
+    "Reference is beta; production parity still needs validation.",
+    "No matching/calibration/geometry/export/pricing operation executed.",
+    "No user data or third-party drawings copied to fixtures.",
+    "REA remains unregistered/unverified; original Phase 0 gate retained pending explicit user response."
+  ]
+}

@@ -22,3 +22,7 @@ Export tests parse XLSX independently and reconcile sheets, per-zone/drawing tot
 Viewer tests combine numeric coordinate assertions, known fiducial render comparisons and user interaction, not screenshots alone. Benchmark memory and responsiveness on agreed small/medium/large datasets and record hardware; budgets are established in Phase 1, not invented here.
 
 Later CI should run deterministic domain and workflow tests, dependency/security checks and schema migration/recovery tests. The workflow directory is intentionally a placeholder until executable product checks and a toolchain are chosen. Never describe absent CI as passing.
+
+## Authenticated research follow-up — 2026-10-22
+
+The workflow specification matrix and 21-entry sanitised UI ledger are research evidence only. No reference writes, imports, counts, measurements, exports or pricing calculations were executed. No Fire Take Off product acceptance test ran. Documentation checks cover local links, all 61 parity entries and observation-to-spec traceability; the historical foundation report retains its original 59-entry result. See `docs/evidence/research-checks-2026-10-22.json`. The unchanged owned fixture was not retested during documentation-only work.

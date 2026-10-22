@@ -25,7 +25,7 @@ Electron + TypeScript: simplest one-language desktop shell and direct filesystem
 
 ## Proposed logical model
 
-Project → discipline/floor → drawing → immutable revision/page. Page stores native dimensions/rotation/crop and calibration. Symbol definitions refer to examples; detections retain source revision, algorithm/version, confidence and human acceptance. Manual overrides are explicit records. Measures and zones reference stable page coordinates; schedules derive from a versioned accepted quantity snapshot. Estimates consume snapshots and store pricing versions separately from current price libraries.
+Project → takeoff → discipline → drawing → immutable revision/page, with explicit floor grouping where required. Authenticated beta UI observation on 2026-10-22 confirmed separate takeoffs within a project; this refines the proposed model without selecting an implementation. Page stores native dimensions/rotation/crop and calibration. Symbol definitions refer to examples; detections retain source revision, algorithm/version, confidence and human acceptance. Manual overrides are explicit records. Measures and zones reference stable page coordinates; schedules derive from a versioned accepted quantity snapshot. Estimates consume snapshots and store pricing versions separately from current price libraries.
 
 Quantities must not depend on screen pixels. Use explicit document-to-screen transforms, stable IDs, unit conversions and recorded rounding. Keep immutable originals, bounded caches and recoverable transactions. Original documents remain private and outside Git.
 

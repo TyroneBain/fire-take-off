@@ -6,6 +6,7 @@ Start with [permanent instructions](AGENTS.md) and [current verified state](docs
 
 - [Product vision](docs/PRODUCT_VISION.md)
 - [Feature parity and sources](docs/FEATURE_PARITY.md)
+- [Observed workflow specifications](docs/WORKFLOW_SPECIFICATIONS.md)
 - [Roadmap and phase gates](docs/ROADMAP.md)
 - [Architecture recommendation](docs/ARCHITECTURE.md)
 - [Decision record](docs/DECISIONS.md)

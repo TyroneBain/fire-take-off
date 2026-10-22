@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-22",
+  "checks_passed": {
+    "parity_rows_complete": 61,
+    "all_product_states_not_started": true,
+    "observation_ids_unique": 21,
+    "all_observations_referenced_in_specification": true,
+    "local_markdown_links_resolve": 17,
+    "no_proprietary_source_or_private_values_in_research_ledger": true
+  },
+  "tests_not_run": [
+    "Product acceptance (no product exists)",
+    "Reference count/measure/export/import behavior",
+    "Unchanged owned fixture tests (documentation-only changes)"
+  ],
+  "rea_followup": {
+    "doctor_exit_code": 1,
+    "healthy": false,
+    "registration": "missing",
+    "installed_skill": "missing",
+    "live_rea_tools": false
+  },
+  "delivery": "Remote commit and final worktree checked after publication, outside this document check."
+}

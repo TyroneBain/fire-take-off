@@ -19,3 +19,7 @@ Distinguish host prerequisites, REA installation, registration/instructions heal
 ## ADR-0005 — GitHub connector fallback (accepted 2026-10-22)
 
 The connected GitHub account has admin/push permission on the private empty repository; shell Git cannot resolve github.com and gh is missing. Publish verified text files through GitHub Git-data/contents APIs with head checks, and reconcile local Git history by reproducing the authenticated remote commit/tree objects and verifying their hashes. Record this as API publication rather than a successful shell git push. Never replace unknown remote work.
+
+## ADR-0006 — Authenticated UI evidence and takeoff boundaries (accepted 2026-10-22)
+
+Chrome DevTools MCP now connects to the user's authenticated beta Countfire tab. Research uses normal visible workflows and stores only sanitised descriptions, not source, account data, project identifiers, private rates or third-party drawing assets. Observations are evidence of controls/navigation, not successful Countfire operation or Fire Take Off acceptance. Keep takeoffs as separate entities under a project, with estimates and specification comparisons also separate. Add title extraction and product catalogue requirements discovered in the UI. REA remains unverified; no product build starts unless the original gate passes or the user explicitly waives it.

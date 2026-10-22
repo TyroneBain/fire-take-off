@@ -1,6 +1,6 @@
 # Current verified state — durable handover
 
-Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 is INCOMPLETE because REA setup and actual analysis remain blocked. Do not begin Countfire application development.
+Last meaningful session: 2026-10-22 (Australia/Sydney), authenticated Chrome research follow-up. Phase 0 is INCOMPLETE because REA setup and actual analysis remain blocked. Do not begin Countfire application development. Browser research prework has progressed; it does not close that gate.
 
 ## Repository and delivery
 
@@ -14,20 +14,22 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 
 - Requested repository layout and placeholders; root AGENTS.md provides persistent start/session/verification/commit/handover rules.
 - Product objective, eight-phase roadmap with exit criteria, development/testing rules and major decision log.
-- Detailed sourced inventory of 59 feature entries, each with description, evidence, workflow, status, testing requirement, limitation and priority. All product statuses NOT STARTED. Exhaustive research remains Phase 1 work.
+- Initial public inventory contained 59 features. Authenticated beta UI research expands it to 61 with title extraction and product catalogue requirements. Each entry retains source, workflow, status, acceptance requirements, limitation and priority; all product statuses remain NOT STARTED. Exhaustive research remains incomplete.
 - Architecture comparison and recommendation, explicitly not adopted. No product scaffolding/dependencies or Countfire replacement development.
 - Original dependency-free JavaScript fixture. Its 3 behavior tests pass.
 - REA 6.7.0 runtime installed locally in ignored `.local/rea-runtime`, official archive and 149 dependency archive integrity checks passed; offline npm install succeeded with 146 packages. Optional native packages/apps were not installed.
-- Official dry-run/setup/doctor and actual CLI fixture analysis attempted. Sanitised failed-result evidence and partial observation comparison saved.
+- Official dry-run/setup/doctor and actual CLI fixture analysis attempted. Sanitised failed-result evidence and partial observation comparison saved. Follow-up Codex doctor remains unhealthy.
+- Chrome DevTools MCP now connects to the authenticated beta Countfire session. Inspected normal project/create dialogs, demo takeoff/drawing tools, specification view and catalogue schemas. Saved 21 sanitised observations and an initial feature-linked workflow/acceptance matrix in WORKFLOW_SPECIFICATIONS.md. No proprietary source, private project identifiers, drawing assets or catalogue values saved; no persistent Countfire changes submitted.
 
 ## Incomplete, broken or blocked
 
 1. REA setup: cannot back up protected `~/.codex/config.toml`; exit 1, `needs_human`, no applied actions. Registration and installed matching workflow remain missing. Codex doctor reports unhealthy.
 2. Actual REA analysis: exit 1 `cleanup_incomplete`, child process inspection `spawn EPERM`. Seven structural checks on partial observations match owned source, but this is not a successful analysis. Direct permitted process inspection found no reported worker remaining.
 3. Live REA tools absent from this session. Must configure successfully, restart Codex and perform actual fixture analysis through the active MCP tool before Phase 0 closes.
-4. Local Chrome control is not exposed. No logged-in Countfire account inspection was performed. Plugin discovery found a cloud browser, which does not establish access to this Chrome profile. Public website research completed; private UI observations remain pending.
+4. Chrome access is RESOLVED: active Chrome DevTools MCP tools reached authenticated beta Countfire. Research covered normal visible controls and demo navigation. Counting, measurements, correction, save/reload, export, estimating calculations and reference import behavior remain untested. No actual Countfire replacement has been built.
 5. Shell npm/npx DNS and shell Git connectivity fail. Permitted curl downloads and the authenticated GitHub connector work. Shell credentials/push are unverified; do not claim a successful git push.
-6. Countfire limits, current controls, zones/revisions/export schemas and detailed estimating behavior remain explicit unknowns. Help centre discovery was sparse. Announced future features are not assumed shipped.
+6. Countfire file limits, zone boundary/revision rules, workbook schemas, correction behavior and detailed estimating calculations remain unknown. Current visible controls are partially specified. Help centre discovery was sparse. Announced future features are not assumed shipped.
+7. Asked asynchronously whether to retain the original REA gate or proceed without REA verification. No explicit waiver has been received at this handover; retain the original gate.
 
 ## Verification and evidence
 
@@ -39,6 +41,13 @@ No existing repository files or unrelated work were overwritten. Project Git ide
 - `analyze-javascript-application .../fixtures/rea-smoke --json`: failed, exit 1; partial static observations compared with source, seven checks passed. No end-to-end success or live MCP verification.
 - See [REA_SETUP](REA_SETUP.md) and the three JSON summaries under `docs/evidence/`. Raw outputs/runtime remain ignored under `.local/`.
 - `.gitignore` confirmed exclusions for sample secrets, runtime, private drawings, uploads and exports. Documentation/link/status checks passed (13 required files, 5 directory groups, 14 local Markdown links, 59 complete/unique parity rows); staged whitespace review passed. GitHub foundation tree and local index hashes matched, and the worktree was clean after synchronisation. The delivery handover update is checked and published separately. Evidence is recorded in `docs/evidence/foundation-checks.json`.
+
+## Authenticated browser session results
+
+- Chrome tools successfully listed the Countfire tab and read its logged-in dashboard. Normal UI navigation confirmed project → takeoff → discipline → drawing, separate project estimates/specification comparisons, six drawing modes, point/length/area types, layout actions and title extraction.
+- Creation/import/column dialogs were cancelled. No project, takeoff, estimate, mark, zone, catalogue value or upload was saved. No export was run.
+- Reference research is beta-specific and proves observed UI presence/navigation only. The specification matrix proposes tests; none are claimed passed.
+- Browser research files and current handover are delivered in the commit containing this update; use `git log -1` for the final SHA and verify remote head. Delivery uses the existing authenticated GitHub API workflow; shell Git push is still unverified.
 
 ## Roadmap and architecture
 
@@ -64,11 +73,14 @@ fire-take-off/
 │   ├── REA_SETUP.md
 │   ├── DEVELOPMENT_RULES.md
 │   ├── TEST_STRATEGY.md
+│   ├── WORKFLOW_SPECIFICATIONS.md
 │   └── evidence/
 │       ├── rea-installation-summary.json
 │       ├── rea-doctor-summary.json
 │       ├── rea-analysis-summary.json
-│       └── foundation-checks.json
+│       ├── foundation-checks.json
+│       ├── countfire-ui-observations-2026-10-22.json
+│       └── research-checks-2026-10-22.json
 ├── apps/.gitkeep
 ├── packages/.gitkeep
 ├── tests/.gitkeep
@@ -87,4 +99,4 @@ fire-take-off/
 
 Complete the ordinary-Terminal setup/doctor/analysis commands in REA_SETUP, then `/quit` and launch `codex` from this repository. In the new session, read AGENTS and this file, verify REA via `/mcp`, inspect live identity and run the fixture analysis through its actual MCP tool. Save passing evidence and close Phase 0 only after every exit condition is met.
 
-Then Phase 1: author a feature-ID-linked workflow/acceptance specification matrix for project → import → select/count → review/correct → calibrate/measure/zone → revision → export → estimate, using public help articles and normal authorised UI observations. Resolve P0 unknowns and establish drawing provenance, numerical tolerances and performance budgets before choosing a stack or building product code.
+Initial matrix is now written in WORKFLOW_SPECIFICATIONS.md. Next research work: extend it with actual controlled behavior observations for project → import → select/count → review/correct → calibrate/measure/zone → revision → export → estimate. Resolve P0 unknowns and establish drawing provenance, numerical tolerances and performance budgets before choosing a stack or building product code.
