@@ -122,6 +122,8 @@ test('local HTTP workflow requires session token, rejects external origins and s
   const discipline = await (await post({ kind: 'discipline', parentId: takeoff.id, name: 'API discipline' })).json();
   const upload = await fetch(url(`/api/disciplines/${discipline.id}/drawings?name=Fixture.pdf`), { method: 'POST', headers: { 'Content-Type': 'application/pdf', 'X-Fire-Token': token }, body: bytes });
   assert.equal(upload.status, 201); const drawing = await upload.json();
+  const pageResponse=await fetch(url(`/api/drawings/${drawing.id}/pages/1`),{method:'PATCH',headers:{'Content-Type':'application/json','X-Fire-Token':token},body:JSON.stringify({name:'Level 1',title:'Original geometry',version:1})});
+  assert.equal(pageResponse.status,200);assert.equal((await pageResponse.json()).version,2);
   const pdf = await fetch(url(`/api/drawings/${drawing.id}/source`));
   assert.equal(pdf.headers.get('content-type'), 'application/pdf');
   assert.deepEqual(Buffer.from(await pdf.arrayBuffer()), bytes);
@@ -182,12 +184,39 @@ test('A003/A008: rotated cropped page anchors use the actual crop and inverse tr
   }
 });
 
-test('schema 1 migrates to schema 2 without losing stored drawings or original bytes', async t => {
+test('schema 1 migrates to schema 3 without losing stored drawings or original bytes', async t => {
   const { directory,bytes } = await fixture(t);let store=await openStore(directory);
   const discipline=hierarchy(store),d=await store.importPdf(discipline.id,'Old workspace.pdf',bytes);store.close();
-  const db=new DatabaseSync(join(directory,'projects.sqlite'));db.exec('DROP TABLE notes; UPDATE schema_version SET version=1');db.close();
+  const db=new DatabaseSync(join(directory,'projects.sqlite'));db.exec('DROP TABLE notes; DROP TABLE page_metadata; UPDATE schema_version SET version=1');db.close();
   store=await openStore(directory);t.after(()=>store.close());
   assert.deepEqual(await store.source(d.id),bytes);
   assert.equal(store.snapshot().entities.length,3);
   const n=store.createNote(d.id,{page:1,x:100,y:100,text:'After migration'});assert.equal(n.version,1);
+  assert.equal(store.snapshot().pageMetadata[0].name,'Page 1');
+});
+
+test('page names/titles persist without changing sources, geometry or note anchors',async t=>{
+  const {directory,bytes}=await fixture(t);let store=await openStore(directory);
+  const discipline=hierarchy(store),d=await store.importPdf(discipline.id,'Original.pdf',bytes);
+  const note=store.createNote(d.id,{page:1,x:100,y:100,text:'Stable anchor'});
+  const page=store.updatePage(d.id,1,{name:'Ground floor',title:'Original title',version:1});
+  assert.equal(page.version,2);
+  assert.throws(()=>store.updatePage(d.id,1,{name:'Stale',title:'',version:1}),{status:409});
+  assert.throws(()=>store.updatePage(d.id,1,{name:' ',title:'',version:2}),{status:400});
+  assert.throws(()=>store.updatePage(d.id,1,{name:'Valid',title:'x'.repeat(501),version:2}),{status:400});
+  assert.throws(()=>store.updatePage(d.id,2,{name:'Other',title:'',version:1}),{status:404});
+  store.close();store=await openStore(directory);t.after(()=>store.close());
+  assert.deepEqual(store.snapshot().pageMetadata.map(p=>[p.name,p.title,p.version]),[['Ground floor','Original title',2]]);
+  assert.deepEqual(store.snapshot().notes[0],note);
+  assert.deepEqual(await store.source(d.id),bytes);assert.deepEqual(store.drawing(d.id).pages,d.pages);
+  store.deleteDrawing(d.id);assert.equal(store.snapshot().pageMetadata.length,0);
+});
+
+test('schema 2 migration adds page metadata while preserving existing notes',async t=>{
+  const {directory,bytes}=await fixture(t);let store=await openStore(directory);
+  const discipline=hierarchy(store),d=await store.importPdf(discipline.id,'Original.pdf',bytes);
+  const note=store.createNote(d.id,{page:1,x:100,y:100,text:'Pre-migration note'});store.close();
+  const db=new DatabaseSync(join(directory,'projects.sqlite'));db.exec('DROP TABLE page_metadata;UPDATE schema_version SET version=2');db.close();
+  store=await openStore(directory);t.after(()=>store.close());
+  assert.deepEqual(store.snapshot().notes[0],note);assert.equal(store.snapshot().pageMetadata[0].name,'Page 1');
 });

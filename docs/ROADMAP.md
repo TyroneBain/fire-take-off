@@ -32,3 +32,5 @@ Phase 0 COMPLETE: live MCP evidence and foundation handover published as `53de3e
 Phase 2 IN DEVELOPMENT under ADR-0008. Local project/takeoff/discipline persistence, bounded PDF intake, original viewer controls and drawing removal are implemented and partially TESTED (F001–F006). Phase 2 exit remains unmet: notes, full geometry interaction, recovery and representative performance evidence are incomplete. Full Phase 1 research continues; no reference requirements or acceptance standards were removed.
 
 F007 text notes now persist with edit/delete/cancel and crop/zoom/rotation checks. Phase 2 remains open for full geometry interactions, robust recovery/accessibility and representative performance; no complete parity or Phase 1 completion claim. Next: editable page metadata and original manual count/measurement workflows with separately specified policies.
+
+F003 manual page name/title editing is partially TESTED with source/note preservation. Next core/takeoff work: editable entity metadata, manual points and calibrated analytic measurements; automatic title extraction and all full-parity obligations remain pending.

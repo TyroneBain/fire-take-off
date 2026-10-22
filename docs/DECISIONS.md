@@ -38,3 +38,5 @@ Use installed Apple PDFKit/AppKit through small Swift research scripts to indepe
 ## ADR-0009 — Page-space notes and explicit schema migration (accepted 2026-10-22)
 
 Persist plain-text notes against immutable drawing ID and 1-based page number using native PDF coordinates within the actual crop box. Derive marker positions from PDF.js viewports and invert CSS pointer coordinates without storing backing-canvas pixels. Text edits/deletion require the current integer version to reject stale changes. Schema 1 migrates transactionally to schema 2; existing drawing records and sources remain intact. Drawing deletion cascades its notes. Text note anchors are the first annotation increment; cloud shapes, repositioning, exports and unsaved-exit handling remain separate work.
+
+Page metadata follows the same separation: schema 3 adds versioned names/titles keyed by immutable drawing ID and page number, without changing PDF bytes or page geometry. Initial names are Page 1, Page 2, etc.; manual title entry is separate from future automatic title extraction. Import must commit drawing and all page metadata atomically; migrations preserve existing notes.

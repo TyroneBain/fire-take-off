@@ -70,6 +70,11 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         return send(200, store.updateNote(note[1],body.text,body.version));
       }
       if (request.method === 'DELETE' && note) { store.deleteNote(note[1],Number(url.searchParams.get('version'))); return send(200, { deleted: true }); }
+      const pageMetadata = url.pathname.match(/^\/api\/drawings\/([\w-]+)\/pages\/(\d+)$/);
+      if (request.method === 'PATCH' && pageMetadata) {
+        if (!body || typeof body !== 'object') throw new AppError(400,'JSON object required');
+        return send(200,store.updatePage(pageMetadata[1],Number(pageMetadata[2]),body));
+      }
       if (request.method !== 'GET' || url.pathname.startsWith('/api/')) throw new AppError(404, 'Not found');
       const vendor = url.pathname.startsWith('/vendor/');
       const base = vendor ? vendorRoot : publicRoot;

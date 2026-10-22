@@ -74,7 +74,9 @@ function paint() {
       for (const d of drawings) {
         const card = node('article', null, 'card drawing-card');
         const open = button('', () => openDrawing(d), 'open-card');
-        const info = node('div', null, 'drawing-info'); info.append(node('h2', d.name), node('p', `${d.pages.length} page${d.pages.length === 1 ? '' : 's'} · ${(d.bytes / 1024).toFixed(1)} KB`));
+        const firstMetadata=state.pageMetadata?.find(p=>p.drawing_id===d.id&&p.number===1);
+        const label=d.pages.length===1&&firstMetadata?.name!=='Page 1' ? firstMetadata?.name || d.name : d.name;
+        const info = node('div', null, 'drawing-info'); info.append(node('h2', label), node('p', `${label!==d.name ? d.name+' · ' : ''}${d.pages.length} page${d.pages.length === 1 ? '' : 's'} · ${(d.bytes / 1024).toFixed(1)} KB`));
         open.append(node('div', '▤', 'drawing-preview'), info); card.append(open);
         const foot = node('div', null, 'drawing-info card-foot'); foot.append(node('span', 'Ready to review'), button('Remove', () => removeDrawing(d), 'remove')); card.append(foot); cards.append(card);
       }
@@ -149,7 +151,7 @@ async function render() {
     renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: [factor,0,0,factor,0,0] });
     await renderTask.promise; if (generation !== renderRevision) return;
     canvas.id = 'pdf-canvas'; $('page-surface').replaceChildren(canvas);
-    activeViewport = viewport; paintNotes();
+    activeViewport = viewport; paintNotes(); paintPage();
     if (resetPan) { $('drawing-stage').scrollTo(0,0); resetPan = false; }
     $('page-label').textContent = `${pageNumber} / ${pdf.numPages}`; $('zoom-label').textContent = `${Math.round(scale * 100)}%`;
     $('previous-page').disabled = pageNumber <= 1; $('next-page').disabled = pageNumber >= pdf.numPages;
@@ -169,6 +171,7 @@ $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); }
 function setNoteMode(enabled) {
   noteMode = enabled; placingNote = false;
   $('notes-panel').hidden = !enabled;
+  $('page-panel').hidden = true; $('page-tool').classList.remove('tool-active'); $('page-tool').setAttribute('aria-pressed','false');
   $('note-tool').classList.toggle('tool-active',enabled); $('note-tool').setAttribute('aria-pressed',String(enabled));
   $('pan-tool').classList.toggle('tool-active',!enabled); $('pan-tool').setAttribute('aria-pressed',String(!enabled));
   $('tool-help').textContent = enabled ? 'Read a page note, or add one to the drawing' : 'Scroll to move around the drawing';
@@ -207,6 +210,30 @@ function openNote(note) {
 }
 $('note-tool').onclick = ()=>setNoteMode(true);
 $('pan-tool').onclick = ()=>setNoteMode(false);
+$('page-tool').onclick = ()=>{
+  setNoteMode(false); $('page-panel').hidden=false;
+  $('page-tool').classList.add('tool-active'); $('page-tool').setAttribute('aria-pressed','true');
+  $('pan-tool').classList.remove('tool-active'); $('pan-tool').setAttribute('aria-pressed','false');
+  $('tool-help').textContent='Review the page name and title'; paintPage();
+};
+function currentPageMetadata() { return state?.pageMetadata?.find(p=>p.drawing_id===drawing?.id && p.number===pageNumber); }
+function paintPage() {
+  const metadata=currentPageMetadata();
+  if(drawing){ $('drawing-title').textContent=metadata&&metadata.name!==`Page ${pageNumber}` ? metadata.name : drawing.name; $('drawing-title').title=[drawing.name,metadata?.title].filter(Boolean).join(' — '); }
+  $('page-name').value=metadata?.name || `Page ${pageNumber}`;
+  $('page-title').value=metadata?.title || '';
+  $('page-error').textContent='';
+}
+$('reset-page').onclick=paintPage;
+$('page-form').onsubmit=async event=>{
+  event.preventDefault(); const metadata=currentPageMetadata();if(!metadata)return;
+  $('save-page').disabled=true;
+  try {
+    await api(`/api/drawings/${drawing.id}/pages/${pageNumber}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('page-name').value,title:$('page-title').value,version:metadata.version})});
+    await refresh();paintPage();notice('Page details saved');
+  } catch(error) { $('page-error').textContent=error.message;state=await api('/api/state').catch(()=>state); }
+  finally{$('save-page').disabled=false;}
+};
 $('add-note').onclick = ()=>{
   if (!activeViewport) return;
   placingNote = true; $('page-surface').classList.add('placing-note');

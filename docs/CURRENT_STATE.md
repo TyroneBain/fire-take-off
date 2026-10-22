@@ -4,9 +4,9 @@ Last meaningful session: 2026-10-22 (Australia/Sydney). Phase 0 COMPLETE. Phase 
 
 ## Repository and delivery
 
-Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Core increment published as `f92e19931a1f71e241238a88e626f0f7446a49da`; exact local tree/commit hashes reproduced and main reconciled before notes work. Prior local/remote commit/tree match was observed. Repository must remain PRIVATE. Shell Git has no usable credentials; use authenticated GitHub API with expected-head protection, never force-push or replace remote changes.
+Root `/Users/tyronebain/Projects/fire-take-off`; branch `main`; origin `https://github.com/TyroneBain/fire-take-off.git`. Core increment published as `f92e19931a1f71e241238a88e626f0f7446a49da` and notes as `92dca0d73b79753cb9b97f5e858c9ad5f948fc93`; exact local tree/commit hashes reproduced and local main reconciled. Prior local/remote commit/tree match was observed. Repository must remain PRIVATE. Shell Git has no usable credentials; use authenticated GitHub API with expected-head protection, never force-push or replace remote changes.
 
-The notes follow-up is prepared for API delivery with parent `f92e19931a1f71e241238a88e626f0f7446a49da`. After publication/reconciliation, `git log -1` gives its final SHA; read remote ref back and confirm clean worktree. If delivery fails, retain all files/index, create the new tree over the parent tree, create commit with that parent, update main with expected SHA, reproduce exact commit/tree objects locally and advance local main only when hashes match.
+The page-metadata follow-up is prepared for API delivery with parent `92dca0d73b79753cb9b97f5e858c9ad5f948fc93`. After publication/reconciliation, `git log -1` gives its final SHA; read remote ref back and confirm clean worktree. If delivery fails, retain all files/index, create the new tree over the parent tree, create commit with that parent, update main with expected SHA, reproduce exact commit/tree objects locally and advance local main only when hashes match.
 
 ## Run the application
 
@@ -23,7 +23,7 @@ The notes follow-up is prepared for API delivery with parent `f92e19931a1f71e241
 
 ## Verification and evidence
 
-Core report: 12 passed, 0 failed. Final suite after notes: 16 passed, 0 failed (13 product tests and 3 unchanged owned-fixture tests). Includes reopen/persistence, bad input, duplicates/concurrency, source integrity, drawing removal, viewport fiducials/inversion and actual HTTP/token/origin behavior. Browser UI hierarchy creation and persisted reopen observed. Four original PDFs imported through our real API; browser rendered vector, raster, rotated/cropped and ten-page inputs, and navigated page 1→2. Zoom/rotation worked. Final raster browser console had no errors/warnings after the WebAssembly policy fix. Evidence: `docs/evidence/local-core-2026-10-22.json`.
+Core report: 12 passed, 0 failed. Final suite after page metadata: 18 passed, 0 failed (15 product tests and 3 unchanged owned-fixture tests). Includes reopen/persistence, bad input, duplicates/concurrency, source integrity, drawing removal, viewport fiducials/inversion and actual HTTP/token/origin behavior. Browser UI hierarchy creation and persisted reopen observed. Four original PDFs imported through our real API; browser rendered vector, raster, rotated/cropped and ten-page inputs, and navigated page 1→2. Zoom/rotation worked. Final raster browser console had no errors/warnings after the WebAssembly policy fix. Evidence: `docs/evidence/local-core-2026-10-22.json`.
 
 Initial failures are retained in evidence: SQL placeholder mismatch corrected; removed PDF.js document cleanup API replaced with loading-task cleanup; sandbox loopback and audit DNS denied then permitted reruns passed; screenshot-file path denied, inline screenshot reviewed; initial raster ICC/WebAssembly warning fixed. Scroll anchoring was disabled and new drawing/page opens reset pan. Final code also resets removal-dialog return value and closes the viewer when creating a different entity.
 
@@ -39,7 +39,7 @@ The authorised reference scratch project `Fire Take Off synthetic research 2026-
 
 ## Incomplete / next executable task
 
-Next implement editable page/drawing metadata and original manual point/length/area workflows with explicit calibration and units, plus behavior tests against analytic fixtures. Continue viewer cancellation/recovery and representative performance observations. Build original automatic symbol example/match/review against labelled fixtures after its policies are specified.
+Page names/titles are now editable. Next implement original manual point/length/area workflows with explicit calibration and units, plus behavior tests against analytic fixtures. Continue viewer cancellation/recovery and representative performance observations. Build original automatic symbol example/match/review against labelled fixtures after its policies are specified.
 
 Project rename/archive/metadata, drawing/floor organisation, text/search, cloud annotations/note repositioning and exports, automatic recognition/Smart Select, manual corrections, calibration, points/lengths/areas, zones, overlays/revisions, schedules/Excel, estimating/kits/pricing, integrations and cloud collaboration remain incomplete. Full Phase 1 baseline, realistic trade corpus and accepted tolerances/budgets remain obligations. See FEATURE_PARITY for exact status and scope.
 
@@ -53,3 +53,8 @@ README gives reproducible run/test commands. ARCHITECTURE, ROADMAP, DECISIONS, T
 ADR-0009: schema 2 transactionally migrates schema 1; notes store drawing/page/native PDF x/y/plain text/version. Create/edit/delete, cancelled edit/removal, stale version rejection, reopen and drawing-deletion cascade have passing tests. Browser created a note on the rotated/cropped fixture, preserved coordinates through zoom/rotation/edit/reload, exercised cancel/removal, and retained one demonstration note. No browser errors/warnings observed. Evidence: `docs/evidence/notes-2026-10-22.json`.
 
 The base generator preserves its original PDF digest; added portable cropped/rotated fixture variant. A staged whitespace check found one extra EOF blank line in the preceding core stylesheet (the earlier unstaged check omitted untracked files); fixed now. Browser reconnected mid-session and page IDs changed; live page listing recovered the app. No private browser data was committed. Notes are partial F007 TESTED; cloud shapes, repositioning, exports and unsaved-exit handling remain incomplete. Service remains active at the same loopback URL; data retains earlier drawings and a note.
+
+
+## Page panel follow-up
+
+Schema 3 adds versioned page names/titles, migrates existing schema 1/2 data and commits imported drawing/page rows atomically. Manual Name/Title editor, Reset, reopen and card/toolbar labels passed browser checks while the original source and existing note remained intact. Automatic extraction stays NOT STARTED. Final `npm test`: 18/18 passed with loopback permission; preceding sandbox run failed only HTTP bind (17/18). Evidence: `docs/evidence/page-metadata-2026-10-22.json`. Browser app remains open and running at the same loopback URL. Full UI/workflow parity is not complete.

@@ -31,15 +31,24 @@ export async function openStore(directory) {
       name TEXT NOT NULL, digest TEXT NOT NULL, bytes INTEGER NOT NULL, pages TEXT NOT NULL, created TEXT NOT NULL
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
-  const version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
-  if (version === 1) db.exec(`BEGIN;
+  let version = db.prepare('SELECT version FROM schema_version').get().version;
+  if (![1,2,3].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
       page INTEGER NOT NULL, x REAL NOT NULL, y REAL NOT NULL, text TEXT NOT NULL,
       version INTEGER NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL
     ) STRICT;
-    UPDATE schema_version SET version=2; COMMIT;`);
+    UPDATE schema_version SET version=2; COMMIT;`); version=2; }
+  if (version === 2) db.exec(`BEGIN;
+    CREATE TABLE page_metadata (
+      drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
+      number INTEGER NOT NULL, name TEXT NOT NULL, title TEXT NOT NULL,
+      version INTEGER NOT NULL, PRIMARY KEY(drawing_id,number)
+    ) STRICT;
+    INSERT INTO page_metadata SELECT drawings.id, json_extract(value,'$.number'),
+      'Page ' || json_extract(value,'$.number'), '', 1 FROM drawings,json_each(drawings.pages);
+    UPDATE schema_version SET version=3; COMMIT;`);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -65,7 +74,8 @@ export async function openStore(directory) {
     close: () => db.close(),
     snapshot: () => ({ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
       drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
-      notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all() }),
+      notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all(),
+      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all() }),
     create(kind, parentId, value) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');
@@ -102,11 +112,26 @@ export async function openStore(directory) {
       try { await writeFile(finalPath, bytes, { flag: 'wx', mode: 0o600 }); }
       catch (error) { if (error.code !== 'EEXIST') throw error; }
       const id = randomUUID();
-      try { db.prepare('INSERT INTO drawings VALUES (?,?,?,?,?,?,?)').run(id, disciplineId, cleanName, digest, bytes.length, JSON.stringify(metadata.pages), new Date().toISOString()); }
-      catch (error) { if (error.code === 'ERR_SQLITE_ERROR' && error.message.includes('UNIQUE')) throw new AppError(409, 'This PDF is already in this discipline'); throw error; }
+      db.exec('BEGIN');
+      try {
+        db.prepare('INSERT INTO drawings VALUES (?,?,?,?,?,?,?)').run(id, disciplineId, cleanName, digest, bytes.length, JSON.stringify(metadata.pages), new Date().toISOString());
+        const addPage=db.prepare('INSERT INTO page_metadata VALUES (?,?,?,?,?)');
+        for(const page of metadata.pages) addPage.run(id,page.number,`Page ${page.number}`,'',1);
+        db.exec('COMMIT');
+      } catch (error) { db.exec('ROLLBACK'); if (error.code === 'ERR_SQLITE_ERROR' && error.message.includes('UNIQUE')) throw new AppError(409, 'This PDF is already in this discipline'); throw error; }
       return drawing(id);
     },
     drawing,
+    updatePage(drawingId, number, { name: value, title, version } = {}) {
+      drawing(drawingId);
+      if (!Number.isInteger(number)) throw new AppError(400,'Invalid page number');
+      const page=db.prepare('SELECT * FROM page_metadata WHERE drawing_id=? AND number=?').get(drawingId,number);
+      if (!page) throw new AppError(404,'Page not found');
+      if (!Number.isInteger(version) || version !== page.version) throw new AppError(409,'This page changed. Reload before editing.');
+      if (typeof title !== 'string' || title.length>500) throw new AppError(400,'Title must contain at most 500 characters');
+      db.prepare('UPDATE page_metadata SET name=?,title=?,version=version+1 WHERE drawing_id=? AND number=? AND version=?').run(name(value),title.trim(),drawingId,number,version);
+      return db.prepare('SELECT * FROM page_metadata WHERE drawing_id=? AND number=?').get(drawingId,number);
+    },
     createNote(drawingId, { page, x, y, text } = {}) {
       const d = drawing(drawingId);
       if (!Number.isInteger(page) || page < 1 || page > d.pages.length) throw new AppError(400, 'Invalid note page');
