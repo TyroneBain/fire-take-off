@@ -1,20 +1,25 @@
+import {exampleRectangle,setupExamplePreviews} from './example-preview.mjs';
 import { pagePoint,viewPoint } from './coordinates.mjs';
 import { inkImage,exampleImage,MATCHER_VERSION } from './matcher.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode}) {
-  let mode=null,action=null,selectedItem=null,drag=null,draft=[],job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false;
+  let mode=null,action=null,selectedItem=null,drag=null,draft=[],job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false,highlightedExample=null;
   const json=(method,body)=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const items=()=>context().state?.countItems?.filter(i=>i.discipline_id===context().drawing?.discipline_id)||[];
   const marks=()=>context().state?.countMarks||[];
+  const hiddenMarkers=new Set();
+  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample});
+  $('example-list').addEventListener('toggle',()=>{if($('example-list').open)previews.load();});
   function deactivate(){reclassification=null;mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
   function point(event){const c=context();if(!c.viewport)return null;const p=pagePoint(c.viewport,$('pdf-canvas').getBoundingClientRect(),event.clientX,event.clientY),v=c.drawing.pages[c.pageNumber-1].view;return p[0]>=v[0]&&p[0]<=v[2]&&p[1]>=v[1]&&p[1]<=v[3]?p:null;}
   function paint(){
     const c=context();if(!c.state)return;
     const available=items();if(!available.some(i=>i.id===selectedItem))selectedItem=available[0]?.id||null;
-    const list=$('count-items');list.replaceChildren();
-    for(const item of available){const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.length)));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));list.append(b);}
+    const list=$('count-items');list.replaceChildren();const filter=$('count-filter').value.toLowerCase();
+    for(const item of available){if(!item.name.toLowerCase().includes(filter))continue;const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.length)));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));row.append(b,visibility);list.append(row);}
+    const allHidden=available.length>0&&available.every(i=>hiddenMarkers.has(i.id));$('toggle-count-markers').textContent=allHidden?'Show markers':'Hide markers';$('toggle-count-markers').setAttribute('aria-pressed',String(allHidden));previews.paint(selectedItem);
     for(const id of ['add-manual-match','add-current-example','edit-count-item'])$(id).disabled=!selectedItem||!!job;
     const current=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);
     $('review-page').disabled=!current.length||!!job;
@@ -37,12 +42,19 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const overlay=node('div',null,'takeoff-overlay');overlay.id='takeoff-overlay';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');overlay.append(svg);
     function shape(points,area,color,dashed=false){const p=document.createElementNS(svgNS,area?'polygon':'polyline');p.setAttribute('points',points.map(p=>viewPoint(c.viewport,...p).join(',')).join(' '));p.setAttribute('stroke',color);p.setAttribute('stroke-width','2');p.setAttribute('fill',area?color+'22':'none');if(dashed)p.setAttribute('stroke-dasharray','6 4');svg.append(p);}
     for(const m of c.state.measurements||[])if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){if(m.kind==='point'){const [x,y]=viewPoint(c.viewport,...m.points[0]);const circle=document.createElementNS(svgNS,'circle');for(const [k,v]of Object.entries({cx:x,cy:y,r:5,fill:'#c06c23'}))circle.setAttribute(k,v);svg.append(circle);}else shape(m.points,m.kind==='area','#c06c23');}
-    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item)continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
+    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item||hiddenMarkers.has(item.id))continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
+    if(highlightedExample?.drawing_id===c.drawing.id&&highlightedExample.page===c.pageNumber){const r=exampleRectangle(c.viewport,highlightedExample.bounds),highlight=document.createElementNS(svgNS,'rect');for(const [key,value]of Object.entries({id:'example-highlight',x:r.left,y:r.top,width:r.width,height:r.height,fill:'none',stroke:'#243c90','stroke-width':3,'stroke-dasharray':'6 3'}))highlight.setAttribute(key,value);svg.append(highlight);}
     if(drag){const [a,b]=drag;shape([a,[b[0],a[1]],b,[a[0],b[1]]],true,'#168a90',true);}
     if(draft.length)shape(draft,action==='area','#168a90',true);
     $('page-surface').append(overlay);
   }
-  function openReview(mark){reviewing=mark;const item=context().state.countItems.find(i=>i.id===mark.item_id);$('match-description').textContent=`${item?.name||'Item'} · page ${mark.page} · ${mark.origin}${mark.origin==='automatic'?` (${Math.round(mark.score*100)}% image overlap)`:''}`;const original=context().state.countItems.find(i=>i.id===mark.original_item_id);$('match-original').textContent=`Original heading: ${original?.name||item?.name||'Unknown'}`;const select=$('match-heading');select.replaceChildren();for(const i of items()){const option=node('option',i.name);option.value=i.id;select.append(option);}select.value=mark.item_id;$('match-included').checked=!!mark.included;$('match-error').textContent='';$('match-dialog').showModal();}
+  async function openExample(record){
+    const c=context(),d=c.state.drawings.find(d=>d.id===record.example.drawing_id);if(!d)return notice('Source drawing is no longer available',true);
+    try{if(c.drawing.id!==d.id||c.pageNumber!==record.example.page)await c.openDrawing(d,record.example.page,'count');highlightedExample=record.example;paintOverlay();$('example-highlight')?.scrollIntoView({block:'center',inline:'center'});}catch(error){notice(error.message,true);}
+  }
+  $('count-filter').oninput=paint;
+  $('toggle-count-markers').onclick=()=>{const all=items(),hide=all.some(i=>!hiddenMarkers.has(i.id));for(const i of all)hide?hiddenMarkers.add(i.id):hiddenMarkers.delete(i.id);paint();};
+  function openReview(mark){hiddenMarkers.delete(mark.item_id);paintOverlay();reviewing=mark;const item=context().state.countItems.find(i=>i.id===mark.item_id);$('match-description').textContent=`${item?.name||'Item'} · page ${mark.page} · ${mark.origin}${mark.origin==='automatic'?` (${Math.round(mark.score*100)}% image overlap)`:''}`;const original=context().state.countItems.find(i=>i.id===mark.original_item_id);$('match-original').textContent=`Original heading: ${original?.name||item?.name||'Unknown'}`;const select=$('match-heading');select.replaceChildren();for(const i of items()){const option=node('option',i.name);option.value=i.id;select.append(option);}select.value=mark.item_id;$('match-included').checked=!!mark.included;$('match-error').textContent='';$('match-dialog').showModal();}
   $('cancel-review').onclick=()=>$('match-dialog').close();
   $('match-form').onsubmit=async e=>{e.preventDefault();$('save-review').disabled=true;try{await api(`/api/marks/${reviewing.id}`,json('PATCH',{included:$('match-included').checked,reviewed:true,version:reviewing.version,item_id:$('match-heading').value}));$('match-dialog').close();await reload();paint();}catch(error){$('match-error').textContent=error.message;}finally{$('save-review').disabled=false;}};
   $('count-tool').onclick=()=>activate('count');$('measure-tool').onclick=()=>activate('measure');
@@ -69,13 +81,13 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     if(reclassifying)return;if(reclassification){reclassification=null;paint();return;}
     const c=context();if(!c.viewport||!c.drawing)return;const rect=$('drawing-stage').getBoundingClientRect(),centre=pagePoint(c.viewport,$('pdf-canvas').getBoundingClientRect(),rect.left+rect.width/2,rect.top+rect.height/2);
     const queue=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing.id&&m.page===c.pageNumber).sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1])||a.id.localeCompare(b.id));
-    if(!queue.length)return;action=null;drag=null;reclassification={ids:queue.map(m=>m.id),index:0,drawingId:c.drawing.id,page:c.pageNumber};$('reclassify-filter').value='';focusReclassification();
+    if(!queue.length)return;hiddenMarkers.delete(selectedItem);action=null;drag=null;reclassification={ids:queue.map(m=>m.id),index:0,drawingId:c.drawing.id,page:c.pageNumber};$('reclassify-filter').value='';focusReclassification();
   }
   function moveReclassification(direction){if(!reclassification||reclassifying)return;reclassification.index=Math.max(0,Math.min(reclassification.ids.length-1,reclassification.index+direction));focusReclassification();}
   async function reclassifyTo(itemId){
     if(!reclassification||reclassifying)return;const m=marks().find(m=>m.id===reclassification.ids[reclassification.index]);if(!m||m.item_id===itemId)return;
     reclassifying=true;paintReclassification();
-    try{await api(`/api/marks/${m.id}`,json('PATCH',{item_id:itemId,included:!!m.included,reviewed:true,version:m.version}));await reload();notice('Classification saved');}catch(error){notice(error.message,true);}finally{reclassifying=false;paint();}
+    try{await api(`/api/marks/${m.id}`,json('PATCH',{item_id:itemId,included:!!m.included,reviewed:true,version:m.version}));hiddenMarkers.delete(itemId);await reload();notice('Classification saved');}catch(error){notice(error.message,true);}finally{reclassifying=false;paint();}
   }
   $('reclassify-matches').onclick=toggleReclassification;$('reclassify-exit').onclick=toggleReclassification;
   $('reclassify-previous').onclick=()=>moveReclassification(-1);$('reclassify-next').onclick=()=>moveReclassification(1);$('reclassify-filter').oninput=paintReclassification;
@@ -156,5 +168,5 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }
-  return {deactivate,paint,activate,get mode(){return mode;},clearDraft(){draft=[];drag=null;action=null;reclassification=null;}};
+  return {deactivate,paint,activate,get mode(){return mode;},clearDraft(){draft=[];drag=null;action=null;reclassification=null;highlightedExample=null;}};
 }

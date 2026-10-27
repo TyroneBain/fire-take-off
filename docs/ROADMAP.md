@@ -42,3 +42,5 @@ ADR-0010 takeoff-loop increment: original bounded matching, corrections/review, 
 ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned export columns. Suite 34/34. Phase 4 remains IN DEVELOPMENT: boundary parity, live preview, copying, itemisation/multipliers and performance acceptance still open.
 
 2026-10-23 counting checkpoint: ADR-0013 implemented/tested multiple examples, correction-preserving merge, heading name/colour edits, individual reclassification, page keyboard review and export provenance (42/42 suite). Continue selection management/visibility and representative matching benchmarks; full Smart Select, cross-page reclassification/global-save semantics, revisions and estimating remain open.
+
+2026-10-27 review checkpoint: saved-example thumbnails/source navigation, heading filtering and transient marker visibility tested (43/43). Added F072 selection review list and F073 element editing to retain discovered obligations. Next: pointer-centred zoom and hold-space panning, followed by source-element selection management, multipliers and revision comparison. Full reference hiding semantics are still open.

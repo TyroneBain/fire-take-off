@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-27",
+  "decision": "ADR-0014",
+  "environment": {
+    "node": "24.22.0",
+    "npm": "11.19.1",
+    "browser": "Chrome via DevTools MCP",
+    "database": "schema 6 unchanged"
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 43,
+    "failed": 0,
+    "product_tests": 40,
+    "rea_behavior_tests": 3,
+    "new_case": "Independently derived cropped PDF example rectangles at rotations 0/90/180/270 and scales 0.5/1/4; native bounds unchanged"
+  },
+  "browser": {
+    "source": "Owned Original.pdf with two previously saved examples",
+    "thumbnails": [
+      {
+        "width": 80,
+        "height": 81,
+        "dark_pixels": 1008
+      },
+      {
+        "width": 81,
+        "height": 81,
+        "dark_pixels": 1008
+      }
+    ],
+    "marker_counts": {
+      "shown": 6,
+      "all_hidden": 0,
+      "original_heading_hidden": 1
+    },
+    "entire_api_state_unchanged_after_visibility_operations": true,
+    "filter": "Special returned only Special sprinkler heads with count 1",
+    "navigation": "Opened Raster.pdf, selected saved example; opened Original.pdf, highlighted saved bounds and scrolled to them",
+    "highlight_css": {
+      "x": 222.65546218487398,
+      "y": 1810.9310924369743,
+      "width": 49.47899159663862,
+      "height": 49.478991596638934
+    },
+    "console_errors_and_warnings": 0,
+    "interaction_method": "Own-app DOM control events and API state readback"
+  },
+  "sources": [
+    "https://help.countfire.com/en/articles/241123-understanding-the-symbol-selection-list",
+    "https://help.countfire.com/en/articles/89688-hiding-counted-items"
+  ],
+  "limits": [
+    "Markers only: underlying PDF elements remain visible/selectable; full Countfire Hide items unimplemented",
+    "Visibility/filter state is transient, resets on full reload",
+    "Previews max 128 pixels along largest axis; cache at most 100; serial PDF loading with cleanup",
+    "Element counts, per-example match attribution, multipliers, eraser/restore editing absent",
+    "Missing-source fallback implemented but not browser-exercised",
+    "No feature VERIFIED; preview oracle is synthetic geometry"
+  ]
+}

@@ -9,6 +9,7 @@ import { startApp } from '../apps/local/server.mjs';
 import { openStore, MAX_PDF_BYTES } from '../apps/local/store.mjs';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { pagePoint, viewPoint } from '../apps/local/web/coordinates.mjs';
+import { exampleRectangle } from '../apps/local/web/example-preview.mjs';
 import { DatabaseSync } from 'node:sqlite';
 
 async function fixture(t) {
@@ -219,4 +220,20 @@ test('schema 2 migration adds page metadata while preserving existing notes',asy
   const db=new DatabaseSync(join(directory,'projects.sqlite'));db.exec('DROP TABLE page_metadata;UPDATE schema_version SET version=2');db.close();
   store=await openStore(directory);t.after(()=>store.close());
   assert.deepEqual(store.snapshot().notes[0],note);assert.equal(store.snapshot().pageMetadata[0].name,'Page 1');
+});
+
+
+test('saved example preview bounds follow cropped PDF rotation and scale without source-coordinate drift',async t=>{
+  const {directory}=await fixture(t);
+  execFileSync(process.execPath,['scripts/generate-drawing-fixture.mjs',join(directory,'preview-crop'),'cropped']);
+  const bytes=await readFile(join(directory,'preview-crop','small-vector.pdf'));
+  const task=getDocument({data:new Uint8Array(bytes),isEvalSupported:false});t.after(()=>task.destroy());
+  const page=await(await task.promise).getPage(1),bounds=[90,80,110,120];
+  // Crop [40,40,440,740]; independently derived rectangles for each rotation.
+  const expected={0:{left:50,top:620,width:20,height:40},90:{left:40,top:50,width:40,height:20},180:{left:330,top:40,width:20,height:40},270:{left:620,top:330,width:40,height:20}};
+  for(const scale of [.5,1,4])for(const rotation of [0,90,180,270]){
+    const actual=exampleRectangle(page.getViewport({scale,rotation}),bounds);
+    for(const key of ['left','top','width','height'])assert.equal(actual[key],expected[rotation][key]*scale);
+  }
+  assert.deepEqual(bounds,[90,80,110,120]);
 });
