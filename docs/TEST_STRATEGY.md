@@ -72,3 +72,7 @@ Final `npm test`: 42/42 (39 product + 3 unchanged owned-fixture diagnostics). Ei
 ## Saved example review — 2026-10-27
 
 Final suite 43/43, including one new independent crop/rotation/scale preview rectangle case. Browser source previews contained 1008 dark pixels each, source navigation returned from raster drawing to saved original bounds, and marker operations changed six displayed overlays to zero or one without any API state difference. Heading filter and clean console checked. Evidence: [example review](evidence/example-review-2026-10-27.json). Missing-source fallback, large-project preview latency and source-element hiding remain unverified/unimplemented as recorded.
+
+## Navigation — 2026-10-27
+
+43/43 suite passed after extending viewport tests with client-coordinate conversion. Browser verified pointer-anchor drift <0.36 CSS pixels per axis on vector and cropped/rotated fixtures, exact 80×60 pan delta with manual-count placement armed and entire API state unchanged, Space+tool chords without Add-to-current interference, typing/blur behavior and page switch during pending zoom. Physical trackpad/touch and edge-clamping acceptance remain open. Evidence: [navigation](evidence/navigation-2026-10-27.json).

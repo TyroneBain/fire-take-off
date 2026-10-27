@@ -1,6 +1,7 @@
 import {setupZones} from './zone-ui.mjs';
 import * as pdfjs from '/vendor/build/pdf.mjs';
-import { pagePoint, viewPoint } from './coordinates.mjs';
+import { pagePoint, viewPoint, clientPoint } from './coordinates.mjs';
+import { setupDrawingNavigation } from './navigation.mjs';
 import { setupTakeoff } from './takeoff-ui.mjs';
 pdfjs.GlobalWorkerOptions.workerSrc = '/vendor/build/pdf.worker.mjs';
 const $ = id => document.getElementById(id);
@@ -10,6 +11,7 @@ let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
 let takeoffUi,zoneUi;
+let zoomEpoch=0;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
   clearTimeout(messageTimer); messageTimer = setTimeout(() => { $('message').hidden = true; }, error ? 10000 : 4500);
@@ -169,8 +171,22 @@ $('close-viewer').onclick = closeViewer;
 $('hide-source').onchange = () => $('page-surface').classList.toggle('source-hidden', $('hide-source').checked);
 $('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
 $('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
-$('zoom-in').onclick = () => { scale = Math.min(4, scale * 1.25); render(); };
-$('zoom-out').onclick = () => { scale = Math.max(.1, scale / 1.25); render(); };
+async function zoomAt(factor,x,y) {
+  if(!pdf||!activeViewport||!Number.isFinite(factor)||factor<=0)return;
+  const stage=$('drawing-stage'),rect=stage.getBoundingClientRect();
+  x??=rect.left+stage.clientWidth/2;y??=rect.top+stage.clientHeight/2;
+  const anchor=pagePoint(activeViewport,$('pdf-canvas').getBoundingClientRect(),x,y),next=Math.max(.1,Math.min(4,activeViewport.scale*factor));
+  if(next===scale)return;
+  const epoch=zoomEpoch,expected=renderRevision+1;scale=next;await render();
+  if(epoch!==zoomEpoch||renderRevision!==expected||!activeViewport)return;
+  const [newX,newY]=clientPoint(activeViewport,$('pdf-canvas').getBoundingClientRect(),...anchor);
+  stage.scrollBy(newX-x,newY-y);
+}
+$('zoom-in').onclick = () => zoomAt(1.25).catch(e=>notice(e.message,true));
+$('zoom-out').onclick = () => zoomAt(1/1.25).catch(e=>notice(e.message,true));
+setupDrawingNavigation({stage:$('drawing-stage'),viewer:$('viewer'),navigationMode:()=>$('pan-tool').getAttribute('aria-pressed')==='true',zoom:zoomAt,beforePan:()=>{zoomEpoch++;},onError:e=>notice(e.message,true),shortcuts:{
+  '1':()=>$('count-tool').click(),'2':()=>$('measure-tool').click(),'3':()=>$('zone-tool').click(),'4':()=>$('note-tool').click(),d:()=>{$('drawing-select').focus();try{$('drawing-select').showPicker();}catch{}}
+}});
 $('fit-page').onclick = fitWidth;
 $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
 $('drawing-select').onchange=()=>{const next=state.drawings.find(d=>d.id===$('drawing-select').value);if(next)openDrawing(next,1,takeoffUi?.mode);};
@@ -181,7 +197,7 @@ function setNoteMode(enabled) {
   $('page-panel').hidden = true; $('page-tool').classList.remove('tool-active'); $('page-tool').setAttribute('aria-pressed','false');
   $('note-tool').classList.toggle('tool-active',enabled); $('note-tool').setAttribute('aria-pressed',String(enabled));
   $('pan-tool').classList.toggle('tool-active',!enabled); $('pan-tool').setAttribute('aria-pressed',String(!enabled));
-  $('tool-help').textContent = enabled ? 'Read a page note, or add one to the drawing' : 'Scroll to move around the drawing';
+  $('tool-help').textContent = enabled ? 'Read a page note, or add one to the drawing' : 'Space + drag to pan · Ctrl/⌘ + wheel to zoom';
   $('page-surface').classList.remove('placing-note');
   paintNotes();
 }

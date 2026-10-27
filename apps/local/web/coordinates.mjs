@@ -7,3 +7,7 @@ export function pagePoint(viewport, rectangle, clientX, clientY) {
   );
 }
 export function viewPoint(viewport, x, y) { return viewport.convertToViewportPoint(x,y); }
+export function clientPoint(viewport,rectangle,x,y) {
+  const [vx,vy]=viewPoint(viewport,x,y);
+  return [rectangle.left+vx*rectangle.width/viewport.width,rectangle.top+vy*rectangle.height/viewport.height];
+}

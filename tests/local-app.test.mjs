@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { startApp } from '../apps/local/server.mjs';
 import { openStore, MAX_PDF_BYTES } from '../apps/local/store.mjs';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { pagePoint, viewPoint } from '../apps/local/web/coordinates.mjs';
+import { pagePoint, viewPoint, clientPoint } from '../apps/local/web/coordinates.mjs';
 import { exampleRectangle } from '../apps/local/web/example-preview.mjs';
 import { DatabaseSync } from 'node:sqlite';
 
@@ -88,7 +88,9 @@ test('A003: PDF viewport maps known fiducials and inverts zoom/rotation without 
       const result = view.convertToPdfPoint(...view.convertToViewportPoint(...original));
       assert.ok(result.every((value,i) => Math.abs(value-original[i]) < 1e-8));
       const [vx,vy] = viewPoint(view,...original);
-      const click = pagePoint(view,{left:20,top:30,width:view.width*.75,height:view.height*.75},20+vx*.75,30+vy*.75);
+      const rectangle={left:20,top:30,width:view.width*.75,height:view.height*.75};
+      assert.deepEqual(clientPoint(view,rectangle,...original),[20+vx*.75,30+vy*.75]);
+      const click = pagePoint(view,rectangle,20+vx*.75,30+vy*.75);
       assert.ok(click.every((value,i)=>Math.abs(value-original[i])<1e-8));
     }
   }

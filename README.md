@@ -38,3 +38,5 @@ Zone tools: create discipline zone headings, draw page outlines and finish, then
 Count headings now accept multiple examples via **Add to current (2)**. **Edit heading** changes name/colour. Review a mark to change its heading, or use **Reclassify (R)** for a current-page queue: Tab/Shift+Tab navigate, number keys choose a heading, Escape exits. Decisions save immediately and retain the original classification. Additional matching preserves previous corrections. The 42-test suite covers the partial implementation; full Countfire parity remains unfinished.
 
 Expand **Selections** under a count heading to inspect saved examples and jump to their source location. Filter headings by name and use marker controls to reduce overlay clutter; these controls leave quantities unchanged and do not remove underlying PDF symbols. Current suite: 43 passing tests.
+
+Navigate drawings with **Space + drag**, middle-button drag, or dragging in Navigate mode. **Ctrl/⌘ + wheel** zooms at the pointer; toolbar zoom retains the stage centre. **Space + 1/2/3/4** selects Count/Measure/Zone/Notes. Ordinary scrolling still pans.

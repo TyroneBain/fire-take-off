@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-27",
+  "decision": "ADR-0015",
+  "automated": {
+    "command": "npm test",
+    "passed": 43,
+    "failed": 0,
+    "extended_case": "Client/native conversion at four zooms and four rotations, including CSS scale/offset"
+  },
+  "browser": {
+    "source": "Owned vector and cropped/rotated fixtures",
+    "vector_zoom": {
+      "before_percent": 247,
+      "after_percent": 290,
+      "anchor_drift_css_px": {
+        "x": 0.3508403361344108,
+        "y": 0.08536223277906174
+      }
+    },
+    "cropped_rotated_zoom": {
+      "after_percent": 247,
+      "anchor_drift_css_px": {
+        "x": -0.1171875,
+        "y": 0.359375
+      }
+    },
+    "space_drag": {
+      "requested_pointer_delta": [
+        80,
+        60
+      ],
+      "scroll_delta": [
+        -80,
+        -60
+      ],
+      "manual_count_mode_active": true,
+      "entire_api_state_unchanged": true
+    },
+    "keyboard": {
+      "space_2_measure": true,
+      "space_3_zone": true,
+      "no_add_current_trigger": true,
+      "blur_cleared_pan_state": true,
+      "space_in_text_input_not_prevented": true
+    },
+    "page_race": "Changed to Original.pdf during zoom render; final scroll [0,0], correct page rendered, whole state unchanged",
+    "console_errors_and_warnings": 0,
+    "method": "Own-app DOM controls and synthetic pointer/keyboard/wheel events; no OS-level input certification"
+  },
+  "source": "https://help.countfire.com/en/articles/64523-keyboard-shortcuts",
+  "limitations": [
+    "Original input policy: Ctrl/Cmd wheel/pinch zoom; ordinary scroll still pans",
+    "Scroll edges may clamp anchors; observed subpixel drift reflects scrolling/render rounding",
+    "Touchscreen and physical trackpad behavior not tested",
+    "Saved viewport context and complete reference keyboard mapping remain absent",
+    "No persisted quantities or source geometry changed; no feature VERIFIED"
+  ]
+}
