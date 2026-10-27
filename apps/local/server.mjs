@@ -95,6 +95,8 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
       const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);
       const example=url.pathname.match(/^\/api\/items\/([\w-]+)\/examples$/);
+      const multiplier=url.pathname.match(/^\/api\/examples\/([\w-]+)$/);
+      if(multiplier&&request.method==='PATCH'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.updateCountMultiplier(multiplier[1],body));}
       const countItem=url.pathname.match(/^\/api\/items\/([\w-]+)$/);
       if((example&&request.method==='POST'||countItem&&request.method==='PATCH')&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
       if(example&&request.method==='POST')return send(200,store.addCountExample(example[1],body));

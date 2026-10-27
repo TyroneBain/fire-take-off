@@ -35,12 +35,14 @@ Count and measure: open a drawing, choose Count, enter an item name and drag one
 
 Zone tools: create discipline zone headings, draw page outlines and finish, then edit outlines or reorder headings to change overlap allocation. Earlier headings win; outside outlined regions are excluded. Separate zone columns appear in Excel. Quantities update after saving each outline operation. Pages without outlines include the whole page.
 
-Count headings now accept multiple examples via **Add to current (2)**. **Edit heading** changes name/colour. Review a mark to change its heading, or use **Reclassify (R)** for a current-page queue: Tab/Shift+Tab navigate, number keys choose a heading, Escape exits. Decisions save immediately and retain the original classification. Additional matching preserves previous corrections. The 42-test suite covers the partial implementation; full Countfire parity remains unfinished.
+Count headings now accept multiple examples via **Add to current (2)**. **Edit heading** changes name/colour. Review a mark to change its heading, or use **Reclassify (R)** for a current-page queue: Tab/Shift+Tab navigate, number keys choose a heading, Escape exits. Decisions save immediately and retain the original classification. Additional matching preserves previous corrections. The acceptance suite covers the partial implementation; full Countfire parity remains unfinished.
 
-Expand **Selections** under a count heading to inspect saved examples and jump to their source location. Filter headings by name and use marker controls to reduce overlay clutter; these controls leave quantities unchanged and do not remove underlying PDF symbols. Current suite: 43 passing tests.
+Expand **Selections** under a count heading to inspect saved examples and jump to their source location. Filter headings by name and use marker controls to reduce overlay clutter; these controls leave quantities unchanged and do not remove underlying PDF symbols.
 
 Navigate drawings with **Space + drag**, middle-button drag, or dragging in Navigate mode. **Ctrl/⌘ + wheel** zooms at the pointer; toolbar zoom retains the stage centre. **Space + 1/2/3/4** selects Count/Measure/Zone/Notes. Ordinary scrolling still pans.
 
-In Measure, **Edit** a listed measurement or right-click its geometry. Drag points or the whole shape, double-click edges to add nodes or nodes to remove them, then **Save measurement** or **Cancel edit**. Saved edits recalculate calibrated quantities, zone allocations and exports. Current suite: 48 passing tests.
+In Measure, **Edit** a listed measurement or right-click its geometry. Drag points or the whole shape, double-click edges to add nodes or nodes to remove them, then **Save measurement** or **Cancel edit**. Saved edits recalculate calibrated quantities, zone allocations and exports.
 
 Private GitHub Actions runs locked dependency installation and the acceptance suite for pushes and pull requests using Node 24.22.0 on Ubuntu 24.04. See CURRENT_STATE for observed run results; browser acceptance remains separate.
+
+Each saved selection has a **Multiplier**. Quantities, zones and exports use that factor while keeping the original match instances and audit trail. Older headings with ambiguous example ownership ask for an **Add to current** matching rerun before factor changes. Manual matches remain one each. Latest local acceptance suite: **54/54 passing**; hosted evidence is recorded per commit in CURRENT_STATE.

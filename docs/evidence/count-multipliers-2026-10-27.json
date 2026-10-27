@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-27",
+  "decision": "ADR-0018",
+  "schema": 7,
+  "automated": {
+    "command": "npm test",
+    "passed": 54,
+    "failed": 0,
+    "product_tests": 51,
+    "rea_behavior_tests": 3,
+    "cases": [
+      "Mixed selections x6 and x2 plus a manual mark yield 15 from four raw instances",
+      "Exclusion and reassignment preserve source factor; additional matches retain prior ownership",
+      "Invalid, fractional, out-of-range and stale multipliers leave whole state unchanged",
+      "Database audit-trigger failure rolls back factor and version",
+      "Schema 6 links only unambiguous origins; ambiguous legacy instances retain decisions through atomic matching attribution",
+      "Three raw instances produce nine items, zone split 7/2 and workbook factor/audit columns",
+      "Real HTTP auth, JSON, version and derived quantity behavior"
+    ]
+  },
+  "browser": {
+    "fixture": "Owned vector/raster/cropped-rotated/ten-page PDFs, 13 pages total",
+    "initial": {
+      "raw_instances": 78,
+      "unattributed": 78,
+      "quantity": 78,
+      "multiplier_controls_disabled": true
+    },
+    "rerun": {
+      "new_matches": 0,
+      "existing_matches": 78,
+      "linked_legacy_matches": 78,
+      "all_ids_classifications_inclusion_review_and_coordinates_preserved": true
+    },
+    "factor_six": {
+      "raw_instances": 78,
+      "quantity": 468,
+      "heading_quantities": [
+        462,
+        6
+      ],
+      "sidebar_quantities": [
+        462,
+        6
+      ],
+      "workbook_http_status": 200,
+      "workbook_bytes": 25301
+    },
+    "restored": {
+      "factor": 1,
+      "quantity": 78,
+      "pending_review": 0,
+      "factor_audit": [
+        [
+          1,
+          6
+        ],
+        [
+          6,
+          1
+        ]
+      ],
+      "attribution_events": 78,
+      "measurements_unchanged": true
+    },
+    "console_errors_and_warnings": 0,
+    "method": "Own-app DOM controls, synthetic pointer selection, real PDF.js/worker matching and API readback"
+  },
+  "source": "https://help.countfire.com/en/articles/89890-quantity-multiplier",
+  "recovery": [
+    "Daemon restart lost in-flight test process 77967; result not claimed. Restarted suite passed 48 regressions, then 54 with new cases.",
+    "Old server confirmed at project cwd/port 4173; default sandbox ps/termination denied; permitted TERM succeeded and server restarted in session 84600."
+  ],
+  "limitations": [
+    "Multiplier 1\u201310000 whole numbers is provisional; full reference limits unknown",
+    "Manual marks remain one each",
+    "Source factor follows reclassified instances; exact reference precedence unverified",
+    "Overlapping examples retain first attribution; stronger recognition/deduplication remains open",
+    "Measurement and zone multipliers not implemented",
+    "No full feature VERIFIED",
+    "Hosted run for this increment pending publication; earlier 48-test hosted run remains separate evidence"
+  ]
+}

@@ -287,7 +287,7 @@ test('schema 5 migration retains original examples, reviewed decisions and sourc
  const a=store.createCount(discipline.id,{name:'Existing',example:example(d),matches:[hit(d,100,100)]});
  const m=store.snapshot().countMarks[0];store.updateMark(m.id,{included:false,reviewed:true,version:1});
  store.close();store.close=()=>{};const {DatabaseSync}=await import('node:sqlite');const db=new DatabaseSync(join(directory,'projects.sqlite'));
- db.exec('DROP TABLE count_examples; ALTER TABLE count_items DROP COLUMN version; ALTER TABLE count_marks DROP COLUMN original_item_id; UPDATE schema_version SET version=5');db.close();
+ db.exec('ALTER TABLE count_marks DROP COLUMN example_id; DROP TABLE count_example_events; DROP TABLE count_examples; ALTER TABLE count_items DROP COLUMN version; ALTER TABLE count_marks DROP COLUMN original_item_id; UPDATE schema_version SET version=5');db.close();
  const reopened=await openStore(directory);try{
   const state=reopened.snapshot();assert.equal(state.countItems[0].version,1);assert.equal(state.countExamples.length,1);assert.deepEqual(state.countExamples[0].example,example(d));assert.equal(state.countMarks[0].original_item_id,a.id);assert.equal(state.countMarks[0].included,0);assert.equal(state.countMarks[0].version,2);assert.equal(state.countEvents.length,1);assert.equal(state.drawings[0].digest,d.digest);
  }finally{reopened.close();}
@@ -391,5 +391,81 @@ test('measurement HTTP editing enforces token, JSON and optimistic version befor
   const edit={name:'Moved point',points:[[200,200]],version:1};
   assert.equal((await request(edit,false)).status,403);assert.equal((await request(null)).status,400);assert.equal((await request(edit)).status,200);assert.equal((await request(edit)).status,409);
   const state=await(await fetch(app.origin+'/api/state')).json();assert.equal(state.measurements[0].quantity.value,1);assert.equal(state.measurements[0].version,2);assert.deepEqual(state.measurements[0].points,[[200,200]]);
+ }finally{await app.close();}
+});
+
+test('selection multipliers preserve raw instances while mixed examples, corrections and reclassification change quantities',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ const a=store.createCount(discipline.id,{name:'Mixed heads',example:example(d),matches:[hit(d,100,100),hit(d,200,100)]});
+ const second=store.addCountExample(a.id,{version:1,example:{...example(d),bounds:[290,90,310,110]},matches:[hit(d,300,100)]});
+ store.addManualMark(a.id,{drawing_id:d.id,page:1,x:350,y:250});
+ const examples=store.snapshot().countExamples,first=examples.find(e=>e.id!==second.example_id);
+ store.updateCountMultiplier(first.id,{version:1,multiplier:6});store.updateCountMultiplier(second.example_id,{version:1,multiplier:2});
+ let state=store.snapshot();assert.equal(state.countMarks.length,4);assert.equal(state.countMarks.reduce((n,m)=>n+m.quantity,0),15);assert.equal(state.countMarks.find(m=>m.origin==='manual').quantity,1);
+ const excluded=state.countMarks.find(m=>m.x===100),moved=state.countMarks.find(m=>m.x===200),b=store.createCount(discipline.id,{name:'Other heading'});
+ store.updateMark(excluded.id,{included:false,reviewed:true,version:1});store.updateMark(moved.id,{item_id:b.id,included:true,reviewed:true,version:1});
+ state=store.snapshot();assert.equal(state.countMarks.reduce((n,m)=>n+m.quantity,0),9);assert.equal(state.countMarks.find(m=>m.id===moved.id).example_id,first.id);assert.equal(state.countMarks.find(m=>m.id===moved.id).quantity,6);
+ const merged=store.addCountExample(a.id,{version:2,example:{...example(d),bounds:[290,90,310,110]},matches:[hit(d,200,100),hit(d,400,100)]});
+ assert.equal(merged.added,1);assert.equal(merged.skipped,1);state=store.snapshot();assert.equal(state.countMarks.find(m=>m.id===moved.id).example_id,first.id);assert.equal(state.countMarks.find(m=>m.x===400).quantity,2);assert.equal(state.quantitySchedule.reduce((n,r)=>n+r.value,0),11);
+});
+
+test('invalid and stale multiplier edits leave examples, quantities and audit untouched',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100)]});
+ const e=store.snapshot().countExamples[0],before=store.snapshot();
+ for(const multiplier of [0,-1,1.5,10001,'6',null,NaN]){assert.throws(()=>store.updateCountMultiplier(e.id,{version:1,multiplier}),{status:400});assert.deepEqual(store.snapshot(),before);}
+ assert.throws(()=>store.updateCountMultiplier(e.id,{version:0,multiplier:6}),{status:409});assert.deepEqual(store.snapshot(),before);
+ assert.equal(store.updateCountMultiplier(e.id,{version:1,multiplier:1}).version,1);assert.deepEqual(store.snapshot(),before);
+ store.updateCountMultiplier(e.id,{version:1,multiplier:6});const after=store.snapshot();assert.equal(after.countExampleEvents.length,1);assert.equal(after.countExampleEvents[0].previous,1);assert.equal(after.countExampleEvents[0].current,6);
+ assert.throws(()=>store.updateCountMultiplier(e.id,{version:1,multiplier:2}),{status:409});assert.deepEqual(store.snapshot(),after);
+});
+
+test('multiplier and version roll back when audit persistence fails',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t);store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100)]});
+ const e=store.snapshot().countExamples[0],before=store.snapshot(),{DatabaseSync}=await import('node:sqlite'),db=new DatabaseSync(join(directory,'projects.sqlite'));
+ try{db.exec("CREATE TRIGGER fail_factor_audit BEFORE INSERT ON count_example_events BEGIN SELECT RAISE(ABORT,'audit unavailable'); END");assert.throws(()=>store.updateCountMultiplier(e.id,{version:1,multiplier:6}),/audit unavailable/);assert.deepEqual(store.snapshot(),before);}finally{db.exec('DROP TRIGGER fail_factor_audit');db.close();}
+});
+
+test('schema 6 multiplier migration links only unambiguous origins; rerun attribution preserves legacy decisions and is atomic',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t),a=store.createCount(discipline.id,{name:'Ambiguous',example:example(d),matches:[hit(d,100,100)]});
+ store.addCountExample(a.id,{version:1,example:{...example(d),bounds:[190,90,210,110]},matches:[hit(d,200,100)]});
+ const b=store.createCount(discipline.id,{name:'Single selection',example:{...example(d),bounds:[290,90,310,110]},matches:[hit(d,300,100)]});
+ let state=store.snapshot();const excluded=state.countMarks.find(m=>m.x===100),moved=state.countMarks.find(m=>m.x===200);
+ store.updateMark(excluded.id,{included:false,reviewed:true,version:1});store.updateMark(moved.id,{item_id:b.id,included:true,reviewed:true,version:1});
+ store.close();store.close=()=>{};const {DatabaseSync}=await import('node:sqlite'),db=new DatabaseSync(join(directory,'projects.sqlite'));
+ db.exec('ALTER TABLE count_marks DROP COLUMN example_id;DROP TABLE count_example_events;ALTER TABLE count_examples DROP COLUMN multiplier;ALTER TABLE count_examples DROP COLUMN version;UPDATE schema_version SET version=6');db.close();
+ const reopened=await openStore(directory);try{
+  state=reopened.snapshot();const ea=state.countExamples.find(e=>e.item_id===a.id&&e.example.bounds[0]===90),eb=state.countExamples.find(e=>e.item_id===b.id);
+  assert.ok(state.countMarks.filter(m=>m.original_item_id===a.id).every(m=>m.example_id===null));assert.equal(state.countMarks.find(m=>m.x===300).example_id,eb.id);
+  assert.throws(()=>reopened.updateCountMultiplier(ea.id,{version:1,multiplier:6}),{status:409});const before=reopened.snapshot();
+  assert.throws(()=>reopened.addCountExample(a.id,{version:2,example:example(d),matches:[hit(d,100,100),{...hit(d,200,100),digest:'stale'}]}),{status:400});assert.deepEqual(reopened.snapshot(),before);
+  const run=reopened.addCountExample(a.id,{version:2,example:example(d),matches:[hit(d,100,100),hit(d,200,100)]});assert.equal(run.added,0);assert.equal(run.linked,2);assert.equal(run.skipped,2);
+  reopened.updateCountMultiplier(ea.id,{version:1,multiplier:6});state=reopened.snapshot();assert.equal(state.countMarks.length,3);assert.equal(state.countMarks.find(m=>m.id===excluded.id).quantity,0);assert.equal(state.countMarks.find(m=>m.id===moved.id).item_id,b.id);assert.equal(state.countMarks.find(m=>m.id===moved.id).quantity,6);assert.equal(state.countMarks.reduce((n,m)=>n+m.quantity,0),7);assert.equal(state.countEvents.filter(e=>e.action==='link-example').length,2);
+ }finally{reopened.close();}
+ const persisted=await openStore(directory);assert.deepEqual(persisted.snapshot(),state);persisted.close();
+});
+
+test('multiplied workbook and zones reconcile 3 raw instances to 9 items with factor provenance',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t),a=store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100)]});
+ const second=store.addCountExample(a.id,{version:1,example:{...example(d),bounds:[290,90,310,110]},matches:[hit(d,300,100)]});store.addManualMark(a.id,{drawing_id:d.id,page:1,x:150,y:100});
+ const first=store.snapshot().countExamples.find(e=>e.id!==second.example_id);store.updateCountMultiplier(first.id,{version:1,multiplier:6});store.updateCountMultiplier(second.example_id,{version:1,multiplier:2});
+ store.reviewMarks(a.id,store.snapshot().countMarks.map(m=>({id:m.id,version:m.version,included:true,reviewed:true})));
+ // Check unzoned output before adding zone columns.
+ let book=new ExcelJS.Workbook();await book.xlsx.load((await quantityWorkbook(store.snapshot(),discipline.parent_id)).bytes);assert.equal(book.getWorksheet('Sprinkler').getCell('G2').value,9);
+ for(const [name,left,right]of [['West',0,200],['East',200,400]]){const h=store.createZoneHeading(discipline.id,{name});store.createZone(d.id,{heading_id:h.id,page:1,points:[[left,0],[right,0],[right,300],[left,300]]});}
+ const result=await quantityWorkbook(store.snapshot(),discipline.parent_id);book=new ExcelJS.Workbook();await book.xlsx.load(result.bytes);
+ assert.equal(book.getWorksheet('Sprinkler').getCell('G2').value,9);assert.equal(book.getWorksheet('Sprinkler').getCell('H2').value,7);assert.equal(book.getWorksheet('Sprinkler').getCell('I2').value,2);
+ const rows=book.getWorksheet('Count instances').getSheetValues().slice(2);assert.equal(rows.length,3);assert.equal(rows.reduce((n,r)=>n+r[17],0),9);assert.deepEqual(rows.map(r=>r[16]).sort(),[1,2,6]);
+ const events=book.getWorksheet('Review history').getSheetValues().slice(2).filter(r=>r[2]==='multiplier');assert.equal(events.length,2);assert.deepEqual(events.map(r=>r[13]).sort(),[2,6]);
+ store.updateCountMultiplier(first.id,{version:2,multiplier:3});assert.notEqual((await quantityWorkbook(store.snapshot(),discipline.parent_id)).snapshotDigest,result.snapshotDigest);
+});
+
+test('selection multiplier HTTP route validates input and versions and returns derived quantities',async t=>{
+ const {store,discipline,drawing:d,directory}=await workspace(t);store.createCount(discipline.id,{name:'Heads',example:example(d),matches:[hit(d,100,100)]});
+ const e=store.snapshot().countExamples[0],{startApp}=await import('../apps/local/server.mjs'),app=await startApp({directory,port:0});
+ try{
+  const {token}=await(await fetch(app.origin+'/api/session')).json(),route=app.origin+`/api/examples/${e.id}`;
+  const request=(body,auth=true)=>fetch(route,{method:'PATCH',headers:{'Content-Type':'application/json',...(auth?{'X-Fire-Token':token}:{})},body:JSON.stringify(body)});
+  assert.equal((await request({version:1,multiplier:6},false)).status,403);assert.equal((await request(null)).status,400);assert.equal((await request({version:1,multiplier:6})).status,200);assert.equal((await request({version:1,multiplier:2})).status,409);
+  const state=await(await fetch(app.origin+'/api/state')).json();assert.equal(state.countMarks.length,1);assert.equal(state.countMarks[0].quantity,6);assert.equal(state.quantitySchedule[0].value,6);assert.equal(state.countExampleEvents.length,1);
  }finally{await app.close();}
 });

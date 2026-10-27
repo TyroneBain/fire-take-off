@@ -49,7 +49,7 @@ export function quantitySchedule(state){
   const rows=[],cache=new Map();
   function groups(drawing,page){const key=drawing.id+':'+page;if(!cache.has(key)){const z=state.zones.filter(z=>z.drawing_id===drawing.id&&z.page===page);cache.set(key,z.length?effectiveZones(state.zoneHeadings.filter(h=>h.discipline_id===drawing.discipline_id),z):[]);}return cache.get(key);}
   function add(d,page,kind,points,value,unit,source_id,item_id,name,section){for(const a of allocateGeometry(kind,points,groups(d,page)))rows.push({discipline_id:d.discipline_id,drawing_id:d.id,page,heading_id:a.heading_id,zone:a.heading_id?state.zoneHeadings.find(h=>h.id===a.heading_id).name:'Whole drawing',section,item_id,source_id,name,kind,unit,value:value===null?null:value*a.fraction,fraction:a.fraction});}
-  for(const m of state.countMarks)if(m.included){const d=state.drawings.find(d=>d.id===m.drawing_id),item=state.countItems.find(i=>i.id===m.item_id);add(d,m.page,'point',[[m.x,m.y]],1,'ea',m.id,item.id,item.name,'Count');}
+  for(const m of state.countMarks)if(m.included){const d=state.drawings.find(d=>d.id===m.drawing_id),item=state.countItems.find(i=>i.id===m.item_id);add(d,m.page,'point',[[m.x,m.y]],m.quantity??1,'ea',m.id,item.id,item.name,'Count');}
   for(const m of state.measurements){const d=state.drawings.find(d=>d.id===m.drawing_id);add(d,m.page,m.kind,m.points,m.quantity.value,m.quantity.unit,m.id,null,m.name,'Measure');}
   return rows;
 }

@@ -84,3 +84,7 @@ Final suite 43/43, including one new independent crop/rotation/scale preview rec
 ## CI setup — 2026-10-27
 
 ADR-0017 adds push/PR/manual automation with exact action commit pins and read-only repository permission. YAML parse and structural/pinning checks passed locally. Initial validator used Ruby filter_map, unavailable in system Ruby; changed to map.compact and reran successfully. Local product suite remains 48/48 from the measurement increment. Hosted installation and tests passed in run 40461405478/job 122046656220 at commit 83d67e0: 48/48, Ubuntu 24.04, Node 24.22.0, npm 11.19.1, Python 3.12.3. Evidence [CI](evidence/ci-2026-10-27.json). Existing dependency deprecation notices remain; this run did not execute npm audit.
+
+## Selection count multipliers — 2026-10-27
+
+54/54 tests passed (51 product + 3 diagnostic). Six new cases cover mixed factors and manual marks, correction/reclassification, validation/stale edits, forced audit-write rollback, schema-6 ambiguous-origin migration and failed attribution rollback/reopen, zone/XLSX reconciliation and HTTP mutations. Browser migration preserved 78 instances, real matching across 13 owned pages linked all 78 without additions, x6 yielded 468/heading totals 462+6, export returned 200, and x1 restored 78 with audit retained. Evidence: [count multipliers](evidence/count-multipliers-2026-10-27.json). Interrupted pre-restart test results were not claimed; fresh suites passed.

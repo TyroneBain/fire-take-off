@@ -35,3 +35,7 @@ A012–A016 are proposed and have not run in Fire Take Off. Their sources are in
 ### A017 — Additional examples and classification (partial TESTED, 2026-10-23)
 
 Use owned examples and independently declared symbol coordinates. Add another example to the same heading: new matches appear once, repeated results do not duplicate, exclusions and reclassification survive. Reject stale example/destination/version/scope atomically. Move an instance A→B→C→A while retaining ID/origin and conserved totals, then export and reconcile original/current IDs and audit. Rename/recolour without changing quantities. Reopen schema 5 data as schema 6. Browser: Add to current, R/Tab/Shift+Tab/numbers/Escape, original-heading text and colour/count updates. Evidence and remaining reference gaps: [count classification](evidence/count-classification-2026-10-23.json).
+
+### A018 — Selection quantity multiplier (partial TESTED, 2026-10-27)
+
+Use different source selections under one heading with x6/x2 factors and a manual instance. Raw marks remain distinct; weighted quantities, inclusion/reclassification, zones and workbook values reconcile independently. Invalid/stale factors and audit persistence failure leave saved state unchanged. Migrate old multi-example data without guessing ownership; a failed rerun must roll back attribution and a successful real run must preserve corrections. Evidence: [count multipliers](evidence/count-multipliers-2026-10-27.json). Full reference bounds/manual/reclassification-factor behavior remains unverified.
