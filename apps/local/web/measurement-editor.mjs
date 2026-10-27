@@ -16,7 +16,7 @@ export function setupMeasurementEditor({context,api,reload,activate,onChange,not
   const surface=$('page-surface');
   const pointer=e=>pagePoint(context().viewport,$('pdf-canvas').getBoundingClientRect(),e.clientX,e.clientY);
   function clear(){original=null;points=[];drag=null;$('measurement-editor').hidden=true;$('measurement-edit-overlay')?.remove();}
-  function open(m){if(saving)return;activate();original=m;points=m.points.map(p=>[...p]);$('edit-measure-name').value=m.name;$('edit-measure-error').textContent='';$('measurement-editor').hidden=false;onChange();}
+  function open(m){if(saving)return;activate();original=m;points=m.points.map(p=>[...p]);$('edit-measure-name').value=m.name;$('edit-measure-factor-field').hidden=m.kind!=='length';$('edit-measure-factor').value=m.multiplier??1;$('edit-measure-error').textContent='';$('measurement-editor').hidden=false;onChange();}
   function beginDrag(event,index){if(saving||event.button!==0)return;event.preventDefault();event.stopPropagation();drag={index,start:pointer(event),points:points.map(p=>[...p])};try{surface.setPointerCapture(event.pointerId);}catch{}}
   function paint(){
     $('measurement-edit-overlay')?.remove();const c=context();if(!original)return;
@@ -38,7 +38,7 @@ export function setupMeasurementEditor({context,api,reload,activate,onChange,not
   $('cancel-measure-edit').onclick=()=>{if(saving)return;clear();onChange();};
   $('save-measure-edit').onclick=async()=>{
     if(!original||saving)return;saving=true;$('save-measure-edit').disabled=true;$('cancel-measure-edit').disabled=true;
-    try{await api(`/api/measurements/${original.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('edit-measure-name').value,points,version:original.version})});clear();await reload();notice('Measurement updated');}
+    try{await api(`/api/measurements/${original.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('edit-measure-name').value,points,version:original.version,multiplier:original.kind==='length'?Number($('edit-measure-factor').value):1})});clear();await reload();notice('Measurement updated');}
     catch(error){$('edit-measure-error').textContent=error.message;}
     finally{saving=false;$('save-measure-edit').disabled=false;$('cancel-measure-edit').disabled=false;onChange();}
   };

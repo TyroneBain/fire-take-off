@@ -151,3 +151,5 @@ textarea{width:100%;font:inherit;line-height:1.6;padding:12px;border:1px solid #
 #drawing-stage.pan-ready,#drawing-stage.pan-ready *{cursor:grab!important}#drawing-stage.panning,#drawing-stage.panning *{cursor:grabbing!important;user-select:none}#drawing-stage{touch-action:none}
 
 #measurement-editor{padding:12px;border:1px solid #c06c23;border-radius:6px;margin-bottom:18px}#edit-measure-error{color:#a3433d;font-size:12px}
+
+.zone-factor-row{display:flex;gap:6px;align-items:end;margin:0 0 12px}.zone-factor-row label{flex:1;min-width:0}.zone-factor-row input{width:100%}

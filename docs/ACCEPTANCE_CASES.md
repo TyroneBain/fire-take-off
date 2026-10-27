@@ -39,3 +39,5 @@ Use owned examples and independently declared symbol coordinates. Add another ex
 ### A018 — Selection quantity multiplier (partial TESTED, 2026-10-27)
 
 Use different source selections under one heading with x6/x2 factors and a manual instance. Raw marks remain distinct; weighted quantities, inclusion/reclassification, zones and workbook values reconcile independently. Invalid/stale factors and audit persistence failure leave saved state unchanged. Migrate old multi-example data without guessing ownership; a failed rerun must roll back attribution and a successful real run must preserve corrections. Evidence: [count multipliers](evidence/count-multipliers-2026-10-27.json). Full reference bounds/manual/reclassification-factor behavior remains unverified.
+
+A019 — Length/zone multipliers (partial TESTED, 2026-10-28): 30 m length x2 split equally into West x5/East x2 yields 210 m; selection x6 in West yields 30 items; area 100 m² in West yields 500 m². Unoutlined pages keep zone factor one. Assert migration, rollback, stale edits, source geometry, audit and independent workbook XML/color evidence. See [quantity factors](evidence/quantity-factors-2026-10-28.json).

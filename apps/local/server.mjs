@@ -83,6 +83,8 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if(zoneHeadings&&request.method==='POST')return send(201,store.createZoneHeading(zoneHeadings[1],body));
       if(zoneHeadings&&request.method==='PATCH')return send(200,store.reorderZoneHeadings(zoneHeadings[1],body?.order));
       const zoneHeading=url.pathname.match(/^\/api\/zone-headings\/([\w-]+)$/);
+      if(zoneHeading&&request.method==='PATCH'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(zoneHeading&&request.method==='PATCH')return send(200,store.updateZoneMultiplier(zoneHeading[1],body));
       if(zoneHeading&&request.method==='DELETE'){store.deleteZoneHeading(zoneHeading[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
       const zoneCollection=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/zones$/);
       if(zoneCollection&&request.method==='POST'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');

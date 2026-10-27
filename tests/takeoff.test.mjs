@@ -103,7 +103,7 @@ test('A010: workbook refuses unreviewed/unscaled work and reconciles approved co
   store.createNote(d.id,{page:1,x:100,y:100,text:'=Literal note, not a formula'});
   const result=await quantityWorkbook(store.snapshot(),takeoffId);assert.equal(result.snapshotDigest.length,64);
   const book=new ExcelJS.Workbook();await book.xlsx.load(result.bytes);
-  assert.deepEqual(book.worksheets.map(s=>s.name),['Takeoff overview','Drawing list','Notes','Count instances','Review history','Sprinkler']);
+  assert.deepEqual(book.worksheets.map(s=>s.name),['Takeoff overview','Drawing list','Notes','Count instances','Review history','Sprinkler','Quantity detail','Factor history']);
   const rows=book.getWorksheet('Sprinkler').getSheetValues().slice(2).map(r=>r.slice(1));
   assert.equal(rows.find(r=>r[0]==='Count')[6],2);
   assert.equal(rows.find(r=>r[1]==='Pipe')[6],50);assert.ok(Math.abs(rows.find(r=>r[1]==='Floor')[6]-100)<1e-9);

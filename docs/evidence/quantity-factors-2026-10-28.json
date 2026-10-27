@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0019",
+  "schema": 8,
+  "automated": {
+    "command": "npm test",
+    "passed": 61,
+    "failed": 0,
+    "product_tests": 58,
+    "rea_fixture_tests": 3,
+    "duration_ms": 12275.221261,
+    "cases": [
+      "Length factors preserve geometry through calibration, edits and reopen",
+      "Invalid/stale factors and forced audit failures leave full state unchanged",
+      "Zone factors cross drawings; unoutlined pages remain factor one",
+      "Zone ordering versions, cascades and no-op history behavior",
+      "Independent 30 m x2 length split equally into x5/x2 zones yields 150+60=210 m; count x6 x5=30; 100 m\u00b2 x5=500",
+      "XLSX values and red quantity styling verified with independent Python ZIP/XML parser",
+      "Schema 7 migration defaults factors to one and preserves existing data",
+      "Authenticated HTTP mutations and unscaled export gate"
+    ]
+  },
+  "browser": {
+    "fixture": "Owned Original.pdf with 78 total project matches and existing measures/zones",
+    "length_before": 59.98790126845236,
+    "length_factor": 2,
+    "length_after": 119.97580253690472,
+    "cancel_kept_original": true,
+    "east_factor": 5,
+    "east_count_quantity": 20,
+    "west_count_quantity": 2,
+    "workbook_status": 200,
+    "workbook_bytes": 30938,
+    "restored_factors": 1,
+    "marks_and_outlines_unchanged": true,
+    "other_measurements_unchanged": true,
+    "console_errors_warnings": 0,
+    "method": "Own-app DOM controls and API readback; no private reference drawings"
+  },
+  "failures": [
+    "First expanded run 60/61: new cross-drawing test referenced nonexistent raster fixture. Corrected to generated original/revision/cropped variants; final 61/61 passed.",
+    "Browser reconnect changed page IDs; old-page calls failed. Relisted pages and continued."
+  ],
+  "limitations": [
+    "Whole factors 1\u201310000 remain provisional",
+    "Measurement factor only lengths; area/point factor support not established",
+    "Full reference global Save and keyboard semantics incomplete",
+    "Measurement geometry audit remains absent; factor audit implemented",
+    "Reference overlap boundary policy not fully validated",
+    "Hosted run for this increment pending publication"
+  ],
+  "sources": [
+    "https://help.countfire.com/en/articles/4953975-measurement-multiplier",
+    "https://help.countfire.com/en/articles/2340057-zone-multiplier"
+  ]
+}

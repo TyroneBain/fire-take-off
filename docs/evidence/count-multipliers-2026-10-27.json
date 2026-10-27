@@ -77,7 +77,16 @@
     "Source factor follows reclassified instances; exact reference precedence unverified",
     "Overlapping examples retain first attribution; stronger recognition/deduplication remains open",
     "Measurement and zone multipliers not implemented",
-    "No full feature VERIFIED",
-    "Hosted run for this increment pending publication; earlier 48-test hosted run remains separate evidence"
-  ]
+    "No full feature VERIFIED"
+  ],
+  "hosted": {
+    "commit": "cf4e0082f3ee93c03a3dab2dd5d4f252692c7ecc",
+    "run_id": 40463470462,
+    "job_id": 122053244652,
+    "conclusion": "success",
+    "passed": 54,
+    "failed": 0,
+    "environment": "Ubuntu 24.04 / Node 24.22.0 / npm 11.19.1 / Python 3.12.3",
+    "duration_ms": 15514.778204
+  }
 }

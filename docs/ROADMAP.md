@@ -52,3 +52,5 @@ ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned exp
 Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 passed 48/48; actual run/job logs and environment recorded in evidence/ci-2026-10-27.json. This verifies portable suite automation, not full product parity.
 
 2026-10-27 multiplier checkpoint: schema 7 selection-linked count multipliers, safe legacy attribution and weighted quantity/export audit tested (54/54 local). Browser 78 raw instances→468 items at x6→78 at x1; no duplicate detections. Next: source-grounded measurement/zone multiplier rules and revision comparison; full selection element editing remains a larger open dependency.
+
+2026-10-28: ADR-0019 length/zone multipliers passed 61/61 local plus browser checks. Continue project workflow/layout fidelity from the now-accessible authenticated reference; then remaining selection/revision workflows. No phase exit or full parity claim.

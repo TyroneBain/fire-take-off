@@ -46,3 +46,5 @@ In Measure, **Edit** a listed measurement or right-click its geometry. Drag poin
 Private GitHub Actions runs locked dependency installation and the acceptance suite for pushes and pull requests using Node 24.22.0 on Ubuntu 24.04. See CURRENT_STATE for observed run results; browser acceptance remains separate.
 
 Each saved selection has a **Multiplier**. Quantities, zones and exports use that factor while keeping the original match instances and audit trail. Older headings with ambiguous example ownership ask for an **Add to current** matching rerun before factor changes. Manual matches remain one each. Latest local acceptance suite: **54/54 passing**; hosted evidence is recorded per commit in CURRENT_STATE.
+
+Edit a length to set its **Length multiplier**, then Save measurement. Under Zone, set a heading multiplier and Save multiplier; it applies to every outline under that heading across drawings. Allocated export quantities include the factor. Excel shows zone factors, red affected quantities and separate Quantity detail/Factor history sheets. Latest local suite: 61/61.

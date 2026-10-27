@@ -34,7 +34,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     $('calibration-status').textContent=calibration?`Scale set · ${calibration.distance} ${calibration.unit} reference`:'No scale set for this page';
     const measurements=c.state.measurements?.filter(m=>m.drawing_id===c.drawing?.id&&m.page===c.pageNumber)||[];
     const measured=$('measure-list');measured.replaceChildren();
-    for(const m of measurements){const row=node('div',null,'measure-row');row.append(node('strong',m.name),node('span',m.quantity.value===null?'Set scale to calculate':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`));row.append(button('Edit',()=>measurementEditor.open(m)),button('Remove',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));measured.append(row);}
+    for(const m of measurements){const row=node('div',null,'measure-row');row.append(node('strong',`${m.name}${m.multiplier>1?` ×${m.multiplier}`:''}`),node('span',m.quantity.value===null?'Set scale to calculate':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`));row.append(button('Edit',()=>measurementEditor.open(m)),button('Remove',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));measured.append(row);}
     $('finish-measure').disabled=!['length','area'].includes(action)||draft.length<(action==='area'?3:2);
     $('cancel-measure').disabled=!action;
     paintOverlay();

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import {validMultiplier} from './quantity-multipliers.mjs';
 import { validateGeometry,pathLength,unitMetres,quantity } from './web/takeoff-geometry.mjs';
 export function migrateTakeoff(db) {
   if(db.prepare('SELECT version FROM schema_version').get().version!==3)return;
@@ -84,8 +85,9 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         countExamples:db.prepare('SELECT * FROM count_examples ORDER BY created,id').all().map(e=>({...e,example:JSON.parse(e.example)})),
         countMarks:db.prepare('SELECT m.*,coalesce(e.multiplier,1) AS multiplier FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id ORDER BY m.created,m.id').all().map(m=>({...m,quantity:m.included?m.multiplier:0})),calibrations,
         countExampleEvents:db.prepare('SELECT * FROM count_example_events ORDER BY rowid').all(),
+        measurementFactorEvents:db.prepare('SELECT * FROM measurement_factor_events ORDER BY rowid').all(),
         countEvents:db.prepare('SELECT * FROM count_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
-        measurements:db.prepare('SELECT * FROM measurements ORDER BY created,id').all().map(m=>{const points=JSON.parse(m.points),c=calibrations.find(c=>c.drawing_id===m.drawing_id&&c.page===m.page);return {...m,points,quantity:quantity(m.kind,points,c?.metres_per_point)};})};
+        measurements:db.prepare('SELECT * FROM measurements ORDER BY created,id').all().map(m=>{const points=JSON.parse(m.points),c=calibrations.find(c=>c.drawing_id===m.drawing_id&&c.page===m.page),base=quantity(m.kind,points,c?.metres_per_point);return {...m,points,base_quantity:base,quantity:{...base,value:base.value===null?null:base.value*m.multiplier}};})};
     },
     createCount(disciplineId,{name:value,color='#168a90',example=null,matches=[]}={}){
       requireEntity(disciplineId,'discipline');const label=name(value);
@@ -150,13 +152,21 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     },
     createMeasure(drawingId,{page,kind,points,name:value}={}){
       geometry(drawingId,page,kind,points);const id=randomUUID();
-      db.prepare('INSERT INTO measurements VALUES (?,?,?,?,?,?,?,?)').run(id,drawingId,page,name(value),kind,JSON.stringify(points),1,new Date().toISOString());return {id};
+      db.prepare('INSERT INTO measurements (id,drawing_id,page,name,kind,points,version,created) VALUES (?,?,?,?,?,?,?,?)').run(id,drawingId,page,name(value),kind,JSON.stringify(points),1,new Date().toISOString());return {id};
     },
-    updateMeasure(id,{points,name:value,version}={}) {
+    updateMeasure(id,{points,name:value,version,multiplier}={}) {
       const m=db.prepare('SELECT * FROM measurements WHERE id=?').get(id);if(!m)fail('Measurement not found',404);
       if(version!==m.version)fail('Measurement changed. Reload before editing.',409);
       geometry(m.drawing_id,m.page,m.kind,points);const label=name(value);
-      db.prepare('UPDATE measurements SET points=?,name=?,version=version+1 WHERE id=?').run(JSON.stringify(points),label,id);
+      const factor=multiplier===undefined?m.multiplier:multiplier;
+      if(!validMultiplier(factor))fail('Multiplier must be a whole number from 1 to 10000');
+      if(m.kind!=='length'&&factor!==1)fail('Multipliers are supported for lengths only');
+      db.exec('BEGIN');
+      try {
+        db.prepare('UPDATE measurements SET points=?,name=?,multiplier=?,version=version+1 WHERE id=?').run(JSON.stringify(points),label,factor,id);
+        if(factor!==m.multiplier)db.prepare('INSERT INTO measurement_factor_events VALUES (?,?,?,?,?,?)').run(randomUUID(),id,m.multiplier,factor,m.version+1,new Date().toISOString());
+        db.exec('COMMIT');
+      }catch(error){db.exec('ROLLBACK');throw error;}
       return {id,version:m.version+1};
     },
     deleteMeasure(id,version){const m=db.prepare('SELECT * FROM measurements WHERE id=?').get(id);if(!m)fail('Measurement not found',404);if(version!==m.version)fail('Measurement changed',409);db.prepare('DELETE FROM measurements WHERE id=?').run(id);},
