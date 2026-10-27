@@ -83,4 +83,4 @@ Final suite 43/43, including one new independent crop/rotation/scale preview rec
 
 ## CI setup — 2026-10-27
 
-ADR-0017 adds push/PR/manual automation with exact action commit pins and read-only repository permission. YAML parse and structural/pinning checks passed locally. Initial validator used Ruby filter_map, unavailable in system Ruby; changed to map.compact and reran successfully. Local product suite remains 48/48 from the measurement increment. Hosted installation and tests are pending their first actual run.
+ADR-0017 adds push/PR/manual automation with exact action commit pins and read-only repository permission. YAML parse and structural/pinning checks passed locally. Initial validator used Ruby filter_map, unavailable in system Ruby; changed to map.compact and reran successfully. Local product suite remains 48/48 from the measurement increment. Hosted installation and tests passed in run 40461405478/job 122046656220 at commit 83d67e0: 48/48, Ubuntu 24.04, Node 24.22.0, npm 11.19.1, Python 3.12.3. Evidence [CI](evidence/ci-2026-10-27.json). Existing dependency deprecation notices remain; this run did not execute npm audit.

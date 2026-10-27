@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-27",
+  "commit": "83d67e01a8d8ec3dccddccb39b8f46488568062f",
+  "run_id": 40461405478,
+  "job_id": 122046656220,
+  "url": "https://github.com/TyroneBain/fire-take-off/actions/runs/40461405478",
+  "status": "completed",
+  "conclusion": "success",
+  "runtime": {
+    "runner": "Ubuntu 24.04",
+    "node": "24.22.0",
+    "npm": "11.19.1",
+    "python": "3.12.3"
+  },
+  "commands": [
+    "npm ci --ignore-scripts --no-audit",
+    "npm test"
+  ],
+  "tests": {
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "duration_ms": 14641.737894
+  },
+  "action_pins": {
+    "checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "setup-node": "949feb2413d6458794dcd2491c4babbbce0c15c1"
+  },
+  "local_delivery_verification": {
+    "published_files": 78,
+    "git_blob_hash_mismatches": 0,
+    "markdown_broken_links": 0,
+    "parity_requirements": 73,
+    "duplicate_ids": 0,
+    "invalid_statuses": 0,
+    "local_data_and_delivery_records_ignored": true
+  },
+  "limitations": [
+    "Browser interaction tests remain separately recorded; CI is Node/domain/HTTP/workbook acceptance",
+    "No deployment, publishing or private drawing data in workflow",
+    "Existing dependency deprecation warnings for rimraf, lodash.isequal, inflight, glob and fstream remain",
+    "No npm advisory audit performed by this CI run",
+    "No Countfire parity certification",
+    "Local Git ref still unreconciled; file equality is not a clean/local-history claim"
+  ],
+  "initial_check_failure": "System Ruby lacks filter_map; validator changed to map.compact and passed"
+}

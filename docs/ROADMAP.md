@@ -49,4 +49,4 @@ ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned exp
 
 2026-10-27 measurement checkpoint: versioned edits, geometry/node controls and quantity/zone/export reconciliation passed 48/48 suite plus browser Save/Cancel checks. Remaining foundation task: automate this suite in private GitHub CI; continue selection management, multipliers, revisions and estimating after that checkpoint.
 
-Private CI workflow added on 2026-10-27 under ADR-0017. Hosted success is pending first-run evidence; a valid workflow file does not satisfy that check.
+Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 passed 48/48; actual run/job logs and environment recorded in evidence/ci-2026-10-27.json. This verifies portable suite automation, not full product parity.
