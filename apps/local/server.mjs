@@ -51,7 +51,12 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if(request.method==='GET'&&workbook){const result=await quantityWorkbook(store.snapshot(),workbook[1]);response.setHeader('Content-Disposition','attachment; filename="Fire-Take-Off-quantities.xlsx"');response.setHeader('X-Snapshot-SHA256',result.snapshotDigest);return send(200,result.bytes,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');}
       if (request.method === 'POST' && url.pathname === '/api/entities') {
         if (!body || typeof body !== 'object') throw new AppError(400, 'JSON object required');
-        return send(201, store.create(body.kind, body.parentId, body.name));
+        return send(201, store.create(body.kind, body.parentId, body.name, body.metadata));
+      }
+      const project=url.pathname.match(/^\/api\/projects\/([\w-]+)$/);
+      if(project&&request.method==='PATCH'){
+        if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');
+        return send(200,store.updateProject(project[1],body));
       }
       const upload = url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/drawings$/);
       if (request.method === 'POST' && upload) {

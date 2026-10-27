@@ -1,3 +1,4 @@
+import {setupProjects} from './project-ui.mjs';
 import {setupZones} from './zone-ui.mjs';
 import * as pdfjs from '/vendor/build/pdf.mjs';
 import { pagePoint, viewPoint, clientPoint } from './coordinates.mjs';
@@ -10,7 +11,7 @@ let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTa
 let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
-let takeoffUi,zoneUi;
+let takeoffUi,zoneUi,projectsUi;
 let zoomEpoch=0;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
@@ -28,6 +29,7 @@ function children(parent, kind) { return state.entities.filter(e => e.parent_id 
 function byId(id) { return state.entities.find(e => e.id === id); }
 async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); zoneUi?.paint(); }
 function create(kind, parentId) {
+  if(kind==='project')return projectsUi.create();
   createContext = { kind, parentId };
   $('dialog-title').textContent = `Create ${kind}`; $('entity-name').value = ''; $('dialog-error').textContent = '';
   $('name-dialog').showModal(); $('entity-name').focus();
@@ -45,27 +47,20 @@ $('name-form').onsubmit = async event => {
   finally { $('save-name').disabled = false; }
 };
 $('new-project').onclick = () => create('project', null);
-$('project-filter').oninput = () => paintSidebar();
-function paintSidebar() {
-  const list = $('projects'); list.replaceChildren();
-  const filter = $('project-filter').value.toLowerCase();
-  for (const p of state.entities.filter(e => e.kind === 'project' && e.name.toLowerCase().includes(filter))) {
-    const b = button(p.name, () => { selectedProject = p.id; selectedTakeoff = null; closeViewer(); paint(); }, 'project-link');
-    b.classList.toggle('active', p.id === selectedProject); list.append(b);
-  }
-}
 function empty(title, detail, action, label) {
   const div = node('div', null, 'empty'); div.append(node('div', '+', 'empty-icon'), node('h2', title), node('p', detail));
   if (action) div.append(button(label, action, 'primary')); return div;
 }
 function paint() {
-  paintSidebar();
+  projectsUi.navigation();
+  $('project-search').hidden=true;
   const project = byId(selectedProject), takeoff = byId(selectedTakeoff);
   $('breadcrumb').textContent = ['Workspace', project?.name, takeoff?.name].filter(Boolean).join('  /  ');
   $('heading').textContent = takeoff?.name || project?.name || 'Your projects';
   $('subtitle').textContent = takeoff ? 'Organise your drawings by discipline. Open a PDF to start reviewing.' : project ? 'Keep each drawing set in its own takeoff.' : 'A clear view of every drawing, from the first page onwards.';
   const actions = $('actions'); actions.replaceChildren();
   const content = $('content'); content.replaceChildren();
+  if (!project) {projectsUi.index(content,actions);return;}
   if (takeoff) {
     actions.append(button('← Takeoffs', () => { selectedTakeoff = null; paint(); }), button('Export Excel', async()=>{try{const response=await fetch(`/api/takeoffs/${takeoff.id}/workbook`);if(!response.ok)throw new Error((await response.json()).error);const url=URL.createObjectURL(await response.blob()),link=document.createElement('a');link.href=url;link.download='Fire-Take-Off-quantities.xlsx';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);notice('Quantity workbook downloaded');}catch(error){notice(error.message,true);}}), button('+ New discipline', () => create('discipline', takeoff.id), 'primary'));
     const disciplines = children(takeoff.id, 'discipline');
@@ -88,6 +83,7 @@ function paint() {
       content.append(cards);
     }
   } else {
+    projectsUi.details(project,content,actions);
     const kind = project ? 'takeoff' : 'project';
     actions.append(button(`+ New ${kind}`, () => create(kind, project?.id ?? null), 'primary'));
     const items = project ? children(project.id, 'takeoff') : state.entities.filter(e => e.kind === 'project');
@@ -295,6 +291,7 @@ $('remove-note').onclick = ()=>{
     } catch (error) { $('note-error').textContent = error.message; state = await api('/api/state').catch(()=>state); }
   };
 };
+projectsUi=setupProjects({state:()=>state,api,reload:refresh,paint,node,button,notice,open:id=>{selectedProject=id;selectedTakeoff=null;closeViewer();paint();},home:()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();}});
 takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
 zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
 try { ({ token } = await api('/api/session')); await refresh(); }

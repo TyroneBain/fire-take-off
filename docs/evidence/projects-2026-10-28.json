@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0020",
+  "schema": 9,
+  "source_evidence": "countfire-project-ui-2026-10-28.json",
+  "automated": {
+    "command": "npm test",
+    "passed": 67,
+    "failed": 0,
+    "product_tests": 64,
+    "rea_fixture_tests": 3,
+    "duration_ms": 12316.357954,
+    "new_cases": [
+      "Metadata/status/archive/restore/reopen preserve child drawings, measures and original bytes",
+      "Invalid dates, fields, kinds and stale edits preserve whole state",
+      "Forced metadata/audit persistence failures roll back create and rename/archive",
+      "Search across metadata, local ownership scopes and deterministic date/name sorting",
+      "Schema 8 migration preserves IDs and defaults local metadata",
+      "Real authenticated HTTP create/update and malformed/stale rejection"
+    ]
+  },
+  "browser": {
+    "blank_name_rejected": true,
+    "cancel_state_unchanged": true,
+    "created": "Owned UI acceptance (synthetic local project)",
+    "metadata_saved": [
+      "name",
+      "owner",
+      "customer",
+      "building_type",
+      "due_date",
+      "status"
+    ],
+    "edited_owner_and_status": true,
+    "own_scope_excludes_other_local_owner_label": true,
+    "customer_filter_matches": true,
+    "status_changed_to": "Won",
+    "archive_removed_from_active": true,
+    "archive_view_found_project": true,
+    "restore_returned_to_active": true,
+    "final_scratch_state": "Archived, no drawings",
+    "existing_drawing_count_measure_zone_note_calibration_state_unchanged": true,
+    "rail_width_css_px": 240,
+    "table_header_height_css_px": 65,
+    "table_row_height_css_px": 61,
+    "console_errors_warnings": 0,
+    "screenshot": "Inline own-app screenshot visually inspected; no file saved",
+    "method": "DOM controls and API readback on original synthetic data"
+  },
+  "limitations": [
+    "Local owner labels only; Own is not authentication or multi-user permission enforcement",
+    "Reference create/update/archive behavior not executed; presence/layout observed only",
+    "Full exact visual parity and responsive/accessibility acceptance unfinished",
+    "Estimating/catalogue/assignment UI remains absent",
+    "Hosted result for this commit pending publication"
+  ]
+}

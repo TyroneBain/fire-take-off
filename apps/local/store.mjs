@@ -1,3 +1,4 @@
+import {migrateProjects,projectStore} from './project-store.mjs';
 import {migrateZones,zoneStore} from './zone-store.mjs';
 import {migrateQuantityMultipliers} from './quantity-multipliers.mjs';
 import {quantitySchedule} from './zone-allocation.mjs';
@@ -36,7 +37,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3,4,5,6,7,8].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4,5,6,7,8,9].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -58,6 +59,7 @@ export async function openStore(directory) {
   migrateCountExamples(db);
   migrateCountMultipliers(db);
   migrateQuantityMultipliers(db);
+  migrateProjects(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -80,21 +82,25 @@ export async function openStore(directory) {
     return value.trim();
   }
   const takeoff=takeoffStore(db,{drawing,requireEntity,name,AppError});
+  const projects=projectStore(db,{requireEntity,name,AppError});
   const zone=zoneStore(db,{drawing,requireEntity,name,AppError});
   return {
-    ...takeoff,...zone,
+    ...takeoff,...zone,updateProject:projects.updateProject,
     close: () => db.close(),
     snapshot: () => {const state={ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
       drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
       notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all(),
-      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
-    create(kind, parentId, value) {
+      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot(),...projects.projectSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
+    create(kind, parentId, value, metadata={}) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');
       if (expectedParent[kind]) requireEntity(parentId, expectedParent[kind]);
       else if (parentId != null) throw new AppError(400, 'Projects cannot have a parent');
       const row = { id: randomUUID(), kind, parent_id: parentId ?? null, name: name(value), created: new Date().toISOString() };
-      db.prepare('INSERT INTO entities VALUES (?,?,?,?,?)').run(row.id, row.kind, row.parent_id, row.name, row.created);
+      const fields=kind==='project'?projects.validateProject(metadata):null;
+      db.exec('BEGIN');
+      try{db.prepare('INSERT INTO entities VALUES (?,?,?,?,?)').run(row.id, row.kind, row.parent_id, row.name, row.created);if(fields)projects.insertProjectMetadata(row.id,fields);db.exec('COMMIT');}
+      catch(error){db.exec('ROLLBACK');throw error;}
       return row;
     },
     async importPdf(disciplineId, filename, bytes) {

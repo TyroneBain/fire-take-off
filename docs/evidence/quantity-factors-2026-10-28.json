@@ -46,11 +46,20 @@
     "Measurement factor only lengths; area/point factor support not established",
     "Full reference global Save and keyboard semantics incomplete",
     "Measurement geometry audit remains absent; factor audit implemented",
-    "Reference overlap boundary policy not fully validated",
-    "Hosted run for this increment pending publication"
+    "Reference overlap boundary policy not fully validated"
   ],
   "sources": [
     "https://help.countfire.com/en/articles/4953975-measurement-multiplier",
     "https://help.countfire.com/en/articles/2340057-zone-multiplier"
-  ]
+  ],
+  "hosted": {
+    "commit": "a9b90091697833e8c1309d8f766075dd6109c70d",
+    "run_id": 40563584161,
+    "job_id": 122398798181,
+    "passed": 61,
+    "failed": 0,
+    "duration_ms": 20167.153556,
+    "environment": "Ubuntu 24.04 / Node 24.22.0 / npm 11.19.1 / Python 3.12.3",
+    "conclusion": "success"
+  }
 }

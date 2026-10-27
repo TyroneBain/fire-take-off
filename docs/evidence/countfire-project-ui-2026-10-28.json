@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-28",
+  "reference": "https://beta.countfire.com/",
+  "method": "Normal authenticated UI: project dashboard and create dialog opened/cancelled; computed presentation properties and generic control labels only",
+  "observations": {
+    "project_views": [
+      "Active",
+      "Own",
+      "Archived"
+    ],
+    "columns": [
+      "Project Name",
+      "Customer",
+      "Building type",
+      "Owner",
+      "Status",
+      "Created",
+      "Due Date"
+    ],
+    "create_fields": [
+      "Name (required)",
+      "Owner",
+      "Customer",
+      "Building type",
+      "Due date"
+    ],
+    "navigation_width_css_px": 240,
+    "heading_font_css_px": 24,
+    "table_header_height_css_px": 64.5,
+    "table_row_height_css_px": 61,
+    "header_background_rgb": [
+      36,
+      42,
+      56
+    ],
+    "header_text_rgb": [
+      140,
+      144,
+      151
+    ],
+    "font_stack_starts": "Inter, system-ui",
+    "project_filter_placeholder": "Filter projects"
+  },
+  "excluded_from_record": [
+    "Account/project/customer names and identifiers",
+    "Private table rows or drawing content",
+    "Credentials/session/network payloads",
+    "Source bundles and proprietary assets"
+  ],
+  "limitations": [
+    "Reference project create/update/archive operations not submitted",
+    "Statuses reused from prior documented visible menu observation",
+    "No claim of exact pixel parity or complete workspace behavior"
+  ]
+}
