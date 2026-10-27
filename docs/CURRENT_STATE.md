@@ -71,7 +71,7 @@ Full Smart Select, revisions, connected systems/fittings, estimating and cloud c
 
 ## Evidence and storage
 
-README gives reproducible run/test commands. ARCHITECTURE, ROADMAP, DECISIONS, TEST_STRATEGY, WORKFLOW_SPECIFICATIONS and FEATURE_PARITY reflect ADR-0008 and the partial core. Local raw fixture PDFs/images, DB, source uploads and runtime stay ignored under `.local/`; no private drawings or credentials are tracked. Product code is under `apps/local/`, tests under `tests/local-app.test.mjs`; no CI or distributable installer yet.
+README gives reproducible run/test commands. ARCHITECTURE, ROADMAP, DECISIONS, TEST_STRATEGY, WORKFLOW_SPECIFICATIONS and FEATURE_PARITY reflect ADR-0008 and the partial core. Local raw fixture PDFs/images, DB, source uploads and runtime stay ignored under `.local/`; no private drawings or credentials are tracked. Product code is under `apps/local/`, tests under `tests/local-app.test.mjs`; CI setup is recorded in the latest checkpoint below; no distributable installer yet.
 
 
 ## Persisted notes follow-up
@@ -127,4 +127,10 @@ Final suite 48/48 (45 product + 3 unchanged REA diagnostics): exact 50→60 m, 1
 
 Server restarted from current code, session 26597 on http://127.0.0.1:4173; prior 1185 stopped. Owned demonstration Pipe run is now Extended pipe run, endpoint y=700; area/point, drawings/notes and 78 included count instances preserved.
 
-Remote parent 0f900f2d616fb44e8f7c0de172484e9338e383aa/tree b455ebb4de60531f32935ea6482ee61509577bbb. Measurement increment prepared for protected API publication; final SHA/readback in .local/measurement-editing-delivery-2026-10-27.json. Preserve pending local Git reconciliation. Next executable task: add and actually run private GitHub CI for the portable test suite, then continue remaining counting/revision workflows. Full Countfire UI, recognition and estimating parity remain unfinished.
+Remote parent 0f900f2d616fb44e8f7c0de172484e9338e383aa/tree b455ebb4de60531f32935ea6482ee61509577bbb. Measurement increment published as f26882948a2537cfb30c964ef40fdf1f326e37cb/tree 3a9d3b17fe9363eb4a9671eeae67684a26423b00; protected update/readback matched. Delivery record: .local/measurement-editing-delivery-2026-10-27.json. Preserve pending local Git reconciliation. Next executable task: add and actually run private GitHub CI for the portable test suite, then continue remaining counting/revision workflows. Full Countfire UI, recognition and estimating parity remain unfinished.
+
+## 2026-10-27 private CI setup
+
+ADR-0017 adds .github/workflows/test.yml with push/PR/manual triggers, Ubuntu 24.04, exact Node 24.22.0, npm ci --ignore-scripts --no-audit and npm test. Official checkout/setup-node v7 commit pins were resolved and README usage reviewed through the GitHub connection. Permissions contents:read, checkout credentials not persisted, no deployment/data artifact upload, ten-minute limit and superseded-run cancellation. Local YAML parse/structure/pin checks passed; Ruby compatibility issue in the first validation command fixed. Hosted run is pending and must be observed before claiming CI success.
+
+Delivery parent f26882948a2537cfb30c964ef40fdf1f326e37cb/tree 3a9d3b17fe9363eb4a9671eeae67684a26423b00. Publish through existing private repository with expected head, then inspect run jobs/logs and fix any failures. Local 48/48 product/diagnostic suite remains the latest executed app test result. Next executable task is the actual hosted CI run, followed by counting/revision work.

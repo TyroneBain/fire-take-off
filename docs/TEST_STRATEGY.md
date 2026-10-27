@@ -23,7 +23,7 @@ Export tests parse XLSX independently and reconcile sheets, per-zone/drawing tot
 
 Viewer tests combine numeric coordinate assertions, known fiducial render comparisons and user interaction, not screenshots alone. Benchmark memory and responsiveness on agreed small/medium/large datasets and record hardware; budgets are established in Phase 1, not invented here.
 
-Later CI should run deterministic domain and workflow tests, dependency/security checks and schema migration/recovery tests. The workflow directory is intentionally a placeholder until executable product checks and a toolchain are chosen. Never describe absent CI as passing.
+Private GitHub CI is configured in .github/workflows/test.yml to run locked dependency installation and the portable npm test suite on Ubuntu 24.04/Node 24.22.0. A workflow file alone is not passing CI: record observed run/job results. Browser acceptance, dependency advisory checks and native PDFKit oracle runs remain separate.
 
 ## Authenticated research follow-up — 2026-10-22
 
@@ -80,3 +80,7 @@ Final suite 43/43, including one new independent crop/rotation/scale preview rec
 ## Measurement editing — 2026-10-27
 
 48/48 suite passed (45 product + 3 unchanged fixture diagnostics). Added identity/reopen and exact quantity edits, invalid/stale/scope-safe updates, zone/workbook reconciliation, node projection and authenticated HTTP acceptance. Browser right-click/edit, node insertion/removal, endpoint drag, Cancel full-state equality, renamed Save and space-pan isolation passed with clean console. Browser prior pointer calibration yields 59.987901 m; independent domain geometry yields exactly 60 m. Evidence: [measurement editing](evidence/measurement-editing-2026-10-27.json).
+
+## CI setup — 2026-10-27
+
+ADR-0017 adds push/PR/manual automation with exact action commit pins and read-only repository permission. YAML parse and structural/pinning checks passed locally. Initial validator used Ruby filter_map, unavailable in system Ruby; changed to map.compact and reran successfully. Local product suite remains 48/48 from the measurement increment. Hosted installation and tests are pending their first actual run.

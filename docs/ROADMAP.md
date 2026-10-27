@@ -48,3 +48,5 @@ ADR-0011 zone increment: partial F021/F063 TESTED; F034–F035 include zoned exp
 2026-10-27 navigation checkpoint: pointer-centred zoom, space/middle/Navigate drag pan and Space+tool shortcuts passed browser checks and 43/43 suite. Next executable product work: editable measurements with versioned geometry, followed by remaining selection management, multipliers and revisions. Saved viewport context and full gesture parity remain open.
 
 2026-10-27 measurement checkpoint: versioned edits, geometry/node controls and quantity/zone/export reconciliation passed 48/48 suite plus browser Save/Cancel checks. Remaining foundation task: automate this suite in private GitHub CI; continue selection management, multipliers, revisions and estimating after that checkpoint.
+
+Private CI workflow added on 2026-10-27 under ADR-0017. Hosted success is pending first-run evidence; a valid workflow file does not satisfy that check.

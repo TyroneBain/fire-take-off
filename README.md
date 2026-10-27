@@ -42,3 +42,5 @@ Expand **Selections** under a count heading to inspect saved examples and jump t
 Navigate drawings with **Space + drag**, middle-button drag, or dragging in Navigate mode. **Ctrl/⌘ + wheel** zooms at the pointer; toolbar zoom retains the stage centre. **Space + 1/2/3/4** selects Count/Measure/Zone/Notes. Ordinary scrolling still pans.
 
 In Measure, **Edit** a listed measurement or right-click its geometry. Drag points or the whole shape, double-click edges to add nodes or nodes to remove them, then **Save measurement** or **Cancel edit**. Saved edits recalculate calibrated quantities, zone allocations and exports. Current suite: 48 passing tests.
+
+Private GitHub Actions runs locked dependency installation and the acceptance suite for pushes and pull requests using Node 24.22.0 on Ubuntu 24.04. See CURRENT_STATE for observed run results; browser acceptance remains separate.
