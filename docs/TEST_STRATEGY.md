@@ -76,3 +76,7 @@ Final suite 43/43, including one new independent crop/rotation/scale preview rec
 ## Navigation — 2026-10-27
 
 43/43 suite passed after extending viewport tests with client-coordinate conversion. Browser verified pointer-anchor drift <0.36 CSS pixels per axis on vector and cropped/rotated fixtures, exact 80×60 pan delta with manual-count placement armed and entire API state unchanged, Space+tool chords without Add-to-current interference, typing/blur behavior and page switch during pending zoom. Physical trackpad/touch and edge-clamping acceptance remain open. Evidence: [navigation](evidence/navigation-2026-10-27.json).
+
+## Measurement editing — 2026-10-27
+
+48/48 suite passed (45 product + 3 unchanged fixture diagnostics). Added identity/reopen and exact quantity edits, invalid/stale/scope-safe updates, zone/workbook reconciliation, node projection and authenticated HTTP acceptance. Browser right-click/edit, node insertion/removal, endpoint drag, Cancel full-state equality, renamed Save and space-pan isolation passed with clean console. Browser prior pointer calibration yields 59.987901 m; independent domain geometry yields exactly 60 m. Evidence: [measurement editing](evidence/measurement-editing-2026-10-27.json).

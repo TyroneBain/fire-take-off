@@ -111,6 +111,7 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       const measure=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/measurements$/);
       if(request.method==='POST'&&measure){if(!body)throw new AppError(400,'JSON required');return send(201,store.createMeasure(measure[1],body));}
       const removeMeasure=url.pathname.match(/^\/api\/measurements\/([\w-]+)$/);
+      if(request.method==='PATCH'&&removeMeasure){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.updateMeasure(removeMeasure[1],body));}
       if(request.method==='DELETE'&&removeMeasure){store.deleteMeasure(removeMeasure[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
       if (request.method !== 'GET' || url.pathname.startsWith('/api/')) throw new AppError(404, 'Not found');
       const vendor = url.pathname.startsWith('/vendor/');

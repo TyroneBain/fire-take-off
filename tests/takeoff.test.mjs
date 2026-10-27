@@ -335,3 +335,61 @@ test('independent two-orientation corpus: additional example expands three match
  assert.equal(addition.added,2);assert.equal(addition.skipped,0);assert.equal(store.snapshot().countMarks.length,5);assert.equal(store.snapshot().countExamples.length,2);
  // This raster is a domain oracle, not a claim that these glyphs occur in the PDF source fixture.
 });
+
+test('measurement editing preserves identity and recalculates exact length, area and point quantities',async t=>{
+ const {store,drawing:d,directory}=await workspace(t);
+ store.calibrate(d.id,{page:1,points:[[50,400],[350,400]],distance:30,unit:'m',version:0});
+ const line=store.createMeasure(d.id,{page:1,name:'Run',kind:'length',points:[[50,400],[350,400],[350,600]]});
+ const area=store.createMeasure(d.id,{page:1,name:'Floor',kind:'area',points:[[50,450],[150,450],[150,550],[50,550]]});
+ const point=store.createMeasure(d.id,{page:1,name:'Valve',kind:'point',points:[[100,100]]});
+ const before=store.snapshot();
+ store.updateMeasure(line.id,{name:'Extended run',points:[[50,400],[350,400],[350,700]],version:1});
+ store.updateMeasure(area.id,{name:'Larger floor',points:[[50,450],[250,450],[250,550],[50,550]],version:1});
+ store.updateMeasure(point.id,{name:'Moved valve',points:[[200,200]],version:1});
+ const after=store.snapshot(),values=Object.fromEntries(after.measurements.map(m=>[m.name,m.quantity.value]));
+ assert.ok(Math.abs(values['Extended run']-60)<1e-9);assert.ok(Math.abs(values['Larger floor']-200)<1e-9);assert.equal(values['Moved valve'],1);
+ for(const m of after.measurements){const old=before.measurements.find(v=>v.id===m.id);assert.equal(m.created,old.created);assert.equal(m.kind,old.kind);assert.equal(m.drawing_id,old.drawing_id);assert.equal(m.page,old.page);assert.equal(m.version,2);}
+ assert.deepEqual(after.calibrations,before.calibrations);assert.deepEqual(after.drawings,before.drawings);
+ store.close();store.close=()=>{};const reopened=await openStore(directory);assert.deepEqual(reopened.snapshot(),after);reopened.close();
+});
+
+test('invalid or stale measurement edits preserve complete saved state',async t=>{
+ const {store,drawing:d}=await workspace(t),m=store.createMeasure(d.id,{page:1,name:'Floor',kind:'area',points:[[50,50],[150,50],[150,150],[50,150]]});
+ const baseline=store.snapshot(),points=baseline.measurements[0].points;
+ for(const change of [{version:0},{name:''},{points:[[50,50],[150,150],[50,150],[150,50]]},{points:[[-1,50],[100,50],[100,100]]},{points:[[50,50],[50,50],[100,100]]}]){
+  assert.throws(()=>store.updateMeasure(m.id,{name:'Floor',points,version:1,...change}));assert.deepEqual(store.snapshot(),baseline);
+ }
+ assert.throws(()=>store.updateMeasure('missing',{name:'None',points,version:1}),{status:404});
+});
+
+test('measurement edits update zone allocations and workbook from 15/15 m to 15/25 m',async t=>{
+ const {store,discipline,drawing:d}=await workspace(t);
+ store.calibrate(d.id,{page:1,points:[[50,400],[350,400]],distance:30,unit:'m',version:0});
+ const west=store.createZoneHeading(discipline.id,{name:'West'}),east=store.createZoneHeading(discipline.id,{name:'East'});
+ for(const [heading_id,left,right]of [[west.id,0,200],[east.id,200,500]])store.createZone(d.id,{heading_id,page:1,points:[[left,0],[right,0],[right,300],[left,300]]});
+ const m=store.createMeasure(d.id,{page:1,name:'Pipe',kind:'length',points:[[50,100],[350,100]]});
+ assert.deepEqual(store.snapshot().quantitySchedule.map(r=>r.value),[15,15]);
+ store.updateMeasure(m.id,{name:'Extended pipe',points:[[50,100],[450,100]],version:1});
+ assert.deepEqual(store.snapshot().quantitySchedule.map(r=>r.value),[15,25]);
+ const book=new ExcelJS.Workbook();await book.xlsx.load((await quantityWorkbook(store.snapshot(),discipline.parent_id)).bytes);
+ const row=book.getWorksheet('Sprinkler').getRow(2);assert.equal(row.getCell(2).value,'Extended pipe');assert.equal(row.getCell(7).value,40);assert.equal(row.getCell(8).value,15);assert.equal(row.getCell(9).value,25);
+});
+
+test('measurement editor projects added vertices onto open and closing edges without moving existing points',async()=>{
+ const {nearestEdge}=await import('../apps/local/web/measurement-editor.mjs'),points=[[0,0],[100,0],[100,100],[0,100]],copy=structuredClone(points);
+ assert.deepEqual(nearestEdge(points,false,[50,3]),{index:0,point:[50,0],distance:3});
+ assert.deepEqual(nearestEdge(points,true,[2,50]),{index:3,point:[0,50],distance:2});
+ assert.notEqual(nearestEdge(points,false,[2,50])?.index,3);assert.equal(nearestEdge([[0,0]],false,[1,1]),null);assert.deepEqual(points,copy);
+});
+
+test('measurement HTTP editing enforces token, JSON and optimistic version before updating quantities',async t=>{
+ const {store,drawing:d,directory}=await workspace(t),m=store.createMeasure(d.id,{page:1,name:'Point',kind:'point',points:[[100,100]]});
+ const {startApp}=await import('../apps/local/server.mjs'),app=await startApp({directory,port:0});
+ try{
+  const {token}=await(await fetch(app.origin+'/api/session')).json(),route=app.origin+`/api/measurements/${m.id}`;
+  const request=(body,auth=true)=>fetch(route,{method:'PATCH',headers:{'Content-Type':'application/json',...(auth?{'X-Fire-Token':token}:{})},body:JSON.stringify(body)});
+  const edit={name:'Moved point',points:[[200,200]],version:1};
+  assert.equal((await request(edit,false)).status,403);assert.equal((await request(null)).status,400);assert.equal((await request(edit)).status,200);assert.equal((await request(edit)).status,409);
+  const state=await(await fetch(app.origin+'/api/state')).json();assert.equal(state.measurements[0].quantity.value,1);assert.equal(state.measurements[0].version,2);assert.deepEqual(state.measurements[0].points,[[200,200]]);
+ }finally{await app.close();}
+});

@@ -78,3 +78,9 @@ Heading filtering and per-heading/global marker visibility are transient view st
 ## ADR-0015 — Geometry-preserving drawing navigation (accepted 2026-10-27)
 
 Keep native PDF geometry unchanged while adding hold-space/middle-button dragging and pointer-centred zoom. Navigation captures gestures before annotation/zone/count listeners, suppresses the gesture's resulting click, and clears held-key state on blur. Preserve scroll panning; Ctrl/Cmd + wheel or trackpad pinch zooms at the pointer, while toolbar zoom uses the visible stage centre. Anchor restoration uses the actual rendered viewport and CSS canvas rectangle, with scroll-edge clamping accepted. Render generation checks prevent delayed zoom work from moving a different page. This is an independently implemented navigation policy, not a claim that every Countfire input mapping is identical.
+
+## ADR-0016 — Versioned measurement geometry editing (accepted 2026-10-27)
+
+Extend existing schema-6 measurement records with a version-checked update operation, preserving record ID, drawing, page, kind and created time. Validate all name/geometry changes before one SQL update; quantities and zone allocations continue to derive from saved geometry and calibration. No schema change or new dependency.
+
+The measurement editor keeps a local draft: drag vertices or the whole geometry, double-click edges to insert and nodes to remove, then Save or Cancel. Right-click opens editing. Point counts stay one per record when moved. Invalid crossing/outside/degenerate geometry and stale saves must preserve stored data. Navigation gestures capture first, so space-panning cannot move draft nodes. Full reference heading grouping, itemisation, multipliers, connected-system semantics and undo history remain separate work.

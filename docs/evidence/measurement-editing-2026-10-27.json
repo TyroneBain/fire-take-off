@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-27",
+  "decision": "ADR-0016",
+  "automated": {
+    "command": "npm test",
+    "passed": 48,
+    "failed": 0,
+    "product_tests": 45,
+    "rea_behavior_tests": 3,
+    "new_cases": [
+      "Identity-preserving edits and reopen: exact 50 to 60 m line, 100 to 200 m\u00b2 area, moved point stays one",
+      "Invalid/crossed/outside/repeated/blank/stale changes preserve whole state",
+      "Zone allocations and workbook update 15/15 to 15/25 m; row total 40 m",
+      "Nearest open/closed edge insertion geometry",
+      "Real HTTP token/JSON/version checks and saved point movement"
+    ]
+  },
+  "browser": {
+    "fixture": "Owned Original.pdf with existing calibrated Pipe run",
+    "steps": [
+      "Right-click opened edit with three vertex handles",
+      "Double-click segment inserted fourth vertex; double-click new vertex restored three",
+      "Dragged endpoint then Cancel; complete API state exactly unchanged",
+      "Dragged endpoint to native y=700, renamed to Extended pipe run, Save",
+      "Record identity/created time preserved, version 1 to 2, quantity 50.013506356157 to 59.98790126845236 m; unrelated measures unchanged",
+      "Space drag over vertex moved viewport without moving draft vertex; cancelled edit",
+      "Console errors/warnings zero"
+    ],
+    "original_endpoint_y": 600.2808965165472,
+    "edited_endpoint_y": 700,
+    "method": "Own-app DOM and synthetic pointer/contextmenu/double-click events with API readback"
+  },
+  "limitations": [
+    "Draft changes save explicitly; no global A save or durable measurement undo/audit log",
+    "Reference grouping, itemisation, multipliers and connected fittings remain absent",
+    "Browser numerical result uses prior pointer-calibrated geometry; independent domain test establishes exact 60 m",
+    "Cross-page/crop geometry covered by existing numeric tests; editing on rotated browser page not repeated",
+    "No full feature VERIFIED"
+  ]
+}

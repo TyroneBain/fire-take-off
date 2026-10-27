@@ -126,6 +126,13 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       geometry(drawingId,page,kind,points);const id=randomUUID();
       db.prepare('INSERT INTO measurements VALUES (?,?,?,?,?,?,?,?)').run(id,drawingId,page,name(value),kind,JSON.stringify(points),1,new Date().toISOString());return {id};
     },
+    updateMeasure(id,{points,name:value,version}={}) {
+      const m=db.prepare('SELECT * FROM measurements WHERE id=?').get(id);if(!m)fail('Measurement not found',404);
+      if(version!==m.version)fail('Measurement changed. Reload before editing.',409);
+      geometry(m.drawing_id,m.page,m.kind,points);const label=name(value);
+      db.prepare('UPDATE measurements SET points=?,name=?,version=version+1 WHERE id=?').run(JSON.stringify(points),label,id);
+      return {id,version:m.version+1};
+    },
     deleteMeasure(id,version){const m=db.prepare('SELECT * FROM measurements WHERE id=?').get(id);if(!m)fail('Measurement not found',404);if(version!==m.version)fail('Measurement changed',409);db.prepare('DELETE FROM measurements WHERE id=?').run(id);},
   };
 }
