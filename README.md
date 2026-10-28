@@ -49,7 +49,7 @@ Each saved selection has a **Multiplier**. Quantities, zones and exports use tha
 
 Edit a length to set its **Length multiplier**, then Save measurement. Under Zone, set a heading multiplier and Save multiplier; it applies to every outline under that heading across drawings. Allocated export quantities include the factor. Excel shows zone factors, red affected quantities and separate Quantity detail/Factor history sheets.
 
-The project workspace now uses **Active**, **Own** and **Archived** table views. Create/edit customer, building type, local owner label and due date; change status from the row control and archive/restore through its menu. Own means the Local user label in this single-user app. Latest local suite: **67/67 passing**.
+The project workspace now uses **Active**, **Own** and **Archived** table views. Create/edit customer, building type, local owner label and due date; change status from the row control and archive/restore through its menu. Own means the Local user label in this single-user app. The project-lifecycle checkpoint passed 67 tests; see CURRENT_STATE for current suite results.
 
 Drawing review now opens in a full-width workspace with the Count/Measure/Zone/Note/Page tools on the left. **Fit drawing** fits the entire page; **Fit width** keeps the width-first option. The Fire Take Off button returns to projects, and **Drawings** returns to the takeoff.
 
@@ -57,6 +57,10 @@ Layout → Compare now lets you choose an uploaded drawing/page, see original-on
 
 Layout → Overlay supports several temporary drawings with alignment, opacity and visibility controls. Overlays remain visible in Count/Measure/Zone/Note and clear when leaving the page. Their blue linework is a visual guide; it does not import quantities or change the source PDF.
 
-Layout → Floor plan now joins pages from one discipline into a saved arrangement. Add drawings, align with drag/arrows and Save/Cancel, hide or fit the group, and Open another member while retaining positions. Only the current sheet accepts counts and measurements; neighbouring sheets show source PDFs. Schema 10 stores versioned membership/positions and audit. Group merging, member scaling and cross-sheet measurement creation are not yet supported.
+Layout → Floor plan now joins pages from one discipline into a saved arrangement. Add drawings, align with drag/arrows and Save/Cancel, hide or fit the group, and Open another member while retaining positions. Only the current sheet accepts counts and measurements; neighbouring sheets show source PDFs and saved annotations, which open their owning sheet for editing. Schema 10 stores versioned membership/positions and audit. Group merging, member scaling and cross-sheet measurement creation are not yet supported.
 
 Coverage review: select a count heading or a point measurement, set Coverage radius in metres, and press Enter or leave the field. Set the page scale first to display circles; zero removes them and Escape cancels an unsaved value. Saved radii apply to calibrated pages and floorplan neighbours without changing quantities. Annotated PDF output is not yet implemented.
+
+To clean a saved count selection, expand **Selections** and choose **Edit**. Click or drag to erase vector paths, use **Restore** or hold Shift to bring them back, and choose **Done** to recount the discipline. **Cancel** leaves saved data intact. Reviewed corrections and multipliers are retained; obsolete unchecked detections are removed. Text/image selections and clipped/composited drawings are not yet editable. At least one element must remain.
+
+The cleaned matcher ignores erased detail while checking retained linework and surrounding blank space. It currently requires the same size and orientation; review every result. Independent negative controls and the original six-symbol PDF pass, but realistic trade-drawing recognition and complete Countfire parity remain unfinished. Latest local suite: **98/98 passing** (2026-10-28).
