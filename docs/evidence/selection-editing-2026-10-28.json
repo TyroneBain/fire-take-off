@@ -132,7 +132,16 @@
   ],
   "delivery": {
     "parent": "0630b504ba5018ef439244100b12ab227cdf78f5",
-    "source_commit": "pending protected publication",
-    "hosted_ci": "pending"
+    "source_commit": "c1907788b181d11858949f122d70f0e28e93be8a",
+    "hosted_ci": {
+      "run": 40667511663,
+      "job": 122745645524,
+      "passed": 96,
+      "failed": 0,
+      "duration_ms": 27818.689119,
+      "environment": "Ubuntu 24.04 / Node 24.22.0"
+    },
+    "tree": "7cca8fe7daed6378379624184b942841e9b74ab3",
+    "private": true
   }
 }

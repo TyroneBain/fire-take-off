@@ -57,8 +57,8 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1'].includes(example.algorithm))fail('Invalid matching example');
-    if((example.algorithm==='binary-elements-1'||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2'].includes(example.algorithm))fail('Invalid matching example');
+    if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
     return JSON.stringify({drawing_id:d.id,page:example.page,bounds:example.bounds,digest:d.digest,algorithm:example.algorithm,...(example.elements?{elements:{renderer:example.elements.renderer,ids:example.elements.ids,excluded:example.elements.excluded}}:{})});
   }
   function insertMark(itemId,disciplineId,m,origin,exampleId=null) {
@@ -127,7 +127,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
       if(e.version!==version)fail('Selection changed. Reload before editing.',409);
       if(!validElementSelection(elements))fail('Invalid source element selection');
-      const source=JSON.parse(e.example),i=item(e.item_id);exampleJSON(i.discipline_id,{...source,algorithm:'binary-elements-1',elements});
+      const source=JSON.parse(e.example),i=item(e.item_id);exampleJSON(i.discipline_id,{...source,algorithm:'binary-elements-2',elements});
       if(!Array.isArray(scope)||!scope.length||scope.length>20||scope.some(d=>!d||typeof d.id!=='string'||typeof d.digest!=='string')||new Set(scope.map(d=>d.id)).size!==scope.length)fail('Invalid matching scope');
       let pages=0;for(const d of scope){const actual=drawing(d.id);if(actual.discipline_id!==i.discipline_id||actual.digest!==d.digest)fail('Drawing scope changed',409);pages+=actual.pages.length;}if(pages>20)fail('Select a scope of at most 20 pages');
       const ids=new Set(scope.map(d=>d.id));if(!ids.has(source.drawing_id))fail('Scope must contain the selection source');
@@ -142,7 +142,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       let added=0,skipped=0;db.exec('BEGIN');
       try{
         for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);
-        const encoded=exampleJSON(i.discipline_id,{...source,algorithm:'binary-elements-1',elements});db.prepare('UPDATE count_examples SET example=?,version=version+1 WHERE id=?').run(encoded,exampleId);
+        const encoded=exampleJSON(i.discipline_id,{...source,algorithm:'binary-elements-2',elements});db.prepare('UPDATE count_examples SET example=?,version=version+1 WHERE id=?').run(encoded,exampleId);
         for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}insertMark(i.id,i.discipline_id,m,'automatic',exampleId);added++;}
         db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,encoded,i.id);
         db.prepare('INSERT INTO count_selection_events VALUES (?,?,?,?,?)').run(randomUUID(),exampleId,JSON.stringify({example:source,version:e.version,marks:previous}),JSON.stringify({example:JSON.parse(encoded),version:e.version+1,scope,added,removed:obsolete.map(m=>m.id),retained_corrections:previous.filter(m=>m.reviewed||!m.included||m.item_id!==i.id).map(m=>m.id)}),new Date().toISOString());

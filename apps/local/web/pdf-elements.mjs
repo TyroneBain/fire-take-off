@@ -12,6 +12,17 @@ export function selectionFilter(selection){const excluded=new Set(selection?.exc
 export function anchoredTemplate(image,box,anchor){
  const template=exampleImage(image,box);return {...template,anchorX:anchor[0]-template.left,anchorY:anchor[1]-template.top};
 }
+export function editedTemplate(original,filtered,box){
+ if(original.width!==filtered.width||original.height!==filtered.height)throw new Error('Selection render dimensions changed');
+ const base=exampleImage(original,box),data=new Uint8Array(base.data.length),ignore=new Uint8Array(base.data.length);
+ let count=0;
+ for(let y=0;y<base.height;y++)for(let x=0;x<base.width;x++){
+  const i=y*base.width+x,value=filtered.data[(base.top+y)*filtered.width+base.left+x];
+  data[i]=value;count+=value;ignore[i]=base.data[i]&&!value?1:0;
+ }
+ if(count<8)throw new Error('The cleaned example needs more visible detail');
+ return {...base,data,count,ignore,anchorX:base.width/2,anchorY:base.height/2,elementSubset:true};
+}
 export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false}){
  const check=()=>{if(cancelled())throw new Error('Selection loading cancelled');};check();
  const viewport=page.getViewport({scale:2,rotation:0}),w=Math.ceil(viewport.width),h=Math.ceil(viewport.height);if(w*h>4000000)throw new Error('Drawing exceeds the current element editing resolution budget');

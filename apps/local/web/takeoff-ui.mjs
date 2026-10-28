@@ -1,5 +1,5 @@
 import {setupSelectionEditor} from './selection-editor.mjs';
-import {selectionFilter,anchoredTemplate} from './pdf-elements.mjs';
+import {selectionFilter,editedTemplate} from './pdf-elements.mjs';
 import {coverageCircles,appendCoverage} from './coverage.mjs';
 import {coverageInput} from './coverage-input.mjs';
 import {setupMeasurementEditor} from './measurement-editor.mjs';
@@ -156,7 +156,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     try{
       const original=await renderPage(source,sourcePage),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
       const baseTemplate=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
-      let template=baseTemplate;if(edit){const filtered=await renderPage(source,sourcePage,edit.elements);template=anchoredTemplate(inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]],[baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2]);template.elementSubset=true;}
+      let template=baseTemplate;if(edit){const filtered=await renderPage(source,sourcePage,edit.elements);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
       const matches=[];let completed=0;
       for(const d of targets)for(let number=1;number<=d.pages.length;number++){
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');

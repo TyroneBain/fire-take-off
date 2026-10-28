@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0031",
+  "algorithm": "binary-elements-2",
+  "environment": "macOS / Node 24.22.0 / Chrome / original synthetic geometry",
+  "problem_reproduced": "Positive-only scoring accepted a filled block containing retained symbol ink",
+  "change": "Keep original bounds and anchor; neutralise only erased original ink; compare remaining ink and background symmetrically",
+  "corpus": {
+    "source": "tests/recognition-negative-controls.test.mjs",
+    "provenance": "Original asymmetric pixel geometry, independent placement labels",
+    "expected_cleaned_matches": [
+      [
+        20,
+        20
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "expected_unedited_matches": [
+      [
+        20,
+        20
+      ],
+      [
+        70,
+        20
+      ]
+    ],
+    "controls": [
+      "filled rectangle",
+      "90-degree rotation (unsupported)",
+      "2x enlargement (unsupported)",
+      "missing erased detail (accepted by cleaned template)"
+    ]
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 98,
+    "failed": 0,
+    "duration_ms": 16625.479531,
+    "new_tests": 2,
+    "actual_pdf_six_anchor_test": "passes with refined score",
+    "invalid_mask_dimensions_overlap_budget": "passes",
+    "restricted_targeted_attempt": "7/8; only HTTP listen EPERM; full permitted rerun passes"
+  },
+  "browser": {
+    "restore_button_elements": [
+      2,
+      3
+    ],
+    "erase_drag_elements": 0,
+    "cancel_state_unchanged": true,
+    "explicit_recount_upgrades_algorithm": true,
+    "all_count_marks_identical": true,
+    "added": 0,
+    "removed": 0,
+    "included": 5,
+    "factor": 2,
+    "quantity": 10,
+    "audit_increment": 1,
+    "console_errors_warnings": 0
+  },
+  "data": {
+    "all_six_source_digests_verified": true,
+    "original_preexisting_rows_preserved": true,
+    "server_session": 62508,
+    "schema": 12
+  },
+  "limitations": [
+    "No rotated/scaled recognition support",
+    "Only six-symbol PDF plus small independent pixel controls; not a realistic construction benchmark",
+    "No general element clash ownership or text/image editing",
+    "No full Countfire parity"
+  ],
+  "delivery": {
+    "parent": "c1907788b181d11858949f122d70f0e28e93be8a",
+    "source_commit": "pending protected publication",
+    "hosted_ci": "pending"
+  }
+}
