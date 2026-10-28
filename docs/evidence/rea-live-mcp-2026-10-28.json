@@ -1,0 +1,235 @@
+{
+  "date": "2026-10-28",
+  "transport": "live Codex MCP",
+  "server_identity": {
+    "package": {
+      "name": "rea-agents",
+      "version": "6.7.0",
+      "root_path": "/Users/tyronebain/Projects/fire-take-off/.local/rea-runtime",
+      "build_commit": null
+    },
+    "server": {
+      "name": "rea",
+      "version": "6.7.0",
+      "started_at": "2026-10-28T05:18:59.535Z",
+      "command_path": "/Users/tyronebain/Projects/fire-take-off/.local/rea-runtime/scripts/rea.mjs"
+    },
+    "sdk": {
+      "server": "2.3.1",
+      "client_test": "2.3.1",
+      "core": "2.3.1"
+    },
+    "negotiated_protocol_version": "2025-06-18",
+    "client": {
+      "name": "codex-mcp-client",
+      "version": "0.165.0"
+    },
+    "skill": {
+      "name": "reverse-engineer-anything",
+      "expected_version": "42"
+    },
+    "catalog": {
+      "counts": {
+        "cli_commands": 153,
+        "mcp_tools": 207,
+        "mcp_prompts": 6
+      },
+      "digests": {
+        "tools_sha256": "af39310c9591bb981893ec0d2188b1bcf6e9cc8ba3ac513d5bbefc8ddcb85639",
+        "prompts_sha256": "7152916ab48bd2a9677a5ad9cdbde0a51dc53c113934952ad096e93f5f18aa7e",
+        "combined_sha256": "96d8f6e6ea1b1ba13557216624a3461c738729d53c79b4b0100d1f3a3a32441c"
+      }
+    },
+    "protocol_features": {
+      "progress": true,
+      "cancellation": true,
+      "elicitation": false
+    },
+    "alignment": {
+      "state": "aligned",
+      "reasons": [],
+      "remediation": null
+    }
+  },
+  "evidence_id": "ev_53ea5871960023d0e9ee2cba0133fe77adb7d20210d0c808b5d4de52bc3ae6e9",
+  "fixture": "fixtures/rea-smoke",
+  "artifact_sha256": "4a3e16fede3ad0d17be4053b6e3733a8fd9448afa8db99d1ebd05760e940ca22",
+  "checks": {
+    "three_sources": true,
+    "no_parse_failures": true,
+    "expected_modules": true,
+    "quote_export": true,
+    "cost_export": true,
+    "app_import": true,
+    "no_electron": true
+  },
+  "statistics": {
+    "relevant_files": 4,
+    "nested_asar_containers": 0,
+    "text_bytes_read": 1266,
+    "invalid_utf8_files": 0,
+    "parsed_javascript_files": 3,
+    "skipped_javascript_files": 0,
+    "visited_ast_nodes": 183,
+    "findings": 12,
+    "modules": 0,
+    "parse_failures": 0
+  },
+  "graph_coverage": {
+    "status": "complete",
+    "truncated": false,
+    "omitted_count": 0,
+    "limits": []
+  },
+  "semantic_coverage": {
+    "status": "unknown",
+    "truncated": false,
+    "omitted_nodes": 0,
+    "omitted_relations": 0,
+    "limits": [],
+    "families": [
+      {
+        "family": "boundary",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "call-flow",
+        "status": "partial",
+        "retained_relations": 4,
+        "omitted_relations": 0,
+        "unknown_ids": [
+          "jsrg_unknown_0281e16dc2e05981d611379cb9e7315d08ab8ff264dbe108751ba6100290ea0f",
+          "jsrg_unknown_0c50899829d7cd1b2cf25779185b1fc8afee5ccc745fef5d4ae43a73bccd5eba",
+          "jsrg_unknown_1312783524952b1fa70ff7c8f4baab8046ffc5447012bb181e9cc90878f6158c",
+          "jsrg_unknown_26bb3eb1dfda15a6a89b6ed3d60fd854794df11c899c52ba2a3a4b1e4dbafc45",
+          "jsrg_unknown_35cb76c396e1aff12c79632655b2c136a4d3778cc83c1b6c08d084d8666bbc93",
+          "jsrg_unknown_38d50f66823b18d6afa7a8b7cb8f3727393c1127b8e2dc8d5588a16107a84ae7",
+          "jsrg_unknown_4adbc0667d78d1f6d64ec9cb0e99b48aeed81e03a70bb81b230688f18fb0e143",
+          "jsrg_unknown_4bafb115058c62cf4fdb6db7f98e98633574a70bedf3ee6b382c722e0b578b88",
+          "jsrg_unknown_53a65511e9fd7f84629ccf55ce2dc850fefcef94a1294914fe9534fd34f4763b",
+          "jsrg_unknown_5b60dd701c1b03e044fe84748cc832767ec95a3ce5703076c3d2d0ef7d308b26",
+          "jsrg_unknown_8db2a687b6b65daedf65b43a028fdaae25a57b02f329b1c5defc1f262e8743f8",
+          "jsrg_unknown_936ff2f0db7d0177774e08cae4d3bc5ad0459a181f94720cad5a83e1a9f682f8",
+          "jsrg_unknown_96a5332272de09100ec708cd130d3541111b660acbfd29e13a90c69bcec8f60a",
+          "jsrg_unknown_9d06ed504fd16f111dceb7cea208ad132c2c8abf91e52a6f122835003993da21",
+          "jsrg_unknown_a08a4b1b78b90e65e94b50988f4f8a7ac57c9edcae756a6a3b6b20e32d04c780",
+          "jsrg_unknown_b765280f94b8366a391470373aaa37b58c30cd769558219161aa5fa29c6f20aa",
+          "jsrg_unknown_c191a18b5618e5f1f572a9201d1d6ff7a4466d2a4398fff3b5c4018e718e5017",
+          "jsrg_unknown_c2783b7d50e57322233328424b1d3add162582d8fd20e975ea64090389057510",
+          "jsrg_unknown_f08d3c734d114499717f086fd15886827289ea6b0af241bdcc98bd5ffa2c4cf1"
+        ]
+      },
+      {
+        "family": "child-process",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "closure",
+        "status": "partial",
+        "retained_relations": 13,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "configuration",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "data-flow",
+        "status": "partial",
+        "retained_relations": 83,
+        "omitted_relations": 0,
+        "unknown_ids": [
+          "jsrg_unknown_051f7ac20e324e5ab21f7c90569e3d5f7423acce2753308df1e620f53effcb7f",
+          "jsrg_unknown_078acd1e8c4167d585414f58141e60ddaa916828d3793db107aedb4c878e0029",
+          "jsrg_unknown_4396875338e228f239dc2001cbbf659d546803ca818296ee9bf1678e237a644d",
+          "jsrg_unknown_4cd3603a98897edfc532b62d388d6a55c95c497094132c5e12d44e77cd5aae9d",
+          "jsrg_unknown_646f17f3371fedcaec1026fc9c89a1ce4d424ff8f48df1c2383ac0c202143e53",
+          "jsrg_unknown_834d72db97b6941ce4846d9e25f2537dfcc7c6493040eee40b08f75e408e87ee",
+          "jsrg_unknown_92d90559147e4d1d66ff11bb21f951d49d8022348e464fe3f49e99995e1bdb68",
+          "jsrg_unknown_95468f203d257ab4b77f29d247a07a22fc560d6032084208c76d229a4a880351",
+          "jsrg_unknown_967c3490d03dc44ce7bc2ac6dfd4bdef5a2bf1d8ef244589c9359ae5de1cf31e",
+          "jsrg_unknown_a3a6f1bfaa7debb2bb4b5fe6857c9f3c2ac75155dbb93cccf7952cdd7449fe0f",
+          "jsrg_unknown_b84457b30e6199a2f1e3772ffd38dd2a77c0f6535d60ece4b1e721238c80cd9d",
+          "jsrg_unknown_eeae650c37772abe6bfaedd473768ebc53b0edced8a147e1fd758f02b68194d8"
+        ]
+      },
+      {
+        "family": "event",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "object-flow",
+        "status": "partial",
+        "retained_relations": 5,
+        "omitted_relations": 0,
+        "unknown_ids": [
+          "jsrg_unknown_0f3082182ff9ab86eab0f3e8c916c91684223585ecdc5df1dceccd140b5b7d51",
+          "jsrg_unknown_3c63fb2c991a84185d17311b2f46ee128bdb857fe8b7f30d3f096f79350ccbe2",
+          "jsrg_unknown_53e9deac0c8ba93fb4467e40a5975bd1036fc9a0b747889f99df8038d5c52e87",
+          "jsrg_unknown_7c847c8af9535f57bf188fdd4737943c8afc8a9a351af0c0daf2e8b1b1a91b42",
+          "jsrg_unknown_964cea5e46b3aa88f491c78a0b697368c98e4b21a0ec8a5a85571b0a9bfb1271",
+          "jsrg_unknown_a6ec7a636164f7e6cde24719f5e10431356cd94c504dafb32cdd2510b968bae2",
+          "jsrg_unknown_b6f32035d83a2c37c19f2429ceaadd33801165c2f0880ee9132ac3120426b20c",
+          "jsrg_unknown_bfa9bcb4c285fe116f951b5b1bc9610616cee5ba87e77007feac709f3a143363",
+          "jsrg_unknown_e09e9c260f99e0b4fb9178976f789056ffd6e5fd96c944d4097d1ada3d3dde0d"
+        ]
+      },
+      {
+        "family": "promise-ownership",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "request",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "resource-lifecycle",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      },
+      {
+        "family": "timer",
+        "status": "partial",
+        "retained_relations": 0,
+        "omitted_relations": 0,
+        "unknown_ids": []
+      }
+    ]
+  },
+  "limitations": [
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "behavior_tests": {
+    "command": "node --test fixtures/rea-smoke/app.test.mjs",
+    "passed": 3,
+    "failed": 0,
+    "duration_ms": 98.527025
+  },
+  "raw_bundle": ".local/rea-live-mcp-2026-10-28.json",
+  "scope": "Owned fixture only; no Countfire code or backend acquisition. No REA setup/configuration changes."
+}
