@@ -81,6 +81,13 @@
     "Large-plan capacity/performance and missing-source Retry not browser exercised"
   ],
   "hosted": {
-    "status": "pending publication"
+    "commit": "c83f7167ea02b83626a77f48437cebcfa26aff6c",
+    "run_id": 40654537936,
+    "job_id": 122702273974,
+    "passed": 81,
+    "failed": 0,
+    "duration_ms": 30144.437482,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
   }
 }
