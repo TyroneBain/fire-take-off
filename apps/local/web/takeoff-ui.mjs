@@ -1,3 +1,5 @@
+import {setupSelectionEditor} from './selection-editor.mjs';
+import {selectionFilter,anchoredTemplate} from './pdf-elements.mjs';
 import {coverageCircles,appendCoverage} from './coverage.mjs';
 import {coverageInput} from './coverage-input.mjs';
 import {setupMeasurementEditor} from './measurement-editor.mjs';
@@ -13,7 +15,8 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const marks=()=>context().state?.countMarks||[];
   const hiddenMarkers=new Set();
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
-  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,api,reload,notice});
+  const selectionEditor=setupSelectionEditor({pdfjs,context,apply:(record,elements)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements}),cancelMatching:()=>cancelJob()});
+  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,editExample:record=>selectionEditor.open(record),api,reload,notice});
   $('example-list').addEventListener('toggle',()=>{if($('example-list').open)previews.load();});
   function deactivate(){measurementEditor.clear();reclassification=null;mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
@@ -137,22 +140,23 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('calibration-form').onsubmit=async e=>{e.preventDefault();const c=context(),previous=c.state.calibrations.find(v=>v.drawing_id===c.drawing.id&&v.page===c.pageNumber);$('save-calibration').disabled=true;try{await api(`/api/drawings/${c.drawing.id}/calibration`,json('POST',{page:c.pageNumber,points:draft,distance:Number($('known-distance').value),unit:$('known-unit').value,version:previous?.version||0}));$('calibration-dialog').close();draft=[];action=null;await reload();paint();notice('Drawing scale saved');}catch(error){$('calibration-error').textContent=error.message;}finally{$('save-calibration').disabled=false;}};
   function cancelJob(){if(job){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
   $('cancel-match').onclick=cancelJob;
-  async function runMatching(bounds,targetItem){
-    const c=context(),source=c.drawing,sourcePage=c.pageNumber,label=targetItem?.name||$('count-name').value.trim();
-    const targets=$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
+  async function runMatching(bounds,targetItem,edit=null){
+    const c=context(),source=edit?c.state.drawings.find(d=>d.id===edit.record.example.drawing_id):c.drawing,sourcePage=edit?edit.record.example.page:c.pageNumber,label=targetItem?.name||$('count-name').value.trim();
+    const targets=edit||$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
     const total=targets.reduce((sum,d)=>sum+d.pages.length,0);if(total>20)throw new Error('Select a scope of at most 20 pages per matching run');
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;paint();
     const opened=new Map();
-    async function renderPage(d,number){
+    async function renderPage(d,number,elements=null){
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
       let doc=opened.get(d.id);if(!doc){run.task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});doc=await run.task.promise;opened.set(d.id,{doc,task:run.task});}else doc=doc.doc;
       const page=await doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0});
       const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);if(width*height>4000000)throw new Error('Drawing exceeds the current matching resolution budget');
-      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport}).promise;const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height};
+      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport,operationsFilter:elements?selectionFilter(elements):undefined}).promise;const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height};
     }
     try{
       const original=await renderPage(source,sourcePage),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
-      const template=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
+      const baseTemplate=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
+      let template=baseTemplate;if(edit){const filtered=await renderPage(source,sourcePage,edit.elements);template=anchoredTemplate(inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]],[baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2]);template.elementSubset=true;}
       const matches=[];let completed=0;
       for(const d of targets)for(let number=1;number<=d.pages.length;number++){
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');
@@ -167,13 +171,13 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
           worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(new Error(event.message||'Matching failed'));};
           worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template},[rendered.image.data.buffer]);
         });
-        for(const hit of found){const [x,y]=rendered.viewport.convertToPdfPoint(hit.left+hit.width/2,hit.top+hit.height/2);matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
+        for(const hit of found){const [x,y]=rendered.viewport.convertToPdfPoint(hit.left+(template.anchorX??hit.width/2),hit.top+(template.anchorY??hit.height/2));matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
       }
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
       const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:MATCHER_VERSION};
-      const result=targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
+      const result=edit?await api(`/api/examples/${edit.record.id}/selection`,json('PATCH',{version:edit.record.version,elements:edit.elements,matches,scope:targets.map(d=>({id:d.id,digest:d.digest})),expected_marks:c.state.countMarks.filter(m=>m.example_id===edit.record.id).map(m=>({id:m.id,version:m.version}))})):targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
       selectedItem=targetItem?.id||result.id;
-      await reload();const message=targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent=message;notice(`${label}: ${message}`);
+      await reload();const message=edit?`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Reviewed corrections kept.`:targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent=message;notice(`${label}: ${message}`);
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }

@@ -15,9 +15,9 @@ export function exampleImage(image,box) {
   left=Math.max(x0,left-2);top=Math.max(y0,top-2);right=Math.min(x1-1,right+2);bottom=Math.min(y1-1,bottom+2);
   const w=right-left+1,h=bottom-top+1,result=new Uint8Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)result[y*w+x]=data[(top+y)*width+left+x];
-  return {data:result,width:w,height:h,count};
+  return {data:result,width:w,height:h,count,left,top};
 }
-export function findMatches(image,template,{threshold=.85,maxComparisons=60000000}={}) {
+export function findMatches(image,template,{threshold=.85,maxComparisons=60000000,allowExtraInk=false}={}) {
   const {data,width,height}=image,{width:w,height:h,data:t}=template;
   if(width*height>4000000||w<1||h<1||w>256||h>256||w*h!==t.length||data.length!==width*height||threshold<.5||threshold>1)throw new Error('Invalid matcher input');
   const count=t.reduce((sum,v)=>sum+v,0);if(count<8)throw new Error('Example has insufficient detail');
@@ -26,11 +26,11 @@ export function findMatches(image,template,{threshold=.85,maxComparisons=6000000
   const candidates=[];let comparisons=0;
   for(let y=0;y<=height-h;y++)for(let x=0;x<=width-w;x++) {
     const n=integral[(y+h)*stride+x+w]-integral[y*stride+x+w]-integral[(y+h)*stride+x]+integral[y*stride+x];
-    if(n<count*threshold||n>count/threshold)continue;
+    if(n<count*threshold||!allowExtraInk&&n>count/threshold)continue;
     if((comparisons+=w*h)>maxComparisons)throw new Error('Matching budget exceeded; use a cleaner example or a smaller drawing');
     let overlap=0;
     for(let ty=0;ty<h;ty++)for(let tx=0;tx<w;tx++)overlap+=t[ty*w+tx]&data[(y+ty)*width+x+tx];
-    const score=overlap/(count+n-overlap);
+    const score=allowExtraInk?overlap/count:overlap/(count+n-overlap);
     if(score>=threshold){candidates.push({left:x,top:y,width:w,height:h,score});if(candidates.length>25000)throw new Error('Too many ambiguous matches; refine the example');}
   }
   candidates.sort((a,b)=>b.score-a.score||a.top-b.top||a.left-b.left);

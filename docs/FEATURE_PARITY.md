@@ -31,6 +31,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 - S16: [Coverage areas](https://help.countfire.com/en/articles/400657-calculating-coverage-area-for-devices), read 2026-10-28
 
+- S17: [Editing selections](https://help.countfire.com/en/articles/89348-editing-selections) and [Elements](https://help.countfire.com/en/articles/89849-elements), read with normal demo interaction 2026-10-28
+
 ## Inventory
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
@@ -107,8 +109,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F069 | Floating references | Use documented reference view while taking off | S15 | Open reference while selecting items | NOT STARTED | Reference lifecycle and drawing interaction tests after specification | Only article title discovered; detailed behavior unresolved | P1 |
 | F070 | Ignore classification | Classify examples as ignored material | S15 | Create Ignore heading and inspect resulting matches/output | NOT STARTED | Ignored matches do not inflate quantities; reclassification recoverable | Only article title discovered; suppression scope unresolved | P1 |
 | F071 | Symbols-removed output drawings | Produce drawings with counted symbols suppressed | S15 | Generate drawing record and review remaining material | NOT STARTED | Original retained; suppression tied to correct accepted source instances | Output control linked in help; precise format/options unresolved | P1 |
-| F072 | Saved selection review list | Inspect each source example | S15 | Expand a heading, inspect thumbnail, navigate to source selection | TESTED | Correct crop/rotation, source navigation, missing-source indication | Partial previews/source highlights, drawing-wide Matches/Multiplier/Total and classification reconciliation tested; source elements/editing still absent | P0 |
-| F073 | Selection element editing | Clean unwanted elements from examples | S15 | Manage selection, erase/restore elements, recalculate results | NOT STARTED | Edited template provenance and affected matches reconcile; cancel restores prior state | Public editing-selections article read; no element model or editor implemented | P0 |
+| F072 | Saved selection review list | Inspect each source example | S15 | Expand a heading, inspect thumbnail, navigate to source selection | TESTED | Correct crop/rotation, source navigation, missing-source indication | Partial previews/source highlights, drawing-wide Matches/Multiplier/Total and classification reconciliation tested; saved vector operation counts, erase/restore and source-bound recount now tested; text/image decomposition and complete parity remain absent | P0 |
+| F073 | Selection element editing | Clean unwanted elements from examples | S15,S17 | Manage selection, erase/restore elements, recalculate results | TESTED | Edited template provenance and affected matches reconcile; cancel restores prior state | Partial vector-path editor, anchored recount, corrections/factors, atomic audit and cancel/reopen tested; text/image/clipping, empty-selection deletion, clash ownership and exact decomposition remain unmet | P0 |
 
 ## Phase 1 questions
 
@@ -141,3 +143,5 @@ Drawing workspace evidence: [2026-10-28](evidence/drawing-workspace-2026-10-28.j
 2026-10-28 member/selection review: ADR-0027/0028, 85/85 local tests plus owned browser evidence. F031 renders and opens all saved annotation types on neighbouring sheets; F072 totals all drawing pages with explicit other/moved classifications. [Evidence](evidence/member-selection-review-2026-10-28.json). Earlier per-example attribution/column limitations are superseded for this tested subset; source-element editing and full parity remain absent.
 
 2026-10-28 coverage: ADR-0029/schema 11, F024 partial TESTED. 90/90 local plus owned browser Enter/blur/zero/cancel/reopen/rotation/zoom checks. [Evidence](evidence/coverage-2026-10-28.json). Output-drawing switch remains unmet because annotated PDF export is absent. No compliance or full parity claim.
+
+2026-10-28 selection editing: ADR-0030/schema 12, F073 partial TESTED, with F008/F009/F013/F072 provenance and reconciliation improvements. 96/96 local tests and owned browser acceptance; [evidence](evidence/selection-editing-2026-10-28.json). Element units are PDF paint operations, not a verified equivalent of reference decomposition. Retained-ink matching is approximate and can overmatch; realistic corpus, rotation/scale robustness and clash ownership remain unmet.

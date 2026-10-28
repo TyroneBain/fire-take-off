@@ -50,3 +50,7 @@ Public [multiple selections](https://help.countfire.com/en/articles/118318-makin
 ## Coverage radius — public guidance, 2026-10-28
 
 Source: https://help.countfire.com/en/articles/400657-calculating-coverage-area-for-devices. Count descriptions accept a radius in metres committed with Enter or blur; zero removes circles. The setting applies across calibrated drawings of the discipline. Measured points also support coverage. Output drawings include coverage by default with a Show on output toggle. Our partial implementation covers calibrated view geometry and persistence, not PDF outputs or grouped measurement headings. Exact classification/visibility semantics and numeric bounds remain unverified.
+
+## Selection editing — public and normal demo observations, 2026-10-28
+
+[Editing selections](https://help.countfire.com/en/articles/89348-editing-selections) documents Erase/Restore dragging, temporary Shift restore, D erase all and E done. [Elements](https://help.countfire.com/en/articles/89849-elements) describes composing parts and clashes when competing selections claim the same drawing elements. Normal demo scratch selection: 13 elements; D → 0; Restore click → 1; Cancel/reopen → 13; erase one → 12; Done finished with one match. Top-level Save changes was never submitted; reload accepted beforeunload and restored the empty Count state. No reference content exported or saved. Our renderer operation units and correction-retention policy are independently chosen; no evidence of exact internal matching/clash equivalence.

@@ -1,3 +1,4 @@
+import {selectionFilter} from './pdf-elements.mjs';
 import {selectionList} from './selection-list.mjs';
 // Normalize native bounds across crop offsets and page rotation.
 export function exampleRectangle(viewport,bounds) {
@@ -7,12 +8,12 @@ export function exampleRectangle(viewport,bounds) {
   return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
 }
 
-export function setupExamplePreviews({pdfjs,context,node,button,openExample,api,reload,notice}) {
+export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,api,reload,notice}) {
   const cache=new Map();let queue=[],busy=false;
   async function drain(){
     if(busy)return;busy=true;
     try{while(queue.length){
-      const {record,drawing,container}=queue.shift();if(!container.isConnected)continue;if(cache.has(record.id)){show(container,cache.get(record.id));continue;}
+      const {record,drawing,container}=queue.shift();if(!container.isConnected)continue;if(cache.has(record.id+':'+record.version)){show(container,cache.get(record.id+':'+record.version));continue;}
       let task;
       try{
         task=pdfjs.getDocument({url:`/api/drawings/${drawing.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});
@@ -20,8 +21,8 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,api,
         const initial=exampleRectangle(page.getViewport({scale:1}),record.example.bounds),scale=Math.min(4,128/Math.max(initial.width,initial.height));
         const viewport=page.getViewport({scale}),rect=exampleRectangle(viewport,record.example.bounds);
         const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.ceil(rect.width));canvas.height=Math.max(1,Math.ceil(rect.height));
-        await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[1,0,0,1,-rect.left,-rect.top]}).promise;
-        const data=canvas.toDataURL('image/png');cache.set(record.id,data);while(cache.size>100)cache.delete(cache.keys().next().value);
+        await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[1,0,0,1,-rect.left,-rect.top],operationsFilter:selectionFilter(record.example.elements)}).promise;
+        const data=canvas.toDataURL('image/png');cache.set(record.id+':'+record.version,data);while(cache.size>100)cache.delete(cache.keys().next().value);
         if(container.isConnected)show(container,data);page.cleanup();
       }catch{if(container.isConnected)container.replaceChildren(node('span','Preview unavailable'));}
       finally{if(task)await task.destroy().catch(()=>{});}
@@ -42,12 +43,12 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,api,
       model.rows.forEach(({record,matches,quantity,excluded,moved},index)=>{
         const drawing=state.drawings.find(d=>d.id===record.example.drawing_id),row=node('tr');row.dataset.exampleId=record.id;
         const selection=node('th');selection.scope='row';const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;selection.append(preview,node('span',`Selection ${index+1}`));
-        const elements=node('td','—');elements.title='Element counts are unavailable for bitmap selections';elements.setAttribute('aria-label','Element count unavailable');
+        const saved=record.example.elements,elements=node('td',saved?String(saved.ids.length-saved.excluded.length):'—');elements.title=saved?'Selected PDF paint operations':'Open Edit to inspect vector elements';elements.setAttribute('aria-label',saved?'Selected PDF paint operations':'Element count not yet inspected');
         const count=node('td',String(matches),'selection-matches'),total=node('td',String(quantity),'selection-quantity');
         const factor=node('td'),input=node('input');input.type='number';input.min='1';input.max='10000';input.step='1';input.required=true;input.value=record.multiplier||1;input.setAttribute('aria-label',`Multiplier for selection ${index+1}`);factor.append(input);
         row.append(selection,elements,count,factor,total);body.append(row);
         const detailRow=node('tr',null,'selection-details'),details=node('td');details.colSpan=5;
-        if(drawing){details.append(node('small',`${drawing.name} · page ${record.example.page}`));const open=button('Go to selection',()=>openExample(record),'example-open');details.append(open);if(cache.has(record.id))show(preview,cache.get(record.id));else{preview.append(node('span','Loading preview…'));queue.push({record,drawing,container:preview});}}
+        if(drawing){details.append(node('small',`${drawing.name} · page ${record.example.page}`));const open=button('Go to selection',()=>openExample(record),'example-open');details.append(button('Edit',()=>editExample(record),'example-open'),open);if(cache.has(record.id+':'+record.version))show(preview,cache.get(record.id+':'+record.version));else{preview.append(node('span','Loading preview…'));queue.push({record,drawing,container:preview});}}
         else{preview.append(node('span','Source removed'));details.append(node('small','The saved source drawing is no longer in this takeoff.'));}
         const save=button('Save multiplier',async()=>{if(!input.reportValidity())return;save.disabled=true;input.disabled=true;try{await api(`/api/examples/${record.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({multiplier:Number(input.value),version:record.version})});await reload();notice('Selection multiplier saved');}catch(error){notice(error.message,true);}finally{input.disabled=!!legacy;save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);}},'example-open');save.disabled=true;input.disabled=!!legacy;input.addEventListener('input',()=>{save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);});details.append(save);
         if(excluded||moved)details.append(node('small',`${excluded} excluded · ${moved} assigned to other headings`,'selection-adjustments'));
@@ -56,7 +57,7 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,api,
       if(model.other.matches||model.other.excluded){const row=node('tr',null,'selection-other'),label=node('th','Other matches');label.scope='row';label.title='Manual, unlinked and incoming reclassified matches';row.append(label,node('td','—'),node('td',String(model.other.matches)),node('td','Mixed'),node('td',String(model.other.quantity)));body.append(row);}
       if(model.rows.length||model.other.matches||model.other.excluded)list.append(table);
       if(model.other.matches||model.other.excluded)list.append(node('p',`Other matches: ${model.other.manual} manual · ${model.other.unlinked} unlinked · ${model.other.reclassified} reclassified from other selections · ${model.other.excluded} excluded.`,'hint'));
-      if(model.rows.length)list.append(node('p','Included matches assigned to this heading, before zone multipliers. Elements are unavailable for bitmap selections.','hint'));
+      if(model.rows.length)list.append(node('p','Included matches assigned to this heading, before zone multipliers. Elements count saved PDF path operations; text and bitmap editing remain unsupported.','hint'));
       if(document.getElementById('example-list').open)drain();
     },
     load:drain,

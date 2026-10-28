@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0030",
+  "schema": 12,
+  "features": [
+    "F073 partial TESTED",
+    "F008/F009/F013/F072 partial improvements"
+  ],
+  "environment": "macOS / Node 24.22.0 / Chrome / owned synthetic PDFs",
+  "reference": {
+    "sources": [
+      "https://help.countfire.com/en/articles/89348-editing-selections",
+      "https://help.countfire.com/en/articles/89849-elements"
+    ],
+    "normal_demo_observations": [
+      "Unsaved scratch selection had 13 elements",
+      "Erase all D produced 0; Restore click produced 1; Cancel and reopen restored 13",
+      "Erase one path produced 12; Done finished with 1 match",
+      "Reload accepted beforeunload and discarded scratch item; Auto-count items empty state restored"
+    ],
+    "private_data_or_assets_saved": false
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 96,
+    "failed": 0,
+    "duration_ms": 15733.320604,
+    "new_tests": 6,
+    "checks": [
+      "Actual PDF isolated paint operations and unchanged six-symbol native anchors after erasure",
+      "Malformed/unknown/all-erased selection metadata rejected",
+      "Reviewed exclusions, reclassification, manual and other-example marks and factors survive recount",
+      "Stale marks/source/scope and forced audit failure preserve state",
+      "Actual schema 11 migration, reopen, workbook edit audit and snapshot digest",
+      "HTTP token, JSON and stale replay"
+    ]
+  },
+  "failed_checks": [
+    "Initial 94/96: unconditional empty Selection edits worksheet shifted workbook layout; conditional sheet fixed regressions",
+    "Restricted test rerun could not bind localhost (EPERM); permitted run used",
+    "Additional other-example test exposed random fixture row ordering: selected corrections by coordinates, then 96/96 passed",
+    "Browser revealed global header/selected-button CSS collision; scoped styles fixed and visually rechecked"
+  ],
+  "browser": {
+    "initial": {
+      "raw": 7,
+      "included": 6,
+      "factor": 2,
+      "total": 12,
+      "known_symbols": 6,
+      "intentional_false_detection": [
+        400,
+        300
+      ]
+    },
+    "erase_restore": [
+      3,
+      2,
+      3
+    ],
+    "erase_all": {
+      "elements": 0,
+      "done_disabled": true
+    },
+    "cancel_state_identical": true,
+    "edited": {
+      "element_ids": [
+        13,
+        14,
+        15
+      ],
+      "excluded": [
+        15
+      ],
+      "raw": 6,
+      "included": 5,
+      "factor": 2,
+      "total": 10,
+      "centres": [
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          100
+        ],
+        [
+          300,
+          100
+        ],
+        [
+          100,
+          200
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          300,
+          200
+        ]
+      ],
+      "reviewed_exclusion": [
+        100,
+        100
+      ],
+      "added": 0,
+      "removed_unchecked": 1,
+      "retained_corrections": 1
+    },
+    "cancel_during_recount_state_identical": true,
+    "reload_state_identical": true,
+    "preview_and_editor_reopen_elements": 2,
+    "console_errors_or_warnings": 0
+  },
+  "data": {
+    "backup": ".local/schema11-before-selection-editing-2026-10-28.sqlite",
+    "all_previous_rows_retained_exactly": true,
+    "original_marks": 78,
+    "new_isolated_owned_acceptance_project": "Selection editor acceptance"
+  },
+  "limitations": [
+    "Vector paint operations only; multi-subpath operation is one element",
+    "Whole-page clipping/compositing rejected; text/image selections unsupported",
+    "Empty selection deletion absent",
+    "Edited retained-ink containment may match distractors; not validated for arbitrary trade drawings",
+    "No rotation/scale invariance or reference clash ownership",
+    "20 pages, 4M pixels/page, 128 operations, 5000 results; provisional limits",
+    "No full Countfire feature or visual parity claim"
+  ],
+  "delivery": {
+    "parent": "0630b504ba5018ef439244100b12ab227cdf78f5",
+    "source_commit": "pending protected publication",
+    "hosted_ci": "pending"
+  }
+}
