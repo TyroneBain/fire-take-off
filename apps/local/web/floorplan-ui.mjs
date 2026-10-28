@@ -1,3 +1,4 @@
+import {coverageCircles} from './coverage.mjs';
 import {floorplanAnnotationModel,renderFloorplanAnnotations} from './floorplan-annotations.mjs';
 import {floorplanFor,floorplanLayout,rotateVector,MAX_FLOORPLAN_PAGES} from './floorplan-model.mjs';
 import {comparisonScale} from './comparison.mjs';
@@ -35,7 +36,7 @@ export function setupFloorplans({context,pdfjs,api,reload,activateBase,notice,op
     world.querySelectorAll('.floorplan-sheet').forEach(e=>e.remove());
     for(const m of layout.rectangles){if(m.id===f.member.id)continue;const d=c.state.drawings.find(d=>d.id===m.drawing_id),key=`${d.id}:${m.page}:${rotation()}`,sheet=document.createElement('div');sheet.className='floorplan-sheet';sheet.dataset.memberId=m.id;sheet.classList.toggle('editing',active&&draft?.id===m.id);for(const [k,v]of Object.entries({left:m.left,top:m.top,width:m.width,height:m.height}))sheet.style[k]=`${v*viewScale}px`;
       const cached=cache.get(key),label=document.createElement('button');label.className='floorplan-open';label.textContent=`${d.name} · page ${m.page} · Open`;label.onclick=()=>navigate(m);label.disabled=busy;sheet.append(label);
-      if(cached?.canvas){sheet.append(cached.canvas);sheet.append(renderFloorplanAnnotations(floorplanAnnotationModel(c.state,d.id,m.page,cached.viewport,viewScale,isMarkerVisible),{open:record=>navigate(m,record),disabled:busy||!!draft}));}else {const status=document.createElement('span');status.className='floorplan-load';status.textContent=cached?.error?'Unable to load page':'Loading page…';sheet.append(status);if(cached?.error){const retry=document.createElement('button');retry.className='floorplan-retry';retry.textContent='Retry';retry.onclick=()=>{cache.delete(key);paint();};sheet.append(retry);}}
+      if(cached?.canvas){sheet.append(cached.canvas);sheet.append(renderFloorplanAnnotations(floorplanAnnotationModel(c.state,d.id,m.page,cached.viewport,viewScale,isMarkerVisible),{open:record=>navigate(m,record),disabled:busy||!!draft,coverage:coverageCircles(c.state,d.id,m.page,cached.viewport,viewScale,isMarkerVisible)}));}else {const status=document.createElement('span');status.className='floorplan-load';status.textContent=cached?.error?'Unable to load page':'Loading page…';sheet.append(status);if(cached?.error){const retry=document.createElement('button');retry.className='floorplan-retry';retry.textContent='Retry';retry.onclick=()=>{cache.delete(key);paint();};sheet.append(retry);}}
       world.append(sheet);if(!cached)load(d,m.page,rotation(),key);
     }
   }

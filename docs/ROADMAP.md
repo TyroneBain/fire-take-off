@@ -76,3 +76,5 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 Floorplan delivery observed: c83f716; hosted run 40654537936 passed 81/81 on Ubuntu 24.04/Node 24.22.0. Next: member review/annotation visibility and view-navigation fidelity; catalogue remains deferred.
 
 2026-10-28: ADR-0027/0028 member annotation review and drawing-wide selection rows pass 85/85 local tests and browser checks. F031/F072 remain partial TESTED. Next: protected publication and CI, then coverage-radius behavior research/implementation and remaining recognition/revisions. Catalogue stays deferred.
+
+2026-10-28: ADR-0029/schema 11 coverage radii pass 90/90 local tests and browser checks. F024 partial TESTED for calibrated count/point circles including floorplan neighbours. Member/selection commit 04050bb passed 85/85 hosted tests. Next: protected coverage delivery/CI, then source selection management, recognition robustness and revision recount. Annotated PDF output and coverage output toggle remain open; catalogue stays deferred.

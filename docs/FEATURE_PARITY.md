@@ -29,6 +29,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 - S15: [Public help rules and article links, read 2026-10-22](REFERENCE_RULES.md) — documented behavior, not executed beta results.
 
+- S16: [Coverage areas](https://help.countfire.com/en/articles/400657-calculating-coverage-area-for-devices), read 2026-10-28
+
 ## Inventory
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
@@ -56,7 +58,7 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F021 | Zones and quantities | Split results by zone | U,S1,S14 | Draw zones before/after counting | TESTED | Boundary cases and schedule reconciliation | Partial zone/order allocation, persistence and workbook tests; reference boundary/tie parity, copying and full interaction acceptance remain unmet | P0 |
 | F022 | Live zone totals | Refresh quantities during edits | S4 | Edit active zone and observe totals | NOT STARTED | No stale or double-counted results | Update timing unspecified | P1 |
 | F023 | Copy zones | Reuse zone definitions | U,S4 | Copy zones between selected sheets | NOT STARTED | Transforms and scope isolation | Scale handling requires observation | P1 |
-| F024 | Coverage visualisation | Display device coverage | S1 | Set radius and inspect coverage | NOT STARTED | Calibration and manual additions | No claim of regulatory certification | P1 |
+| F024 | Coverage visualisation | Display device coverage | S1,S16 | Set radius and inspect coverage | TESTED | Calibration and manual additions | Partial count-heading/point radius, calibrated page/floorplan circles, persistence, visibility and quantities tested; output drawings and complete reference parity absent | P1 |
 | F025 | Connected length systems | Maintain linked measures | S4 | Draw/edit a connected system | NOT STARTED | Topology and totals after edits | Connection rules unknown | P1 |
 | F026 | Automatic fittings | Derive bends/tees/reducers | S4 | Draw branches and review fittings | NOT STARTED | Known junction cases and edits | Fitting standards/types unspecified | P1 |
 | F027 | Drops and risers | Include vertical run components | S4 | Add vertical measures on drawing | NOT STARTED | Horizontal/vertical totals reconcile | Elevation/quantity conventions unknown | P1 |
@@ -137,3 +139,5 @@ Project workspace evidence: [reference observations](evidence/countfire-project-
 Drawing workspace evidence: [2026-10-28](evidence/drawing-workspace-2026-10-28.json), 67/67 local regression suite plus browser geometry/navigation checks. F004–F006 now have a reference-shaped full-width editor, left tool panels, default whole-page fit and original controls; complete layout/gesture/parity remains open.
 
 2026-10-28 member/selection review: ADR-0027/0028, 85/85 local tests plus owned browser evidence. F031 renders and opens all saved annotation types on neighbouring sheets; F072 totals all drawing pages with explicit other/moved classifications. [Evidence](evidence/member-selection-review-2026-10-28.json). Earlier per-example attribution/column limitations are superseded for this tested subset; source-element editing and full parity remain absent.
+
+2026-10-28 coverage: ADR-0029/schema 11, F024 partial TESTED. 90/90 local plus owned browser Enter/blur/zero/cancel/reopen/rotation/zoom checks. [Evidence](evidence/coverage-2026-10-28.json). Output-drawing switch remains unmet because annotated PDF export is absent. No compliance or full parity claim.

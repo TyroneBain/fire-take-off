@@ -1,7 +1,13 @@
 {
   "date": "2026-10-28",
-  "decisions": ["ADR-0027", "ADR-0028"],
-  "features": ["F031 partial TESTED", "F072 partial TESTED"],
+  "decisions": [
+    "ADR-0027",
+    "ADR-0028"
+  ],
+  "features": [
+    "F031 partial TESTED",
+    "F072 partial TESTED"
+  ],
   "schema": 10,
   "environment": "macOS / Node 24.22.0 / Chrome / owned synthetic fixtures",
   "reference": {
@@ -24,20 +30,43 @@
     ]
   },
   "browser": {
-    "neighbour_annotations": {"counts": 12, "measurements": 3, "zones": 2, "notes": 1},
+    "neighbour_annotations": {
+      "counts": 12,
+      "measurements": 3,
+      "zones": 2,
+      "notes": 1
+    },
     "count_review_correct_owner_and_heading": true,
     "measurement_editor_correct_owner_and_name": true,
     "zone_editor_correct_owner": true,
     "zone_editor_handles": 4,
     "note_editor_correct_owner_and_literal_text": true,
-    "global_marker_hide_restore": [12, 0, 12],
+    "global_marker_hide_restore": [
+      12,
+      0,
+      12
+    ],
     "per_heading_visibility": true,
     "layout_draft_disables_annotation_actions": true,
-    "cropped_rotated_note_error_css_pixels": [-0.000034782608658190384, 0.00002490665578136486],
+    "cropped_rotated_note_error_css_pixels": [
+      -3.4782608658190384e-05,
+      2.490665578136486e-05
+    ],
     "space_pan_does_not_open_note_or_navigate": true,
-    "ten_page_selection_totals": {"matches": 60, "items": 60, "unchanged_on_page_two": true},
-    "original_heading_totals": {"matches": 5, "items": 5, "moved_out": 1},
-    "incoming_heading_other_row": {"matches": 1, "items": 1},
+    "ten_page_selection_totals": {
+      "matches": 60,
+      "items": 60,
+      "unchanged_on_page_two": true
+    },
+    "original_heading_totals": {
+      "matches": 5,
+      "items": 5,
+      "moved_out": 1
+    },
+    "incoming_heading_other_row": {
+      "matches": 1,
+      "items": 1
+    },
     "source_navigation_and_highlight": true,
     "thumbnails_loaded": 2,
     "multiplier_input_enables_on_change_disables_on_restore": true,
@@ -56,5 +85,19 @@
     "No exact visual parity or reference reclassification row-policy claim",
     "Multiplier persistence is covered by existing domain/HTTP tests; this browser session did not save factor changes"
   ],
-  "delivery": {"parent": "863249adfd6c231b961b027ae90fa13d75624418", "status": "pending protected publication"}
+  "delivery": {
+    "parent": "863249adfd6c231b961b027ae90fa13d75624418",
+    "commit": "04050bbf3bdab595b3ff1988514df4cdd90aeed3",
+    "tree": "787b0bc364188bfe8f07c795025f87ce0effd51b",
+    "status": "remote main readback and hosted tests verified"
+  },
+  "hosted": {
+    "run_id": 40657672037,
+    "job_id": 122712569339,
+    "passed": 85,
+    "failed": 0,
+    "duration_ms": 32769.959841,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
+  }
 }

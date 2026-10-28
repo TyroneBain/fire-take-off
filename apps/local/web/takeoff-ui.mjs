@@ -1,3 +1,5 @@
+import {coverageCircles,appendCoverage} from './coverage.mjs';
+import {coverageInput} from './coverage-input.mjs';
 import {setupMeasurementEditor} from './measurement-editor.mjs';
 import {exampleRectangle,setupExamplePreviews} from './example-preview.mjs';
 import { pagePoint,viewPoint } from './coordinates.mjs';
@@ -22,6 +24,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const list=$('count-items');list.replaceChildren();const filter=$('count-filter').value.toLowerCase();
     for(const item of available){if(!item.name.toLowerCase().includes(filter))continue;const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));row.append(b,visibility);list.append(row);}
     const allHidden=available.length>0&&available.every(i=>hiddenMarkers.has(i.id));$('toggle-count-markers').textContent=allHidden?'Show markers':'Hide markers';$('toggle-count-markers').setAttribute('aria-pressed',String(allHidden));previews.paint(selectedItem);
+    const coverage=$('count-coverage');coverage.replaceChildren();const selected=available.find(i=>i.id===selectedItem),scaled=!!c.state.calibrations?.find(v=>v.drawing_id===c.drawing?.id&&v.page===c.pageNumber);if(selected)coverage.append(coverageInput({record:selected,kind:'items',api,reload,notice,node,scaled}));
     for(const id of ['add-manual-match','add-current-example','edit-count-item'])$(id).disabled=!selectedItem||!!job;
     const current=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);
     $('review-page').disabled=!current.length||!!job;
@@ -34,14 +37,14 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     $('calibration-status').textContent=calibration?`Scale set · ${calibration.distance} ${calibration.unit} reference`:'No scale set for this page';
     const measurements=c.state.measurements?.filter(m=>m.drawing_id===c.drawing?.id&&m.page===c.pageNumber)||[];
     const measured=$('measure-list');measured.replaceChildren();
-    for(const m of measurements){const row=node('div',null,'measure-row');row.append(node('strong',`${m.name}${m.multiplier>1?` ×${m.multiplier}`:''}`),node('span',m.quantity.value===null?'Set scale to calculate':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`));row.append(button('Edit',()=>measurementEditor.open(m)),button('Remove',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));measured.append(row);}
+    for(const m of measurements){const row=node('div',null,'measure-row');row.append(node('strong',`${m.name}${m.multiplier>1?` ×${m.multiplier}`:''}`),node('span',m.quantity.value===null?'Set scale to calculate':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`));row.append(button('Edit',()=>measurementEditor.open(m)),button('Remove',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));if(m.kind==='point')row.append(coverageInput({record:m,kind:'measurements',api,reload,notice,node,scaled}));measured.append(row);}
     $('finish-measure').disabled=!['length','area'].includes(action)||draft.length<(action==='area'?3:2);
     $('cancel-measure').disabled=!action;
     paintOverlay();
   }
   function paintOverlay(){
     $('takeoff-overlay')?.remove();const c=context();if(!c.viewport||!c.drawing)return;
-    const overlay=node('div',null,'takeoff-overlay');overlay.id='takeoff-overlay';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');overlay.append(svg);
+    const overlay=node('div',null,'takeoff-overlay');overlay.id='takeoff-overlay';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');overlay.append(svg);appendCoverage(svg,coverageCircles(c.state,c.drawing.id,c.pageNumber,c.viewport,1,id=>!hiddenMarkers.has(id)));
     function shape(points,area,color,dashed=false){const p=document.createElementNS(svgNS,area?'polygon':'polyline');p.setAttribute('points',points.map(p=>viewPoint(c.viewport,...p).join(',')).join(' '));p.setAttribute('stroke',color);p.setAttribute('stroke-width','2');p.setAttribute('fill',area?color+'22':'none');if(dashed)p.setAttribute('stroke-dasharray','6 4');svg.append(p);return p;}
     for(const m of c.state.measurements||[])if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber&&m.id!==measurementEditor.id){
       let element;if(m.kind==='point'){const [x,y]=viewPoint(c.viewport,...m.points[0]);element=document.createElementNS(svgNS,'circle');for(const [k,v]of Object.entries({cx:x,cy:y,r:5,fill:'#c06c23'}))element.setAttribute(k,v);svg.append(element);}else element=shape(m.points,m.kind==='area','#c06c23');

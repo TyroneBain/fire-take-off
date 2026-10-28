@@ -1,3 +1,4 @@
+import {appendCoverage} from './coverage.mjs';
 const svgNS='http://www.w3.org/2000/svg';
 export function floorplanAnnotationModel(state,drawingId,page,viewport,scale=1,isMarkerVisible=()=>true){
   if(!Number.isFinite(scale)||scale<=0||typeof viewport?.convertToViewportPoint!=='function')throw new RangeError('Invalid annotation viewport');
@@ -9,8 +10,8 @@ export function floorplanAnnotationModel(state,drawingId,page,viewport,scale=1,i
   const notes=(state.notes||[]).filter(scope).map((n,index)=>({...ref('note',n),point:project([n.x,n.y]),number:index+1,label:`Note ${index+1}: ${n.text}`}));
   return {marks,measurements,zones,notes};
 }
-export function renderFloorplanAnnotations(model,{open,disabled=false}){
-  const root=document.createElement('div');root.className='floorplan-annotations';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');root.append(svg);
+export function renderFloorplanAnnotations(model,{open,disabled=false,coverage=[]}){
+  const root=document.createElement('div');root.className='floorplan-annotations';const svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width','100%');svg.setAttribute('height','100%');root.append(svg);appendCoverage(svg,coverage);
   function action(element,record){element.dataset.annotationId=record.id;element.dataset.annotationKind=record.kind;element.setAttribute('aria-label',record.label);element.setAttribute('title',record.label);element.setAttribute('aria-disabled',String(disabled));
     if(element.tagName==='BUTTON'){element.disabled=disabled;}else {element.setAttribute('role','button');element.setAttribute('tabindex',disabled?'-1':'0');element.addEventListener('keydown',e=>{if(!disabled&&!e.defaultPrevented&&e.key==='Enter'){e.preventDefault();e.stopPropagation();open(record);}});}
     element.style.pointerEvents=disabled?'none':'auto';element.addEventListener('click',e=>{if(disabled)return;e.preventDefault();e.stopPropagation();open(record);});

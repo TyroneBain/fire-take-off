@@ -104,6 +104,8 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if(zone&&request.method==='PATCH'&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
       if(zone&&request.method==='PATCH')return send(200,store.updateZone(zone[1],body));
       if(zone&&request.method==='DELETE'){store.deleteZone(zone[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
+      const coverage=url.pathname.match(/^\/api\/(items|measurements)\/([\w-]+)\/coverage$/);
+      if(coverage&&request.method==='PATCH'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.updateCoverage(coverage[1],coverage[2],body));}
       const counts=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/counts$/);
       if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
       const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);

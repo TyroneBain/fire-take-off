@@ -1,0 +1,14 @@
+{
+ "date":"2026-10-28",
+ "decision":"ADR-0029",
+ "feature":"F024 partial TESTED",
+ "schema":11,
+ "reference":"https://help.countfire.com/en/articles/400657-calculating-coverage-area-for-devices",
+ "environment":"macOS / Node 24.22.0 / Chrome / owned synthetic fixtures",
+ "automated":{"command":"npm test","passed":90,"failed":0,"duration_ms":13408.199058,"new_tests":5,"covers":["Count and point radius persistence, no-op, zero removal, rename preservation and audit cascade","Invalid type/radius, stale writes and atomic rollback on audit failure","Actual absent-column schema 10 migration","Cropped PDF four-angle/three-scale projections, UserUnit transform, different page calibrations, recalibration, exclusion, current-heading classification and factor independence","HTTP authentication, object validation, optimistic conflicts and persisted snapshot"]},
+ "browser":{"saved_count_radius_metres":7.5,"saved_point_radius_metres":3.25,"count_circles":5,"point_circles":1,"radius_css_pixels":66.16522473342457,"independent_expected_css_pixels":66.16490903108014,"rotation_preserves_radius":true,"zoom_ratio":1.2499999999999998,"uncalibrated_current_page_circles":0,"uncalibrated_page_scale_hint":true,"calibrated_neighbour_circles":6,"heading_visibility_hides_count_circles_preserves_point":true,"zero_removes_and_positive_restores":true,"enter_and_blur_save":true,"escape_cancels":true,"reopen_exact_api_state":true,"counts_and_quantity_schedule_unchanged":true,"console_errors_warnings":0},
+ "workspace":{"backup":".local/schema10-before-coverage-2026-10-28.sqlite (ignored)","existing_tables_unchanged_on_migration":20,"existing_tables_unchanged_after_ui_except_edited_versions":20,"verified_source_digests":5,"coverage_events":4,"server_session":56104},
+ "failed_checks":["First suite 89/90: empty coverage object returned 409 before validating radius. Moved radius validation before stale-version check; final 90/90 passed."],
+ "limitations":["No annotated PDF output or Show on output switch","No wall occlusion or automatic compliance assessment","Provisional radius range 0–10000 m","Point radius is per saved measurement; shared point headings remain absent","Current-heading classification and heading visibility policies are original, not live reference equivalence","Large coverage plans and full pixel parity remain unverified"],
+ "delivery":{"parent":"04050bbf3bdab595b3ff1988514df4cdd90aeed3","status":"pending protected publication"}
+}

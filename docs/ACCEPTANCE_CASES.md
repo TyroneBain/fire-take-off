@@ -55,3 +55,7 @@ Project saved counts/measures/zones/notes through actual cropped/rotated PDF vie
 ### A022 — Selection list reconciliation (partial TESTED, 2026-10-28)
 
 Current-drawing selection rows include every page, retain zero-match examples and reconcile included instances and quantities exactly. Excluded and moved-out matches must not inflate the heading; manual/unlinked/incoming examples appear explicitly. Actual element counts remain unknown. Tests cover mixed factors/classifications; browser ten-page totals stay 60/60 across page navigation, Original shows 5/5 plus one moved-out instance and destination shows 1/1. Source highlight and input state verified without API mutations. Same evidence as A021.
+
+### A023 — Calibrated coverage circles (partial TESTED, 2026-10-28)
+
+Persist fractional metre radii on count headings and point measurements. Display one circle per included instance, with current-heading radius and page-specific calibration; exclude missing scale, wrong page and hidden headings. Reclassification/factors must not multiply geometry. Radius zero removes; Enter/blur saves; Escape cancels; reopen/rotation/zoom retain scale. Invalid/stale writes and audit failure leave saved data unchanged. Quantities and source bytes remain intact. Evidence: [coverage](evidence/coverage-2026-10-28.json). PDF output inclusion, point-heading grouping and complete reference parity remain unmet.
