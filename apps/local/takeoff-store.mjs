@@ -88,6 +88,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         countMarks:db.prepare('SELECT m.*,coalesce(e.multiplier,1) AS multiplier FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id ORDER BY m.created,m.id').all().map(m=>({...m,quantity:m.included?m.multiplier:0})),calibrations,
         countSelectionEvents:db.prepare('SELECT * FROM count_selection_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
         countSelectionDeletions:db.prepare('SELECT * FROM count_selection_deletions ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous)})),
+        countSelectionMoves:db.prepare('SELECT * FROM count_selection_moves ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
         countExampleEvents:db.prepare('SELECT * FROM count_example_events ORDER BY rowid').all(),
         measurementFactorEvents:db.prepare('SELECT * FROM measurement_factor_events ORDER BY rowid').all(),
         countEvents:db.prepare('SELECT * FROM count_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
@@ -116,7 +117,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         if(!saved){saved={id:randomUUID()};db.prepare('INSERT INTO count_examples (id,item_id,example,created) VALUES (?,?,?,?)').run(saved.id,itemId,encoded,new Date().toISOString());}
         for(const m of matches){
           validateMark(i.discipline_id,m,'automatic');
-          const exists=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 ORDER BY (original_item_id=?) DESC,created,id LIMIT 1').get(itemId,itemId,m.drawing_id,m.page,m.x,m.y,itemId);
+          const exists=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 ORDER BY (original_item_id=?) DESC,created,id LIMIT 1').get(itemId,itemId,saved.id,m.drawing_id,m.page,m.x,m.y,itemId);
           if(exists){if(exists.origin==='automatic'&&!exists.example_id&&exists.original_item_id===itemId){db.prepare('UPDATE count_marks SET example_id=?,version=version+1 WHERE id=?').run(saved.id,exists.id);db.prepare('INSERT INTO count_events VALUES (?,?,?,?,?,?)').run(randomUUID(),exists.id,'link-example',JSON.stringify(exists),JSON.stringify(mark(exists.id)),new Date().toISOString());linked++;}skipped++;continue;}insertMark(itemId,i.discipline_id,m,'automatic',saved.id);added++;
         }
         if(isNew||added||linked)db.prepare('UPDATE count_items SET example=coalesce(example,?),version=version+1 WHERE id=?').run(encoded,itemId);
@@ -144,12 +145,38 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       try{
         for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);
         const encoded=exampleJSON(i.discipline_id,{...source,algorithm:'binary-elements-2',elements});db.prepare('UPDATE count_examples SET example=?,version=version+1 WHERE id=?').run(encoded,exampleId);
-        for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}insertMark(i.id,i.discipline_id,m,'automatic',exampleId);added++;}
+        for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,exampleId,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}insertMark(i.id,i.discipline_id,m,'automatic',exampleId);added++;}
         db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,encoded,i.id);
         db.prepare('INSERT INTO count_selection_events VALUES (?,?,?,?,?)').run(randomUUID(),exampleId,JSON.stringify({example:source,version:e.version,marks:previous}),JSON.stringify({example:JSON.parse(encoded),version:e.version+1,scope,added,removed:obsolete.map(m=>m.id),retained_corrections:previous.filter(m=>m.reviewed||!m.included||m.item_id!==i.id).map(m=>m.id)}),new Date().toISOString());
         db.exec('COMMIT');
       }catch(error){db.exec('ROLLBACK');throw error;}
       return {id:exampleId,version:e.version+1,added,removed:obsolete.length,skipped};
+    },
+    moveCountSelection(exampleId,{version,item_version,destination_id,destination_version,expected_marks}={}) {
+      const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
+      if(typeof destination_id!=='string')fail('Destination heading required');
+      const source=item(e.item_id),destination=item(destination_id);
+      if(source.discipline_id!==destination.discipline_id)fail('Destination heading belongs to another discipline');
+      if(version!==e.version||item_version!==source.version||destination_version!==destination.version)fail('Selection or heading changed. Reload before moving.',409);
+      if(!Array.isArray(expected_marks)||expected_marks.some(m=>!m||typeof m.id!=='string'||!Number.isInteger(m.version)))fail('Complete match snapshot required');
+      const marks=db.prepare('SELECT * FROM count_marks WHERE example_id=? ORDER BY id').all(exampleId),expected=new Map(expected_marks.map(m=>[m.id,m.version]));
+      if(expected.size!==expected_marks.length||marks.length!==expected.size||marks.some(m=>expected.get(m.id)!==m.version))fail('Matches changed. Reload before moving.',409);
+      if(source.id===destination.id)return {id:exampleId,item_id:destination.id,moved:0,retained:0,version:e.version};
+      if(db.prepare('SELECT id FROM count_examples WHERE item_id=? AND example=?').get(destination.id,e.example))fail('Destination already has this selection',409);
+      if(db.prepare('SELECT count(*) AS n FROM count_examples WHERE item_id=?').get(destination.id).n>=50)fail('Limit of 50 examples per heading reached');
+      const moving=marks.filter(m=>m.item_id===source.id),retained=marks.filter(m=>m.item_id!==source.id);
+      for(const m of moving)if(db.prepare('SELECT id FROM count_marks WHERE item_id=? AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 AND id<>?').get(destination.id,m.drawing_id,m.page,m.x,m.y,m.id))fail('Destination already has a match at a moved location. Resolve it before moving.',409);
+      const created=new Date().toISOString();db.exec('BEGIN');
+      try{
+        db.prepare('UPDATE count_examples SET item_id=?,version=version+1 WHERE id=?').run(destination.id,exampleId);
+        for(const m of moving){db.prepare('UPDATE count_marks SET item_id=?,version=version+1 WHERE id=?').run(destination.id,m.id);db.prepare('INSERT INTO count_events VALUES (?,?,?,?,?,?)').run(randomUUID(),m.id,'move-selection',JSON.stringify(m),JSON.stringify(mark(m.id)),created);}
+        const next=db.prepare('SELECT example FROM count_examples WHERE item_id=? ORDER BY created,id LIMIT 1').get(source.id);
+        db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,next?.example??null,source.id);
+        db.prepare('UPDATE count_items SET example=coalesce(example,?),version=version+1 WHERE id=?').run(e.example,destination.id);
+        db.prepare('INSERT INTO count_selection_moves VALUES (?,?,?,?,?,?,?,?)').run(randomUUID(),source.discipline_id,exampleId,source.id,destination.id,JSON.stringify({selection:e,source,destination,marks}),JSON.stringify({version:e.version+1,moved:moving.map(m=>m.id),retained:retained.map(m=>m.id),source_version:source.version+1,destination_version:destination.version+1}),created);
+        db.exec('COMMIT');
+      }catch(error){db.exec('ROLLBACK');throw error;}
+      return {id:exampleId,item_id:destination.id,moved:moving.length,retained:retained.length,version:e.version+1};
     },
     deleteCountSelection(exampleId,{version,item_version,expected_marks}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);

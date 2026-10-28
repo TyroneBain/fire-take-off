@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-29",
+  "decision": "ADR-0033",
+  "schema": 14,
+  "feature": "F075 partial TESTED",
+  "environment": "macOS / Node24.22.0 / Chrome / owned synthetic PDF sources",
+  "reference": {
+    "source": "https://help.countfire.com/en/articles/89895-moving-symbol-selections",
+    "older_public_workflow": "Editor heading chooser and Save Edit",
+    "normal_beta": "Real Chrome drag of scratch selection onto scratch destination moved count1; empty original disappeared",
+    "cleanup": "Reload discarded unsaved scratch source/target; empty Count state and absence of Movement target confirmed",
+    "no_reference_assets_in_git": true
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 111,
+    "failed": 0,
+    "duration_ms": 15098.042122,
+    "new_tests": 7,
+    "previous_run_passed": 111,
+    "previous_duration_ms": 16561.402449,
+    "covers": [
+      "Definition and source-assigned matches move; reviewed/excluded/reclassified/manual/other-example identities and factors preserved",
+      "Recount and Add to current after movement do not duplicate individual reclassifications",
+      "Historical names preserved, empty moved-from heading visibility and return move",
+      "Stale source/destination/example/mark snapshots, wrong discipline, duplicate definitions, coordinate conflicts and capacity50 rejected",
+      "Forced movement audit failure rolls back example/items/marks/review events",
+      "Workbook original/current names and move history persist after deletion/reopen",
+      "Actual schema13 migration, pure visibility cases and authenticated HTTP/replay"
+    ]
+  },
+  "browser": {
+    "fixtures": "Six seeded linked records across two owned drawings, not a recognition accuracy benchmark",
+    "initial_source_quantity": 8,
+    "initial_individual_reclassification_quantity": 2,
+    "factor": 2,
+    "chooser_cancel_exact_state": true,
+    "real_chrome_drag": true,
+    "drag_moved_records": 5,
+    "drag_retained_reclassification": 1,
+    "exclusion_preserved": true,
+    "original_ids_preserved": true,
+    "empty_source_hidden": true,
+    "chooser_can_restore_historical_heading": true,
+    "return_move_passed": true,
+    "stale_pending_move_after_competing_review": "409 Matches changed; exact saved state unchanged",
+    "reload_exact_state": true,
+    "export": {
+      "http_status": 200,
+      "bytes": 15941,
+      "snapshot_sha256": "5ab171644c266a92f6a58b553517ea206317db026245f881d9aa7ed6c29067d5",
+      "independently_reopened_with": "ExcelJS",
+      "instance_rows": 6,
+      "source_quantity": 8,
+      "correction_quantity": 2,
+      "all_reviewed": true,
+      "original_name_preserved": true,
+      "movement_history_rows": 2,
+      "artifact": ".local/movement-browser-export-2026-10-29.xlsx"
+    }
+  },
+  "data": {
+    "backup": ".local/schema13-before-selection-movement-2026-10-29.sqlite",
+    "original_marks": 85,
+    "preexisting_tables_preserved": 23,
+    "server_session": 1180,
+    "sources_immutable": true
+  },
+  "limitations": [
+    "Immediate commits differ from reference global Save",
+    "Individual correction retention on whole-selection move is an original provisional edge policy",
+    "Historical source rows retained for attribution; hidden only when emptied by movement",
+    "No group hierarchy or complete reference edge parity",
+    "Full Countfire parity remains incomplete; catalogue deferred"
+  ],
+  "delivery": {
+    "parent": "90830702ca0ec0282491966d25fbf61e5b536049",
+    "source_commit": "pending",
+    "hosted_ci": "pending"
+  }
+}

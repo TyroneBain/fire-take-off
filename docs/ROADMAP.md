@@ -88,3 +88,5 @@ Floorplan delivery observed: c83f716; hosted run 40654537936 passed 81/81 on Ubu
 ADR-0031 delivered as 8cae73aa and passes 98/98 hosted tests. Next executable feature: reference-confirm empty-selection deletion and selection/heading lifecycle, implement with correction/audit acceptance, then continue revision recount. Catalogue deferred; full phase/parity gates remain open.
 
 2026-10-28 ADR-0032/schema13: source selection deletion is partial TESTED (F074, F073),104/104 local plus owned browser acceptance. No full parity gates closed. Next: protected publication/hosted checks, then normal-reference selection movement and heading lifecycle, followed by revision recount. Catalogue remains deferred.
+
+2026-10-29: ADR-0033/schema14 whole-selection movement (F075) passes111/111 local plus real drag/chooser/stale/export browser acceptance. Deletion90830702 passed104/104 hosted. Next: protected movement publication/hosted checks, then remaining heading/group lifecycle and revision recount. Original-name/correction provenance preserved; no full-parity gate waived. Catalogue deferred.

@@ -8,7 +8,7 @@ export function exampleRectangle(viewport,bounds) {
   return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
 }
 
-export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,removeSelection,api,reload,notice}) {
+export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,removeSelection,movement,api,reload,notice}) {
   const cache=new Map();let queue=[],busy=false;
   async function drain(){
     if(busy)return;busy=true;
@@ -42,13 +42,13 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,edit
       const head=node('thead'),header=node('tr');for(const label of ['Selection','Elements','Matches','Multiplier','Total']){const th=node('th',label);th.scope='col';header.append(th);}head.append(header);table.append(head);const body=node('tbody');table.append(body);
       model.rows.forEach(({record,matches,quantity,excluded,moved},index)=>{
         const drawing=state.drawings.find(d=>d.id===record.example.drawing_id),row=node('tr');row.dataset.exampleId=record.id;
-        const selection=node('th');selection.scope='row';const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;selection.append(preview,node('span',`Selection ${index+1}`));
+        const selection=node('th');selection.scope='row';const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;preview.draggable=true;preview.title='Drag selection onto another heading';preview.addEventListener('dragstart',event=>movement.start(event,record));preview.addEventListener('dragend',()=>movement.end());selection.append(preview,node('span',`Selection ${index+1}`));
         const saved=record.example.elements,elements=node('td',saved?String(saved.ids.length-saved.excluded.length):'—');elements.title=saved?'Selected PDF paint operations':'Open Edit to inspect vector elements';elements.setAttribute('aria-label',saved?'Selected PDF paint operations':'Element count not yet inspected');
         const count=node('td',String(matches),'selection-matches'),total=node('td',String(quantity),'selection-quantity');
         const remove=button('×',event=>removeSelection(record,{skipConfirmation:event.shiftKey}).catch(error=>notice(error.message,true)),'selection-delete');remove.title='Delete selection';remove.setAttribute('aria-label',`Delete selection ${index+1}`);total.append(remove);
         const factor=node('td'),input=node('input');input.type='number';input.min='1';input.max='10000';input.step='1';input.required=true;input.value=record.multiplier||1;input.setAttribute('aria-label',`Multiplier for selection ${index+1}`);factor.append(input);
         row.append(selection,elements,count,factor,total);body.append(row);
-        const detailRow=node('tr',null,'selection-details'),details=node('td');details.colSpan=5;
+        const detailRow=node('tr',null,'selection-details'),details=node('td');details.colSpan=5;details.append(button('Move',()=>movement.open(record),'example-open'));
         if(drawing){details.append(node('small',`${drawing.name} · page ${record.example.page}`));const open=button('Go to selection',()=>openExample(record),'example-open');details.append(button('Edit',()=>editExample(record),'example-open'),open);if(cache.has(record.id+':'+record.version))show(preview,cache.get(record.id+':'+record.version));else{preview.append(node('span','Loading preview…'));queue.push({record,drawing,container:preview});}}
         else{preview.append(node('span','Source removed'));details.append(node('small','The saved source drawing is no longer in this takeoff.'));}
         const save=button('Save multiplier',async()=>{if(!input.reportValidity())return;save.disabled=true;input.disabled=true;try{await api(`/api/examples/${record.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({multiplier:Number(input.value),version:record.version})});await reload();notice('Selection multiplier saved');}catch(error){notice(error.message,true);}finally{input.disabled=!!legacy;save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);}},'example-open');save.disabled=true;input.disabled=!!legacy;input.addEventListener('input',()=>{save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);});details.append(save);

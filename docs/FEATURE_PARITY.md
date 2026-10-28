@@ -35,6 +35,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 - S18: [Delete a symbol selection](https://help.countfire.com/en/articles/89697-deleting-a-symbol-selection) and [Erase all deletion](https://help.countfire.com/en/articles/118977-using-erase-all-to-delete-selections), public and normal demo observed 2026-10-28
 
+- S19: [Moving symbol selections](https://help.countfire.com/en/articles/89895-moving-symbol-selections); current-beta drag behaviour independently observed 2026-10-29 (older editor chooser differs)
+
 ## Inventory
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
@@ -115,6 +117,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F073 | Selection element editing | Clean unwanted elements from examples | S15,S17 | Manage selection, erase/restore elements, recalculate results | TESTED | Edited template provenance and affected matches reconcile; cancel restores prior state | Partial vector-path editor, anchored recount, corrections/factors, atomic audit and cancel/reopen tested; row and empty-editor deletion with cross-drawing confirmation, audit and unused-heading pruning tested; text/image/clipping, clash ownership and exact decomposition remain unmet | P0 |
 
 | F074 | Delete source selections | Remove one matching definition across drawings | S18 | Row Delete or Erase all → Done; confirm or Shift bypass | TESTED | Scoped removal, manual/other-example retention, stale snapshots, audit and export | Partial deletion/pruning tested; no undo, automatic overlapping-definition reassignment or global Save transaction | P0 |
+
+| F075 | Move whole source selections | Reassign a definition between headings | S19 | Drag a selection card onto a heading or use Move chooser | TESTED | Scope, versions, attribution, factors, corrections, conflicts and export audit | Partial drag/chooser and corrected recount tested; global Save, group hierarchy and complete reference edge parity remain unmet | P0 |
 
 ## Phase 1 questions
 
