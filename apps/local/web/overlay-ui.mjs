@@ -1,3 +1,4 @@
+import {setupDrawingPicker} from './drawing-picker.mjs';
 import {comparisonScale,comparisonKey} from './comparison.mjs';
 import {MAX_OVERLAYS,overlayInkPixels,overlayPlacement,moveOverlay} from './overlay.mjs';
 const $=id=>document.getElementById(id);
@@ -48,10 +49,8 @@ export function setupOverlays({context,pdfjs,activateBase,notice,suppressed}){
     }catch(error){if(epoch===generation&&layers.includes(l)){layers=layers.filter(x=>x!==l);if(selected===l.id)selected=layers.at(-1)?.id||null;paint();notice(`Unable to overlay drawing: ${error.message}`,true);}}
     finally{tasks.delete(task);await task.destroy().catch(()=>{});}
   }
-  $('add-overlay').onclick=()=>{const c=context(),select=$('overlay-drawing');select.replaceChildren();for(const d of c.state.drawings){const discipline=c.state.entities.find(e=>e.id===d.discipline_id),takeoff=c.state.entities.find(e=>e.id===discipline?.parent_id),project=c.state.entities.find(e=>e.id===takeoff?.parent_id),o=document.createElement('option');o.value=d.id;o.textContent=`${project?.name||''} / ${takeoff?.name||''} / ${discipline?.name||''} / ${d.name}`;select.append(o);}select.value=c.state.drawings.find(d=>d.id!==c.drawing.id)?.id||c.drawing.id;pageLimit();$('overlay-dialog').showModal();};
-  function pageLimit(){const d=context().state.drawings.find(d=>d.id===$('overlay-drawing').value);$('overlay-page').max=d?.pages.length||1;$('overlay-page').value=1;}
-  $('overlay-drawing').onchange=pageLimit;$('cancel-overlay-picker').onclick=()=>$('overlay-dialog').close();
-  $('overlay-form').onsubmit=e=>{e.preventDefault();const d=context().state.drawings.find(d=>d.id===$('overlay-drawing').value),page=Number($('overlay-page').value);if(!d||!Number.isInteger(page)||page<1||page>d.pages.length)return;$('overlay-dialog').close();add(d,page);};
+  const picker=setupDrawingPicker({prefix:'overlay',context,onChoose:add});
+  $('add-overlay').onclick=()=>picker.open();
   $('overlay-edit').onclick=()=>edit(selected);$('overlay-save').onclick=confirm;$('overlay-cancel').onclick=cancel;$('overlay-remove').onclick=remove;
   $('overlay-reset').onclick=()=>{const l=current();if(l){l.offset=[0,0];l.editing=true;paint();}};
   $('overlay-opacity').oninput=()=>{const l=current();if(l){l.opacity=Number($('overlay-opacity').value)/100;paint();}};

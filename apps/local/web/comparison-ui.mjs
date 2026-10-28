@@ -1,3 +1,4 @@
+import {setupDrawingPicker} from './drawing-picker.mjs';
 import {compareRasters,comparisonScale,comparisonKey} from './comparison.mjs';
 const $=id=>document.getElementById(id);
 export function setupComparison({context,pdfjs,activateBase,notice}){
@@ -39,11 +40,8 @@ export function setupComparison({context,pdfjs,activateBase,notice}){
     const canvas=document.createElement('canvas');canvas.id='comparison-overlay';canvas.width=rasters.base.width;canvas.height=rasters.base.height;canvas.style.width=`${c.viewport.width}px`;canvas.style.height=`${c.viewport.height}px`;canvas.setAttribute('aria-label','Drawing comparison: original red, new blue, shared black');canvas.getContext('2d',{willReadFrequently:true}).putImageData(new ImageData(rasters.result.pixels,canvas.width,canvas.height),0,0);canvas.classList.toggle('editing',editing);surface.append(canvas);
   }
   $('layout-tool').onclick=activate;
-  $('choose-comparison').onclick=()=>{const c=context(),select=$('comparison-drawing');select.replaceChildren();for(const d of c.state.drawings){const discipline=c.state.entities.find(e=>e.id===d.discipline_id),takeoff=c.state.entities.find(e=>e.id===discipline?.parent_id),option=document.createElement('option');option.value=d.id;option.textContent=`${takeoff?.name||''} / ${discipline?.name||''} / ${d.name}`;select.append(option);}select.value=c.state.drawings.find(d=>d.id!==c.drawing.id)?.id||c.drawing.id;$('comparison-page').value=1;updatePageLimit();$('comparison-dialog').showModal();};
-  function updatePageLimit(){const d=context().state.drawings.find(d=>d.id===$('comparison-drawing').value);$('comparison-page').max=d?.pages.length||1;$('comparison-page').value=1;}
-  $('comparison-drawing').onchange=updatePageLimit;
-  $('cancel-comparison-picker').onclick=()=>$('comparison-dialog').close();
-  $('comparison-form').onsubmit=e=>{e.preventDefault();const d=context().state.drawings.find(d=>d.id===$('comparison-drawing').value),page=Number($('comparison-page').value);if(!d||!Number.isInteger(page)||page<1||page>d.pages.length)return;$('comparison-dialog').close();choose(d,page);};
+  const picker=setupDrawingPicker({prefix:'comparison',context,onChoose:choose});
+  $('choose-comparison').onclick=()=>picker.open();
   const edit=()=>{if(rasters){editing=true;paint();}},cancel=()=>{offset=[...saved];editing=false;drag=null;schedule();};
   $('comparison-edit').onclick=edit;$('comparison-cancel').onclick=cancel;
   $('comparison-save').onclick=()=>{saved=[...offset];editing=false;drag=null;paint();};

@@ -67,6 +67,13 @@
     "No database persistence, matching documented temporary overlay scope"
   ],
   "hosted": {
-    "status": "pending publication"
+    "commit": "b72a0fc04c5523fb53e17283ec9276570562507d",
+    "run_id": 40650238689,
+    "job_id": 122688366758,
+    "passed": 72,
+    "failed": 0,
+    "duration_ms": 25031.351518,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
   }
 }

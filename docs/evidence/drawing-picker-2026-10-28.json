@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0024",
+  "features": [
+    "F030 partial workflow refinement",
+    "F032 partial workflow refinement"
+  ],
+  "reference": "Normal authenticated Overlay chooser with four hierarchy fields; cancelled without account changes",
+  "automated": {
+    "passed": 74,
+    "failed": 0,
+    "duration_ms": 12814.498934,
+    "command": "npm test",
+    "environment": "macOS / Node 24.22.0",
+    "cases": [
+      "Stable IDs despite duplicate project/takeoff/discipline/drawing labels",
+      "Ancestor change drops out-of-scope child",
+      "Empty project/workspace and deleted drawing",
+      "Input state unchanged"
+    ]
+  },
+  "browser": {
+    "initial_scope_correct_both_pickers": true,
+    "empty_project_disables_submit_and_children": true,
+    "empty_message_visible": true,
+    "multipage_max": 10,
+    "single_page_switch_resets_page_to": 1,
+    "invalid_page_keeps_dialog": true,
+    "valid_overlay_loaded": true,
+    "valid_comparison_loaded": true,
+    "complete_api_state_unchanged": true
+  },
+  "limitations": [
+    "Native selects, not full reference searchable-combobox visual/keyboard parity",
+    "Floorplans remain unimplemented"
+  ],
+  "hosted": {
+    "status": "pending publication"
+  }
+}
