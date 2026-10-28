@@ -71,7 +71,16 @@
     "Layout overlays/floorplan/comparison not yet implemented",
     "Full Countfire save/selection/global shortcut semantics remain incomplete",
     "Hide drawing is entire-source visibility, not source-element background classification",
-    "Exact pixel parity and physical gesture/accessibility acceptance not complete",
-    "Hosted run for this increment pending publication"
-  ]
+    "Exact pixel parity and physical gesture/accessibility acceptance not complete"
+  ],
+  "hosted": {
+    "commit": "047faf31ba32d774970b5e5790ad377d3e814f00",
+    "run_id": 40636803673,
+    "job_id": 122645538723,
+    "passed": 67,
+    "failed": 0,
+    "duration_ms": 21950.007016,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
+  }
 }

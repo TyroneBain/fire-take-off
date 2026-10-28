@@ -1,3 +1,4 @@
+import {setupComparison} from './comparison-ui.mjs';
 import {setupProjects} from './project-ui.mjs';
 import {setupZones} from './zone-ui.mjs';
 import * as pdfjs from '/vendor/build/pdf.mjs';
@@ -11,7 +12,7 @@ let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTa
 let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
-let takeoffUi,zoneUi,projectsUi;
+let takeoffUi,zoneUi,projectsUi,layoutUi;
 let zoomEpoch=0;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
@@ -27,7 +28,7 @@ function node(tag, text, className) { const element = document.createElement(tag
 function button(text, action, className) { const b = node('button', text, className); b.addEventListener('click', action); return b; }
 function children(parent, kind) { return state.entities.filter(e => e.parent_id === parent && e.kind === kind); }
 function byId(id) { return state.entities.find(e => e.id === id); }
-async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); zoneUi?.paint(); }
+async function refresh() { state = await api('/api/state'); paint(); takeoffUi?.paint(); zoneUi?.paint(); layoutUi?.paint(); }
 function create(kind, parentId) {
   if(kind==='project')return projectsUi.create();
   createContext = { kind, parentId };
@@ -119,6 +120,7 @@ async function removeDrawing(d) {
 }
 async function openDrawing(d, targetPage=1, tool=null) {
   const generation = ++renderRevision;
+  layoutUi?.clear();
   renderTask?.cancel(); await loadingTask?.destroy(); pdf = null;
   if (generation !== renderRevision) return;
   $('hide-source').checked = false; $('page-surface').classList.remove('source-hidden');
@@ -155,7 +157,7 @@ async function render() {
     renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: [factor,0,0,factor,0,0] });
     await renderTask.promise; if (generation !== renderRevision) return;
     canvas.id = 'pdf-canvas'; $('page-surface').replaceChildren(canvas);
-    activeViewport = viewport; paintNotes(); paintPage(); takeoffUi?.paint(); zoneUi?.paint();
+    activeViewport = viewport; paintNotes(); paintPage(); takeoffUi?.paint(); zoneUi?.paint(); layoutUi?.paint();
     if (resetPan) { $('drawing-stage').scrollTo(0,0); resetPan = false; }
     $('page-label').textContent = `${pageNumber} / ${pdf.numPages}`; $('zoom-label').textContent = `${Math.round(scale * 100)}%`;
     $('previous-page').disabled = pageNumber <= 1; $('next-page').disabled = pageNumber >= pdf.numPages;
@@ -169,12 +171,12 @@ async function fitDrawing() {
   scale=Math.max(.1,Math.min(4,(stage.clientWidth-60)/view.width,(stage.clientHeight-72)/view.height));resetPan=true;await render();
 }
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
-function closeViewer() { document.body.classList.remove('drawing-open'); ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
+function closeViewer() { layoutUi?.clear();layoutUi?.deactivate();document.body.classList.remove('drawing-open'); ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
 $('viewer-dashboard').onclick=()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();};
 $('hide-source').onchange = () => $('page-surface').classList.toggle('source-hidden', $('hide-source').checked);
-$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
-$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
+$('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); layoutUi?.clear(); pageNumber--; resetPan = true; render(); } };
+$('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); layoutUi?.clear(); pageNumber++; resetPan = true; render(); } };
 async function zoomAt(factor,x,y) {
   if(!pdf||!activeViewport||!Number.isFinite(factor)||factor<=0)return;
   const stage=$('drawing-stage'),rect=stage.getBoundingClientRect();
@@ -193,10 +195,10 @@ setupDrawingNavigation({stage:$('drawing-stage'),viewer:$('viewer'),navigationMo
 }});
 $('fit-page').onclick = fitWidth;
 $('fit-drawing').onclick = fitDrawing;
-$('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
+$('rotate-page').onclick = () => { layoutUi?.clear();rotation = (rotation + 90) % 360; render(); };
 $('drawing-select').onchange=()=>{const next=state.drawings.find(d=>d.id===$('drawing-select').value);if(next)openDrawing(next,1,takeoffUi?.mode);};
 function setNoteMode(enabled) {
-  takeoffUi?.deactivate(); zoneUi?.deactivate();
+  takeoffUi?.deactivate(); zoneUi?.deactivate(); layoutUi?.deactivate();
   noteMode = enabled; placingNote = false;
   $('notes-panel').hidden = !enabled;
   $('page-panel').hidden = true; $('page-tool').classList.remove('tool-active'); $('page-tool').setAttribute('aria-pressed','false');
@@ -303,5 +305,6 @@ $('remove-note').onclick = ()=>{
 projectsUi=setupProjects({state:()=>state,api,reload:refresh,paint,node,button,notice,open:id=>{selectedProject=id;selectedTakeoff=null;closeViewer();paint();},home:()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();}});
 takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
 zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
+layoutUi=setupComparison({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),pdfjs,activateBase:()=>setNoteMode(false),notice});
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

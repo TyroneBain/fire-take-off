@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0022",
+  "feature": "F032 partial TESTED",
+  "reference": [
+    "https://help.countfire.com/en/articles/8146469-drawing-comparison",
+    "https://help.countfire.com/en/articles/64566-revised-drawings"
+  ],
+  "implementation": "Original bounded raster comparator; no source code/assets copied",
+  "automated": {
+    "command": "npm test",
+    "passed": 70,
+    "failed": 0,
+    "duration_ms": 12897.127882,
+    "environment": "macOS / Node 24.22.0",
+    "cases": [
+      "RGBA removal/addition/shared/transparent and no input mutation",
+      "Dimension/array/budget checks and context key",
+      "Owned actual base/revision PDFs: one removed and one added symbol, five common; equal total six; exact independent change regions; self comparison and misalignment"
+    ]
+  },
+  "browser": {
+    "dimensions": [
+      595,
+      842
+    ],
+    "pixel_counts_after_read_frequently_reload": {
+      "red": 112,
+      "blue": 112,
+      "shared": 6749
+    },
+    "pixel_counts_are_not_symbol_counts": true,
+    "shift_arrow_css_px": 10,
+    "saved_offset_page_points": [
+      11.33,
+      0
+    ],
+    "drag_offset_page_points": [
+      45.33,
+      11.33
+    ],
+    "cancel_restores_saved": true,
+    "actual_escape_key_cancel": true,
+    "zero_key_exact_raster_reset": true,
+    "tool_hide_restore": true,
+    "zoom_raster_unchanged": true,
+    "zoom_overlay_matches_page_css_size": true,
+    "pan_delta": [
+      0,
+      20
+    ],
+    "pan_did_not_edit": true,
+    "rotation_page_exit_clear": true,
+    "cancelled_load_no_late_overlay": true,
+    "complete_api_state_unchanged": true,
+    "console_errors_warnings_final": 0
+  },
+  "observations": [
+    "Earlier synthetic Escape observation inconclusive; actual key API verified twice",
+    "Repeated canvas read warning resolved using willReadFrequently; pixel edge counts differ between rendering contexts",
+    "Browser reconnected and page IDs changed; relisted before resuming"
+  ],
+  "limitations": [
+    "Raster threshold 200, no configurable tolerance or automatic alignment",
+    "Translation only; no scale/rotation alignment",
+    "Base page extent clips revision outside it",
+    "Temporary comparison, no replacement/recount/correction migration",
+    "Real construction/large sheet acceptance and performance budgets incomplete"
+  ],
+  "hosted": {
+    "status": "pending publication"
+  }
+}
