@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-28",
+  "feature": "F030 partial TESTED",
+  "decision": "ADR-0023",
+  "reference": "https://help.countfire.com/en/articles/8355632-overlay-drawings",
+  "reference_observation": "Normal demo Layout Overlay tab and project/takeoff/discipline/drawing chooser; cancelled without selecting a source",
+  "policy": "Temporary layers, original blue tint and white-transparent ink; no source code/assets copied",
+  "automated": {
+    "passed": 72,
+    "failed": 0,
+    "duration_ms": 12615.800067,
+    "command": "npm test",
+    "environment": "macOS / Node 24.22.0",
+    "new_cases": [
+      "Alpha/composition/source immutability/bounds",
+      "Actual cropped rotated PDF dimensions and translation/zoom inverse"
+    ]
+  },
+  "browser": {
+    "simultaneous_layers": 2,
+    "sources": [
+      "Owned revision fixture",
+      "Owned cropped rotated fixture"
+    ],
+    "revision_raster": [
+      595,
+      842
+    ],
+    "revision_ink_pixels": 7654,
+    "revision_transparent_paper_pixels": 493336,
+    "saved_offset_css_pixels": 10,
+    "saved_offset_css_pixels_after_zoom": 12.5,
+    "drag_offset_page_points": [
+      27.2,
+      18.13
+    ],
+    "cancel_restores_saved": true,
+    "enter_confirms": true,
+    "escape_cancels": true,
+    "independent_opacity": [
+      0.7,
+      0.35
+    ],
+    "hide_one_leaves_one": true,
+    "visible_in_measure": true,
+    "not_editable_in_measure": true,
+    "comparison_suppresses_and_overlay_restores": true,
+    "space_pan_delta_y": 20,
+    "pan_does_not_edit": true,
+    "delete_one_retains_other": true,
+    "duplicate_prevented": true,
+    "reset_to_zero": true,
+    "rotation_clears": true,
+    "exit_during_load_no_ghost": true,
+    "complete_api_state_unchanged": true,
+    "console_errors_warnings": 0
+  },
+  "failures": [
+    "First suite 71/72: incorrect generated fixture filename; switched generator to cropped variant and read its small-vector.pdf output; final complete rerun passed"
+  ],
+  "limits": [
+    "Eight layers, 1800 pixel longest side/4M pixels each; exhaustion not browser exercised",
+    "Base page clipping",
+    "Translation only; no rotation/scaling controls",
+    "Blue tint/opacity and flat local chooser do not establish exact reference rendering/UI",
+    "No floorplan stitching or revision recount",
+    "No database persistence, matching documented temporary overlay scope"
+  ],
+  "hosted": {
+    "status": "pending publication"
+  }
+}

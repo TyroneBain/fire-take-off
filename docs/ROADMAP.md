@@ -62,3 +62,5 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 2026-10-28: ADR-0021 editor layout/whole-page fit passed browser checks and 67/67 local regression suite. Publish/check hosted run next, then revision comparison on owned base/revision fixtures. Missing Layout, source-element editing, Smart Select, global save and estimating remain explicit.
 
 2026-10-28: ADR-0022 transient drawing comparison passes 70/70 local tests and browser alignment/lifecycle/no-mutation checks. F032 partial TESTED. Next: protected publication/CI, then Layout overlays/floorplans and revision recount. Phase 5 exit remains unmet.
+
+2026-10-28: comparison delivered with 70/70 hosted tests. ADR-0023 temporary overlays now pass 72/72 local tests and source-isolated browser checks. The public reference excludes overlay persistence; full floorplan stitching/revision recount and visual parity remain open.

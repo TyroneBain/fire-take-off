@@ -68,6 +68,13 @@
     "Real construction/large sheet acceptance and performance budgets incomplete"
   ],
   "hosted": {
-    "status": "pending publication"
+    "commit": "b2918d49098e40d90aaec4f6c6b49c0950cafde7",
+    "run_id": 40649219190,
+    "job_id": 122685105994,
+    "passed": 70,
+    "failed": 0,
+    "duration_ms": 22284.297636,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
   }
 }

@@ -1,3 +1,4 @@
+import {setupOverlays} from './overlay-ui.mjs';
 import {setupComparison} from './comparison-ui.mjs';
 import {setupProjects} from './project-ui.mjs';
 import {setupZones} from './zone-ui.mjs';
@@ -305,6 +306,14 @@ $('remove-note').onclick = ()=>{
 projectsUi=setupProjects({state:()=>state,api,reload:refresh,paint,node,button,notice,open:id=>{selectedProject=id;selectedTakeoff=null;closeViewer();paint();},home:()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();}});
 takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
 zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
-layoutUi=setupComparison({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),pdfjs,activateBase:()=>setNoteMode(false),notice});
+const layoutContext=()=>({state,drawing,pageNumber,viewport:activeViewport});
+const comparisonUi=setupComparison({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice});
+const overlayUi=setupOverlays({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice,suppressed:()=>comparisonUi.active});
+layoutUi={clear:()=>{comparisonUi.clear();overlayUi.clear();},deactivate:()=>{comparisonUi.deactivate();overlayUi.deactivate();},paint:()=>{comparisonUi.paint();overlayUi.paint();}};
+let layoutTab='overlay';
+function chooseLayout(tab){layoutTab=tab;if(tab==='compare')comparisonUi.activate();else overlayUi.activate();overlayUi.paint();}
+$('layout-tool').onclick=()=>chooseLayout(layoutTab);
+for(const id of ['layout-compare-tab','overlay-compare-tab'])$(id).onclick=()=>chooseLayout('compare');
+for(const id of ['layout-overlay-tab','overlay-overlay-tab'])$(id).onclick=()=>chooseLayout('overlay');
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

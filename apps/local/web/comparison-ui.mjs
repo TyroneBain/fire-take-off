@@ -58,5 +58,5 @@ export function setupComparison({context,pdfjs,activateBase,notice}){
     if(e.key==='Escape'){e.preventDefault();cancel();return;}if(e.key==='0'){e.preventDefault();offset=[0,0];schedule();return;}
     const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(delta){e.preventDefault();const step=(e.shiftKey?10:1)/context().viewport.scale;offset=[offset[0]+delta[0]*step,offset[1]+delta[1]*step];schedule();}
   });
-  return {activate,deactivate,paint,clear};
+  return {activate,deactivate,paint,clear,get active(){return active;}};
 }

@@ -54,3 +54,5 @@ The project workspace now uses **Active**, **Own** and **Archived** table views.
 Drawing review now opens in a full-width workspace with the Count/Measure/Zone/Note/Page tools on the left. **Fit drawing** fits the entire page; **Fit width** keeps the width-first option. The Fire Take Off button returns to projects, and **Drawings** returns to the takeoff.
 
 Layout → Compare now lets you choose an uploaded drawing/page, see original-only red/new-only blue/shared dark content and align with dragging or arrow keys. Save/Cancel/Reset/Remove affect this temporary view only; leaving the page clears it. Counts and source PDFs are unchanged. This bounded raster view does not automatically recount revisions.
+
+Layout → Overlay supports several temporary drawings with alignment, opacity and visibility controls. Overlays remain visible in Count/Measure/Zone/Note and clear when leaving the page. Their blue linework is a visual guide; it does not import quantities or change the source PDF.
