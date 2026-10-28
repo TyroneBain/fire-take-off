@@ -8,7 +8,7 @@ export function exampleRectangle(viewport,bounds) {
   return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
 }
 
-export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,api,reload,notice}) {
+export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,removeSelection,api,reload,notice}) {
   const cache=new Map();let queue=[],busy=false;
   async function drain(){
     if(busy)return;busy=true;
@@ -45,6 +45,7 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,edit
         const selection=node('th');selection.scope='row';const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;selection.append(preview,node('span',`Selection ${index+1}`));
         const saved=record.example.elements,elements=node('td',saved?String(saved.ids.length-saved.excluded.length):'—');elements.title=saved?'Selected PDF paint operations':'Open Edit to inspect vector elements';elements.setAttribute('aria-label',saved?'Selected PDF paint operations':'Element count not yet inspected');
         const count=node('td',String(matches),'selection-matches'),total=node('td',String(quantity),'selection-quantity');
+        const remove=button('×',event=>removeSelection(record,{skipConfirmation:event.shiftKey}).catch(error=>notice(error.message,true)),'selection-delete');remove.title='Delete selection';remove.setAttribute('aria-label',`Delete selection ${index+1}`);total.append(remove);
         const factor=node('td'),input=node('input');input.type='number';input.min='1';input.max='10000';input.step='1';input.required=true;input.value=record.multiplier||1;input.setAttribute('aria-label',`Multiplier for selection ${index+1}`);factor.append(input);
         row.append(selection,elements,count,factor,total);body.append(row);
         const detailRow=node('tr',null,'selection-details'),details=node('td');details.colSpan=5;

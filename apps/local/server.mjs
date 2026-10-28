@@ -113,6 +113,7 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       const selectionEdit=url.pathname.match(/^\/api\/examples\/([\w-]+)\/selection$/);
       if(selectionEdit&&request.method==='PATCH'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.editCountSelection(selectionEdit[1],body));}
       const multiplier=url.pathname.match(/^\/api\/examples\/([\w-]+)$/);
+      if(multiplier&&request.method==='DELETE'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.deleteCountSelection(multiplier[1],body));}
       if(multiplier&&request.method==='PATCH'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.updateCountMultiplier(multiplier[1],body));}
       const countItem=url.pathname.match(/^\/api\/items\/([\w-]+)$/);
       if((example&&request.method==='POST'||countItem&&request.method==='PATCH')&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');

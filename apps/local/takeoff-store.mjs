@@ -87,6 +87,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         countExamples:db.prepare('SELECT * FROM count_examples ORDER BY created,id').all().map(e=>({...e,example:JSON.parse(e.example)})),
         countMarks:db.prepare('SELECT m.*,coalesce(e.multiplier,1) AS multiplier FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id ORDER BY m.created,m.id').all().map(m=>({...m,quantity:m.included?m.multiplier:0})),calibrations,
         countSelectionEvents:db.prepare('SELECT * FROM count_selection_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
+        countSelectionDeletions:db.prepare('SELECT * FROM count_selection_deletions ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous)})),
         countExampleEvents:db.prepare('SELECT * FROM count_example_events ORDER BY rowid').all(),
         measurementFactorEvents:db.prepare('SELECT * FROM measurement_factor_events ORDER BY rowid').all(),
         countEvents:db.prepare('SELECT * FROM count_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
@@ -149,6 +150,30 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         db.exec('COMMIT');
       }catch(error){db.exec('ROLLBACK');throw error;}
       return {id:exampleId,version:e.version+1,added,removed:obsolete.length,skipped};
+    },
+    deleteCountSelection(exampleId,{version,item_version,expected_marks}={}) {
+      const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
+      const i=item(e.item_id);if(version!==e.version||item_version!==i.version)fail('Selection or heading changed. Reload before deleting.',409);
+      if(!Array.isArray(expected_marks)||expected_marks.some(m=>!m||typeof m.id!=='string'||!Number.isInteger(m.version)))fail('Complete match snapshot required');
+      const previous=db.prepare('SELECT * FROM count_marks WHERE example_id=? ORDER BY id').all(exampleId),expected=new Map(expected_marks.map(m=>[m.id,m.version]));
+      if(expected.size!==expected_marks.length||previous.length!==expected.size||previous.some(m=>expected.get(m.id)!==m.version))fail('Matches changed. Reload before deleting.',409);
+      const saved={selection:{...e,example:JSON.parse(e.example)},heading:i,marks:previous,
+        reviews:db.prepare('SELECT v.* FROM count_events v JOIN count_marks m ON m.id=v.mark_id WHERE m.example_id=? ORDER BY v.rowid').all(exampleId),
+        factors:db.prepare('SELECT * FROM count_example_events WHERE example_id=? ORDER BY rowid').all(exampleId),
+        edits:db.prepare('SELECT * FROM count_selection_events WHERE example_id=? ORDER BY rowid').all(exampleId),
+        coverage:db.prepare('SELECT * FROM coverage_events WHERE count_item_id=? ORDER BY rowid').all(i.id)};
+      let pruned=false;db.exec('BEGIN');
+      try{
+        db.prepare('DELETE FROM count_marks WHERE example_id=?').run(exampleId);
+        db.prepare('DELETE FROM count_examples WHERE id=?').run(exampleId);
+        const next=db.prepare('SELECT example FROM count_examples WHERE item_id=? ORDER BY created,id LIMIT 1').get(i.id);
+        if(!next&&!db.prepare('SELECT id FROM count_marks WHERE item_id=? OR original_item_id=? LIMIT 1').get(i.id,i.id)){
+          db.prepare('DELETE FROM count_items WHERE id=?').run(i.id);pruned=true;
+        }else db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,next?.example??null,i.id);
+        db.prepare('INSERT INTO count_selection_deletions VALUES (?,?,?,?,?)').run(randomUUID(),i.discipline_id,exampleId,JSON.stringify({...saved,pruned_heading:pruned}),new Date().toISOString());
+        db.exec('COMMIT');
+      }catch(error){db.exec('ROLLBACK');throw error;}
+      return {deleted:true,id:exampleId,removed:previous.length,pruned_heading:pruned};
     },
     updateCountMultiplier(exampleId,{version,multiplier}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);

@@ -86,3 +86,5 @@ Floorplan delivery observed: c83f716; hosted run 40654537936 passed 81/81 on Ubu
 2026-10-28: selection-editor c1907788 passes 96/96 hosted. Continued ADR-0031 adds independent negative controls and fixes dense-block overmatching in cleaned templates; 98/98 local plus real browser recount/correction isolation pass. Next: protected follow-up delivery/CI, then remaining selection management and revision recount. No orientation/scale robustness, realistic-corpus or full-parity gate waived.
 
 ADR-0031 delivered as 8cae73aa and passes 98/98 hosted tests. Next executable feature: reference-confirm empty-selection deletion and selection/heading lifecycle, implement with correction/audit acceptance, then continue revision recount. Catalogue deferred; full phase/parity gates remain open.
+
+2026-10-28 ADR-0032/schema13: source selection deletion is partial TESTED (F074, F073),104/104 local plus owned browser acceptance. No full parity gates closed. Next: protected publication/hosted checks, then normal-reference selection movement and heading lifecycle, followed by revision recount. Catalogue remains deferred.

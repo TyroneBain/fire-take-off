@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0032",
+  "schema": 13,
+  "features": [
+    "F074 partial TESTED",
+    "F073 deletion workflow"
+  ],
+  "environment": "macOS / Node 24.22.0 / Chrome / owned synthetic PDFs",
+  "sources": [
+    "https://help.countfire.com/en/articles/89697-deleting-a-symbol-selection",
+    "https://help.countfire.com/en/articles/118977-using-erase-all-to-delete-selections"
+  ],
+  "reference_observed": [
+    "Erase all \u2192 Done opened confirmation mentioning five other drawings",
+    "Confirm removed scratch selection and unused unnamed heading",
+    "Reload accepted beforeunload, then empty Count state reconfirmed; no top-level save"
+  ],
+  "tests": {
+    "command": "npm test",
+    "passed": 104,
+    "failed": 0,
+    "duration_ms": 17379.448089,
+    "new_tests": 6,
+    "covers": [
+      "Cross-drawing linked removal including reviewed/excluded/reclassified, with manual and other examples unchanged",
+      "Deletion audit archives source/marks/reviews/factors/edits/coverage and survives heading pruning",
+      "Workbook history remains after source selection deletion and isolates other takeoffs",
+      "Stale selection/heading/marks, invalid bodies and forced audit rollback",
+      "Missing source and reclassified manual original-reference preservation",
+      "Actual schema12 migration, reopen, foreign keys and HTTP token/JSON/replay gates"
+    ]
+  },
+  "browser": {
+    "row_cancel_exact_state": true,
+    "empty_editor_cancel_exact_state": true,
+    "empty_editor_cancel_keeps_zero_element_draft": true,
+    "row_delete_removed": 3,
+    "row_delete_drawings": 2,
+    "manual_and_unrelated_marks_identical": true,
+    "real_ui_selected_symbols": 6,
+    "erase_all_done_removed": 6,
+    "unused_heading_pruned": true,
+    "shift_click_skipped_confirmation": true,
+    "shift_click_removed": 6,
+    "deletion_ledger_entries": 3,
+    "console_errors_or_warnings": 0
+  },
+  "data": {
+    "backup": ".local/schema12-before-selection-deletion-2026-10-28.sqlite",
+    "preexisting_tables_preserved": 22,
+    "original_marks": 84,
+    "sources_immutable": true,
+    "server_session": 36924
+  },
+  "failed_checks": [
+    "Initial browser harness used stale app state after API fixture seeding; reloaded and reran successfully",
+    "Public web fetch failed; read the public help articles in Chrome"
+  ],
+  "limitations": [
+    "Original immediate commit model differs from reference global Save",
+    "Named-heading pruning and reclassified-delete edge policy provisional",
+    "Overlapping surviving definitions not automatically recounted",
+    "No delete undo UI",
+    "Full Countfire parity incomplete; catalogue deferred"
+  ],
+  "delivery": {
+    "parent": "5809a958408eb8af6d5d5ccffcb6c13c5c2386f7",
+    "source_commit": "pending",
+    "hosted_ci": "pending"
+  }
+}

@@ -1,4 +1,4 @@
-import {migrateSelectionEdits} from './selection-edits.mjs';
+import {migrateSelectionEdits,migrateSelectionDeletion} from './selection-edits.mjs';
 import {migrateCoverage,coverageStore} from './coverage-store.mjs';
 import {migrateFloorplans,floorplanStore} from './floorplan-store.mjs';
 import {migrateProjects,projectStore} from './project-store.mjs';
@@ -40,7 +40,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3,4,5,6,7,8,9,10,11,12].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4,5,6,7,8,9,10,11,12,13].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -66,6 +66,7 @@ export async function openStore(directory) {
   migrateFloorplans(db);
   migrateCoverage(db);
   migrateSelectionEdits(db);
+  migrateSelectionDeletion(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {

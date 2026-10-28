@@ -33,6 +33,8 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 
 - S17: [Editing selections](https://help.countfire.com/en/articles/89348-editing-selections) and [Elements](https://help.countfire.com/en/articles/89849-elements), read with normal demo interaction 2026-10-28
 
+- S18: [Delete a symbol selection](https://help.countfire.com/en/articles/89697-deleting-a-symbol-selection) and [Erase all deletion](https://help.countfire.com/en/articles/118977-using-erase-all-to-delete-selections), public and normal demo observed 2026-10-28
+
 ## Inventory
 
 | ID | Feature | Description | Evidence | Required workflow (proposed) | Status | Acceptance/testing requirements | Known limitations | Priority |
@@ -110,7 +112,9 @@ Descriptions summarise capability; workflows and tests below are proposed Fire T
 | F070 | Ignore classification | Classify examples as ignored material | S15 | Create Ignore heading and inspect resulting matches/output | NOT STARTED | Ignored matches do not inflate quantities; reclassification recoverable | Only article title discovered; suppression scope unresolved | P1 |
 | F071 | Symbols-removed output drawings | Produce drawings with counted symbols suppressed | S15 | Generate drawing record and review remaining material | NOT STARTED | Original retained; suppression tied to correct accepted source instances | Output control linked in help; precise format/options unresolved | P1 |
 | F072 | Saved selection review list | Inspect each source example | S15 | Expand a heading, inspect thumbnail, navigate to source selection | TESTED | Correct crop/rotation, source navigation, missing-source indication | Partial previews/source highlights, drawing-wide Matches/Multiplier/Total and classification reconciliation tested; saved vector operation counts, erase/restore and source-bound recount now tested; text/image decomposition and complete parity remain absent | P0 |
-| F073 | Selection element editing | Clean unwanted elements from examples | S15,S17 | Manage selection, erase/restore elements, recalculate results | TESTED | Edited template provenance and affected matches reconcile; cancel restores prior state | Partial vector-path editor, anchored recount, corrections/factors, atomic audit and cancel/reopen tested; text/image/clipping, empty-selection deletion, clash ownership and exact decomposition remain unmet | P0 |
+| F073 | Selection element editing | Clean unwanted elements from examples | S15,S17 | Manage selection, erase/restore elements, recalculate results | TESTED | Edited template provenance and affected matches reconcile; cancel restores prior state | Partial vector-path editor, anchored recount, corrections/factors, atomic audit and cancel/reopen tested; row and empty-editor deletion with cross-drawing confirmation, audit and unused-heading pruning tested; text/image/clipping, clash ownership and exact decomposition remain unmet | P0 |
+
+| F074 | Delete source selections | Remove one matching definition across drawings | S18 | Row Delete or Erase all → Done; confirm or Shift bypass | TESTED | Scoped removal, manual/other-example retention, stale snapshots, audit and export | Partial deletion/pruning tested; no undo, automatic overlapping-definition reassignment or global Save transaction | P0 |
 
 ## Phase 1 questions
 

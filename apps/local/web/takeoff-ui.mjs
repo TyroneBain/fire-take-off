@@ -1,3 +1,4 @@
+import {setupSelectionDeletion} from './selection-deletion.mjs';
 import {setupSelectionEditor} from './selection-editor.mjs';
 import {selectionFilter,editedTemplate} from './pdf-elements.mjs';
 import {coverageCircles,appendCoverage} from './coverage.mjs';
@@ -15,8 +16,10 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const marks=()=>context().state?.countMarks||[];
   const hiddenMarkers=new Set();
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
-  const selectionEditor=setupSelectionEditor({pdfjs,context,apply:(record,elements)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements}),cancelMatching:()=>cancelJob()});
-  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,editExample:record=>selectionEditor.open(record),api,reload,notice});
+  const deletion=setupSelectionDeletion({context,api,reload,notice});
+  const removeSelection=async(record,options)=>{const result=await deletion.request(record,options);if(result){highlightedExample=null;paint();}return result;};
+  const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements}),cancelMatching:()=>cancelJob()});
+  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,editExample:record=>selectionEditor.open(record),removeSelection,api,reload,notice});
   $('example-list').addEventListener('toggle',()=>{if($('example-list').open)previews.load();});
   function deactivate(){measurementEditor.clear();reclassification=null;mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
