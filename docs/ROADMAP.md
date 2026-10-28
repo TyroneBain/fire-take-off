@@ -58,3 +58,5 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 2026-10-28: ADR-0020 sequences project lifecycle/table fidelity next after the tested quantity-factor increment. This addresses the user's explicit visual-clone requirement and the confirmed account's project workflow. Full estimating/assignment/catalogue remain open; working takeoff features are preserved.
 
 2026-10-28: ADR-0020 project table/lifecycle passed 67/67 local and browser checks. Next: publish/observe its CI, then drawing workspace fidelity and revision comparison. Phase 1 research, representative benchmarks and full product gates remain open.
+
+2026-10-28: ADR-0021 editor layout/whole-page fit passed browser checks and 67/67 local regression suite. Publish/check hosted run next, then revision comparison on owned base/revision fixtures. Missing Layout, source-element editing, Smart Select, global save and estimating remain explicit.

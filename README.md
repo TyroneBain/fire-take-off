@@ -50,3 +50,5 @@ Each saved selection has a **Multiplier**. Quantities, zones and exports use tha
 Edit a length to set its **Length multiplier**, then Save measurement. Under Zone, set a heading multiplier and Save multiplier; it applies to every outline under that heading across drawings. Allocated export quantities include the factor. Excel shows zone factors, red affected quantities and separate Quantity detail/Factor history sheets.
 
 The project workspace now uses **Active**, **Own** and **Archived** table views. Create/edit customer, building type, local owner label and due date; change status from the row control and archive/restore through its menu. Own means the Local user label in this single-user app. Latest local suite: **67/67 passing**.
+
+Drawing review now opens in a full-width workspace with the Count/Measure/Zone/Note/Page tools on the left. **Fit drawing** fits the entire page; **Fit width** keeps the width-first option. The Fire Take Off button returns to projects, and **Drawings** returns to the takeoff.

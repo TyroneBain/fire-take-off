@@ -97,7 +97,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('reclassify-matches').onclick=toggleReclassification;$('reclassify-exit').onclick=toggleReclassification;
   $('reclassify-previous').onclick=()=>moveReclassification(-1);$('reclassify-next').onclick=()=>moveReclassification(1);$('reclassify-filter').oninput=paintReclassification;
   document.addEventListener('keydown',e=>{
-    if(mode!=='count'||job||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,[contenteditable]'))return;
+    if(mode!=='count'||job||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]')||e.target.closest?.('input,textarea,select,[contenteditable]'))return;
     if(e.key.toLowerCase()==='r'){e.preventDefault();toggleReclassification();}
     else if(reclassification){
       if(e.key==='Escape'){e.preventDefault();if(!reclassifying){reclassification=null;paint();}}

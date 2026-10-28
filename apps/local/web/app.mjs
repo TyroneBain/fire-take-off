@@ -125,14 +125,16 @@ async function openDrawing(d, targetPage=1, tool=null) {
   drawing = d; pageNumber = Math.max(1,Math.min(d.pages.length,targetPage)); rotation = 0;
   activeViewport = null; setNoteMode(false);
   resetPan = true;
+  document.body.classList.add('drawing-open');
   $('workspace').hidden = true; $('viewer').hidden = false; $('drawing-title').textContent = d.name;
+  takeoffUi.activate(tool||'count');
   $('render-status').textContent = 'Opening drawing…'; $('pdf-canvas').hidden = true;
   try {
     const task = pdfjs.getDocument({ url: `/api/drawings/${d.id}/source`, isEvalSupported: false, cMapUrl: '/vendor/cmaps/', cMapPacked: true, standardFontDataUrl: '/vendor/standard_fonts/', wasmUrl: '/vendor/wasm/' });
     loadingTask = task;
     const loaded = await task.promise;
     if (generation !== renderRevision) { await task.destroy(); return; }
-    pdf = loaded; await fitWidth(); if(tool)takeoffUi.activate(tool);
+    pdf = loaded; await fitDrawing();
   } catch (error) { if (generation === renderRevision) { $('render-status').textContent = 'Unable to display this PDF'; notice(error.message, true); } }
 }
 async function render() {
@@ -161,9 +163,15 @@ async function render() {
     page.cleanup();
   } catch (error) { if (error.name !== 'RenderingCancelledException' && generation === renderRevision) { $('render-status').textContent = 'Rendering failed'; notice(error.message, true); } }
 }
+async function fitDrawing() {
+  if(!pdf)return;
+  const page=await pdf.getPage(pageNumber),view=page.getViewport({scale:1,rotation:(page.rotate+rotation)%360}),stage=$('drawing-stage');
+  scale=Math.max(.1,Math.min(4,(stage.clientWidth-60)/view.width,(stage.clientHeight-72)/view.height));resetPan=true;await render();
+}
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
-function closeViewer() { ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
+function closeViewer() { document.body.classList.remove('drawing-open'); ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
+$('viewer-dashboard').onclick=()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();};
 $('hide-source').onchange = () => $('page-surface').classList.toggle('source-hidden', $('hide-source').checked);
 $('previous-page').onclick = () => { if (pdf && pageNumber > 1) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber--; resetPan = true; render(); } };
 $('next-page').onclick = () => { if (pdf && pageNumber < pdf.numPages) { takeoffUi?.clearDraft(); zoneUi?.clearDraft(); pageNumber++; resetPan = true; render(); } };
@@ -184,6 +192,7 @@ setupDrawingNavigation({stage:$('drawing-stage'),viewer:$('viewer'),navigationMo
   '1':()=>$('count-tool').click(),'2':()=>$('measure-tool').click(),'3':()=>$('zone-tool').click(),'4':()=>$('note-tool').click(),d:()=>{$('drawing-select').focus();try{$('drawing-select').showPicker();}catch{}}
 }});
 $('fit-page').onclick = fitWidth;
+$('fit-drawing').onclick = fitDrawing;
 $('rotate-page').onclick = () => { rotation = (rotation + 90) % 360; render(); };
 $('drawing-select').onchange=()=>{const next=state.drawings.find(d=>d.id===$('drawing-select').value);if(next)openDrawing(next,1,takeoffUi?.mode);};
 function setNoteMode(enabled) {

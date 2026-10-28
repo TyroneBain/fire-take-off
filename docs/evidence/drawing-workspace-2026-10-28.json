@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0021",
+  "reference": {
+    "origin": "https://beta.countfire.com/",
+    "scope": "Supplied demo drawing; normal read-only UI observation",
+    "top_bar_css_px": 64,
+    "tool_rail_css_px": 59.2578125,
+    "left_panel_css_px": 350,
+    "tabs_observed": [
+      "Count",
+      "Measure",
+      "Zone",
+      "Note",
+      "Layout",
+      "Page"
+    ],
+    "method": "Visible labels/rectangles and inline screenshot only; no source assets or drawing content saved"
+  },
+  "implemented": [
+    "Full-width drawing workspace replaces project navigation while open",
+    "64px top bar, 60px vertical tool rail and 350px left tool panels",
+    "Original dark panel styles and light stage",
+    "Count opens by default; fit whole drawing plus separate Fit width",
+    "Dashboard/drawing-list return and existing working controls preserved"
+  ],
+  "automated": {
+    "command": "npm test",
+    "passed": 67,
+    "failed": 0,
+    "duration_ms": 12337.073093,
+    "scope": "Existing product/fixture regression suite; no invented CSS unit coverage"
+  },
+  "browser": {
+    "whole_vector_and_cropped_rotated_pages_fit_stage": true,
+    "tool_panels": [
+      "Count",
+      "Measure",
+      "Zone",
+      "Note",
+      "Page"
+    ],
+    "all_panel_widths_css_px": 350,
+    "all_stage_left_css_px": 410,
+    "zoom_anchor_drift_css_px": [
+      -0.08982602117998795,
+      -0.24678517397887845
+    ],
+    "pan_scroll_delta_css_px": [
+      -70,
+      -50
+    ],
+    "manual_count_armed_during_pan": true,
+    "cropped_rotated_note_drift_css_px": [
+      -0.004076086956388281,
+      -0.004376381587462674
+    ],
+    "full_api_state_unchanged": true,
+    "dashboard_return": true,
+    "final_visible_markers": 6,
+    "console_errors_warnings_after_fixes": 0,
+    "keyboard_document_target_guard_retested": true,
+    "method": "Own-app controls, DOM pointer/keyboard events and original geometry oracle; screenshots inspected inline"
+  },
+  "failures_and_fixes": [
+    "Initial Note/Page CSS specificity retained old 280px width; explicit overrides now keep 350px/stage x410",
+    "Synthetic document-target key event exposed unguarded closest call; optional method guard fixed and browser repro passed",
+    "Browser reconnect changed viewport height during one in-flight zoom measurement, invalidating that sample; stable-viewport rerun recorded above"
+  ],
+  "limitations": [
+    "Layout overlays/floorplan/comparison not yet implemented",
+    "Full Countfire save/selection/global shortcut semantics remain incomplete",
+    "Hide drawing is entire-source visibility, not source-element background classification",
+    "Exact pixel parity and physical gesture/accessibility acceptance not complete",
+    "Hosted run for this increment pending publication"
+  ]
+}

@@ -45,13 +45,25 @@
     "table_row_height_css_px": 61,
     "console_errors_warnings": 0,
     "screenshot": "Inline own-app screenshot visually inspected; no file saved",
-    "method": "DOM controls and API readback on original synthetic data"
+    "method": "DOM controls and API readback on original synthetic data",
+    "existing_viewer_reopened": true,
+    "existing_raw_matches": 78,
+    "existing_quantity": 78
   },
   "limitations": [
     "Local owner labels only; Own is not authentication or multi-user permission enforcement",
     "Reference create/update/archive behavior not executed; presence/layout observed only",
     "Full exact visual parity and responsive/accessibility acceptance unfinished",
-    "Estimating/catalogue/assignment UI remains absent",
-    "Hosted result for this commit pending publication"
-  ]
+    "Estimating/catalogue/assignment UI remains absent"
+  ],
+  "hosted": {
+    "commit": "897f6c91dcef33163aec35b9f7b907364c06b096",
+    "run_id": 40565751944,
+    "job_id": 122406425133,
+    "passed": 67,
+    "failed": 0,
+    "duration_ms": 22704.371223,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
+  }
 }

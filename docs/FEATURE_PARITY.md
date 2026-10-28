@@ -133,3 +133,5 @@ Selection multiplier evidence: [2026-10-27](evidence/count-multipliers-2026-10-2
 Length/zone factor evidence: [2026-10-28](evidence/quantity-factors-2026-10-28.json), 61/61 local. F067/F068 partial scopes now TESTED with source/base/final quantity provenance and independent workbook XML validation. Earlier NOT STARTED references describe prior checkpoints.
 
 Project workspace evidence: [reference observations](evidence/countfire-project-ui-2026-10-28.json) and [implementation tests](evidence/projects-2026-10-28.json), 67/67 local. Expands partial F001 with metadata/lifecycle/views and reference-shaped table. F049 stays NOT STARTED for actual drawing assignment/progress and permissions.
+
+Drawing workspace evidence: [2026-10-28](evidence/drawing-workspace-2026-10-28.json), 67/67 local regression suite plus browser geometry/navigation checks. F004–F006 now have a reference-shaped full-width editor, left tool panels, default whole-page fit and original controls; complete layout/gesture/parity remains open.
