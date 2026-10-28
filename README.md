@@ -56,3 +56,5 @@ Drawing review now opens in a full-width workspace with the Count/Measure/Zone/N
 Layout → Compare now lets you choose an uploaded drawing/page, see original-only red/new-only blue/shared dark content and align with dragging or arrow keys. Save/Cancel/Reset/Remove affect this temporary view only; leaving the page clears it. Counts and source PDFs are unchanged. This bounded raster view does not automatically recount revisions.
 
 Layout → Overlay supports several temporary drawings with alignment, opacity and visibility controls. Overlays remain visible in Count/Measure/Zone/Note and clear when leaving the page. Their blue linework is a visual guide; it does not import quantities or change the source PDF.
+
+Layout → Floor plan now joins pages from one discipline into a saved arrangement. Add drawings, align with drag/arrows and Save/Cancel, hide or fit the group, and Open another member while retaining positions. Only the current sheet accepts counts and measurements; neighbouring sheets show source PDFs. Schema 10 stores versioned membership/positions and audit. Group merging, member scaling and cross-sheet measurement creation are not yet supported.

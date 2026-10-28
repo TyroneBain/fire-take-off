@@ -70,3 +70,5 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 2026-10-28: comparison delivered with 70/70 hosted tests. ADR-0023 temporary overlays now pass 72/72 local tests and source-isolated browser checks. The public reference excludes overlay persistence; full floorplan stitching/revision recount and visual parity remain open.
 
 2026-10-28: ADR-0024 hierarchical source picker passes 74/74 local tests and browser scoping checks. Overlay CI passed 72/72. Next: shared same-discipline floorplans with durable alignment; F031 remains NOT STARTED until implemented and accepted.
+
+2026-10-28: ADR-0026 floorplans are partial TESTED (81/81 local plus browser). Schema 10 persists same-discipline page groups and translations, preserves native takeoff coordinates and recovers on member navigation/reload. F031 no longer NOT STARTED. Publish/check CI, then member review/navigation and remaining recognition/revisions. Phase 5 exit and full parity remain unmet; catalogue remains deferred.

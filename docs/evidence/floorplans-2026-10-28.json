@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-28",
+  "decision": "ADR-0026",
+  "feature": "F031 partial TESTED",
+  "schema": 10,
+  "reference": {
+    "source": "https://help.countfire.com/en/articles/8200729-floor-plans",
+    "normal_demo_observation": [
+      "Layout/Floor plan/Overlay/Compare tabs",
+      "Add drawing control",
+      "Guidance for stitching drawings"
+    ],
+    "source_code_or_private_data_saved": false
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 81,
+    "failed": 0,
+    "duration_ms": 13335.053764,
+    "environment": "macOS / Node 24.22.0",
+    "new_tests": 7,
+    "covers": [
+      "Membership/position/reopen and per-member group identity",
+      "Source bytes, quantities and workbook snapshot unchanged",
+      "Cross-discipline, invalid page/position, stale, duplicate and merge rejection",
+      "Forced audit rollback for add/update/remove/drawing deletion",
+      "Singleton pruning and remaining source preservation",
+      "Schema 9 migration",
+      "Analytic crop/rotation/UserUnit geometry and HTTP token/validation routes"
+    ]
+  },
+  "browser": {
+    "persistent_members": 3,
+    "saved_translation_css_pixels": 10,
+    "saved_revision_x": 607.6675639300134,
+    "negative_drag_cancel_unchanged": true,
+    "member_navigation_and_reload": true,
+    "hide_restore": true,
+    "fit": true,
+    "whole_view_rotation": true,
+    "rotated_note_drift_css_pixels": [
+      -0.005818776354658439,
+      -0.0016983695651617836
+    ],
+    "zoom_anchor_drift_css_pixels": [
+      0.24694591176239555,
+      -0.125
+    ],
+    "pan_delta_css_pixels": [
+      60,
+      0
+    ],
+    "manual_count_armed": true,
+    "pan_state_unchanged": true,
+    "same_pdf_pages": [
+      1,
+      2
+    ],
+    "remove_prunes_second_group_preserving_ten_pages": true,
+    "overlay_compare_regression": true,
+    "active_sheet_draft_outline": true,
+    "console_errors_warnings": 0
+  },
+  "local_workspace": {
+    "pre_migration_backup": ".local/schema9-before-floorplans-2026-10-28.sqlite (ignored)",
+    "unchanged_preexisting_tables": 17,
+    "source_digests_verified": 5,
+    "remaining_demo_members": 3,
+    "source_drawings": 5
+  },
+  "failed_checks": [
+    "Initial suite 80/81: test helper sent JSON content type for empty DELETE; corrected request header and reran successfully",
+    "Old server terminal session unavailable; restricted process inspection/TERM denied; verified loopback PID/cwd and permitted TERM/start succeeded",
+    "Early multipage browser script ran before drawing ready; no mutation occurred, rerun after ready passed"
+  ],
+  "limitations": [
+    "2\u201316 pages; 1800-pixel raster side; provisional 100000-point extent",
+    "Only active member annotations are displayed/editable",
+    "No group merging, member scaling or cross-sheet measurement creation",
+    "Full reference pixel/shortcut parity unverified",
+    "Large-plan capacity/performance and missing-source Retry not browser exercised"
+  ],
+  "hosted": {
+    "status": "pending publication"
+  }
+}

@@ -53,6 +53,12 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         if (!body || typeof body !== 'object') throw new AppError(400, 'JSON object required');
         return send(201, store.create(body.kind, body.parentId, body.name, body.metadata));
       }
+      const floorplanAdd=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/floorplan-pages$/);
+      const floorplanMember=url.pathname.match(/^\/api\/floorplan-members\/([\w-]+)$/);
+      if((floorplanAdd&&request.method==='POST'||floorplanMember&&request.method==='PATCH')&&(!body||typeof body!=='object'||Array.isArray(body)))throw new AppError(400,'JSON object required');
+      if(floorplanAdd&&request.method==='POST')return send(201,store.addFloorplanPage(floorplanAdd[1],body));
+      if(floorplanMember&&request.method==='PATCH')return send(200,store.updateFloorplanMember(floorplanMember[1],body));
+      if(floorplanMember&&request.method==='DELETE')return send(200,{floorplan:store.removeFloorplanMember(floorplanMember[1],Number(url.searchParams.get('version')))});
       const project=url.pathname.match(/^\/api\/projects\/([\w-]+)$/);
       if(project&&request.method==='PATCH'){
         if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');

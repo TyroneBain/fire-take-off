@@ -1,3 +1,4 @@
+import {setupFloorplans} from './floorplan-ui.mjs';
 import {setupOverlays} from './overlay-ui.mjs';
 import {setupComparison} from './comparison-ui.mjs';
 import {setupProjects} from './project-ui.mjs';
@@ -171,6 +172,7 @@ async function fitDrawing() {
   const page=await pdf.getPage(pageNumber),view=page.getViewport({scale:1,rotation:(page.rotate+rotation)%360}),stage=$('drawing-stage');
   scale=Math.max(.1,Math.min(4,(stage.clientWidth-60)/view.width,(stage.clientHeight-72)/view.height));resetPan=true;await render();
 }
+async function fitFloorplan(width,height){if(!pdf)return;scale=Math.max(.1,Math.min(4,($('drawing-stage').clientWidth-60)/width,($('drawing-stage').clientHeight-72)/height));resetPan=true;await render();}
 async function fitWidth() { if (!pdf) return; const page = await pdf.getPage(pageNumber); const view = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 }); scale = Math.max(.1, Math.min(4, ($('drawing-stage').clientWidth - 60) / view.width)); await render(); }
 function closeViewer() { layoutUi?.clear();layoutUi?.deactivate();document.body.classList.remove('drawing-open'); ++renderRevision; renderTask?.cancel(); loadingTask?.destroy(); loadingTask = null; pdf = null; activeViewport = null; takeoffUi?.deactivate(); zoneUi?.deactivate(); $('viewer').hidden = true; $('workspace').hidden = false; }
 $('close-viewer').onclick = closeViewer;
@@ -306,14 +308,16 @@ $('remove-note').onclick = ()=>{
 projectsUi=setupProjects({state:()=>state,api,reload:refresh,paint,node,button,notice,open:id=>{selectedProject=id;selectedTakeoff=null;closeViewer();paint();},home:()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();}});
 takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
 zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
-const layoutContext=()=>({state,drawing,pageNumber,viewport:activeViewport});
+const layoutContext=()=>({state,drawing,pageNumber,viewport:activeViewport,fitFloorplan});
 const comparisonUi=setupComparison({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice});
 const overlayUi=setupOverlays({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice,suppressed:()=>comparisonUi.active});
-layoutUi={clear:()=>{comparisonUi.clear();overlayUi.clear();},deactivate:()=>{comparisonUi.deactivate();overlayUi.deactivate();},paint:()=>{comparisonUi.paint();overlayUi.paint();}};
-let layoutTab='overlay';
-function chooseLayout(tab){layoutTab=tab;if(tab==='compare')comparisonUi.activate();else overlayUi.activate();overlayUi.paint();}
+const floorplanUi=setupFloorplans({context:layoutContext,pdfjs,api,reload:refresh,activateBase:()=>setNoteMode(false),notice,openDrawing,suppressed:()=>comparisonUi.active});
+layoutUi={clear:()=>{comparisonUi.clear();overlayUi.clear();floorplanUi.clear();},deactivate:()=>{comparisonUi.deactivate();overlayUi.deactivate();floorplanUi.deactivate();},paint:()=>{comparisonUi.paint();overlayUi.paint();floorplanUi.paint();}};
+let layoutTab='floorplan';
+function chooseLayout(tab){layoutTab=tab;if(tab==='compare')comparisonUi.activate();else if(tab==='overlay')overlayUi.activate();else floorplanUi.activate();overlayUi.paint();floorplanUi.paint();}
 $('layout-tool').onclick=()=>chooseLayout(layoutTab);
-for(const id of ['layout-compare-tab','overlay-compare-tab'])$(id).onclick=()=>chooseLayout('compare');
-for(const id of ['layout-overlay-tab','overlay-overlay-tab'])$(id).onclick=()=>chooseLayout('overlay');
+for(const id of ['layout-compare-tab','overlay-compare-tab','floorplan-compare-tab'])$(id).onclick=()=>chooseLayout('compare');
+for(const id of ['layout-overlay-tab','overlay-overlay-tab','floorplan-overlay-tab'])$(id).onclick=()=>chooseLayout('overlay');
+for(const id of ['layout-floorplan-tab','overlay-floorplan-tab','floorplan-floorplan-tab'])$(id).onclick=()=>chooseLayout('floorplan');
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }

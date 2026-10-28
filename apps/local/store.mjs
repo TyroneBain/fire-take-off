@@ -1,3 +1,4 @@
+import {migrateFloorplans,floorplanStore} from './floorplan-store.mjs';
 import {migrateProjects,projectStore} from './project-store.mjs';
 import {migrateZones,zoneStore} from './zone-store.mjs';
 import {migrateQuantityMultipliers} from './quantity-multipliers.mjs';
@@ -37,7 +38,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3,4,5,6,7,8,9].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4,5,6,7,8,9,10].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -60,6 +61,7 @@ export async function openStore(directory) {
   migrateCountMultipliers(db);
   migrateQuantityMultipliers(db);
   migrateProjects(db);
+  migrateFloorplans(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -82,15 +84,16 @@ export async function openStore(directory) {
     return value.trim();
   }
   const takeoff=takeoffStore(db,{drawing,requireEntity,name,AppError});
+  const floorplans=floorplanStore(db,{drawing,AppError});
   const projects=projectStore(db,{requireEntity,name,AppError});
   const zone=zoneStore(db,{drawing,requireEntity,name,AppError});
   return {
-    ...takeoff,...zone,updateProject:projects.updateProject,
+    ...takeoff,...zone,...floorplans,updateProject:projects.updateProject,
     close: () => db.close(),
     snapshot: () => {const state={ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
       drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
       notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all(),
-      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot(),...projects.projectSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
+      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot(),...projects.projectSnapshot(),...floorplans.floorplanSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
     create(kind, parentId, value, metadata={}) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');
@@ -178,7 +181,9 @@ export async function openStore(directory) {
     },
     deleteDrawing(id) {
       drawing(id);
-      db.prepare('DELETE FROM drawings WHERE id=?').run(id);
+      db.exec('BEGIN');
+      try{floorplans.removeDrawingFromFloorplans(id);db.prepare('DELETE FROM drawings WHERE id=?').run(id);db.exec('COMMIT');}
+      catch(error){db.exec('ROLLBACK');throw error;}
       // Immutable source retained for later explicit retention/backup policy.
     },
   };
