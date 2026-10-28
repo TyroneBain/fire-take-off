@@ -74,3 +74,5 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 2026-10-28: ADR-0026 floorplans are partial TESTED (81/81 local plus browser). Schema 10 persists same-discipline page groups and translations, preserves native takeoff coordinates and recovers on member navigation/reload. F031 no longer NOT STARTED. Publish/check CI, then member review/navigation and remaining recognition/revisions. Phase 5 exit and full parity remain unmet; catalogue remains deferred.
 
 Floorplan delivery observed: c83f716; hosted run 40654537936 passed 81/81 on Ubuntu 24.04/Node 24.22.0. Next: member review/annotation visibility and view-navigation fidelity; catalogue remains deferred.
+
+2026-10-28: ADR-0027/0028 member annotation review and drawing-wide selection rows pass 85/85 local tests and browser checks. F031/F072 remain partial TESTED. Next: protected publication and CI, then coverage-radius behavior research/implementation and remaining recognition/revisions. Catalogue stays deferred.

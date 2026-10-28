@@ -14,7 +14,7 @@ let pdf, loadingTask, drawing, pageNumber = 1, scale = 1, rotation = 0, renderTa
 let messageTimer;
 let resetPan = false;
 let activeViewport, noteMode = false, placingNote = false, editingNote = null;
-let takeoffUi,zoneUi,projectsUi,layoutUi;
+let takeoffUi,zoneUi,projectsUi,layoutUi,floorplanUi;
 let zoomEpoch=0;
 function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
@@ -306,12 +306,18 @@ $('remove-note').onclick = ()=>{
   };
 };
 projectsUi=setupProjects({state:()=>state,api,reload:refresh,paint,node,button,notice,open:id=>{selectedProject=id;selectedTakeoff=null;closeViewer();paint();},home:()=>{selectedProject=null;selectedTakeoff=null;closeViewer();paint();}});
-takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false)});
+takeoffUi=setupTakeoff({context:()=>({state,drawing,pageNumber,viewport:activeViewport,openDrawing}),api,reload:refresh,node,button,notice,pdfjs,setBaseMode:()=>setNoteMode(false),onVisibilityChange:()=>floorplanUi?.paint()});
 zoneUi=setupZones({context:()=>({state,drawing,pageNumber,viewport:activeViewport}),api,reload:refresh,node,button,notice,setBaseMode:()=>setNoteMode(false)});
 const layoutContext=()=>({state,drawing,pageNumber,viewport:activeViewport,fitFloorplan});
 const comparisonUi=setupComparison({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice});
 const overlayUi=setupOverlays({context:layoutContext,pdfjs,activateBase:()=>setNoteMode(false),notice,suppressed:()=>comparisonUi.active});
-const floorplanUi=setupFloorplans({context:layoutContext,pdfjs,api,reload:refresh,activateBase:()=>setNoteMode(false),notice,openDrawing,suppressed:()=>comparisonUi.active});
+floorplanUi=setupFloorplans({context:layoutContext,pdfjs,api,reload:refresh,activateBase:()=>setNoteMode(false),notice,openDrawing,suppressed:()=>comparisonUi.active,isMarkerVisible:id=>takeoffUi.isMarkerVisible(id),openAnnotation:record=>{
+  if(record.drawing_id!==drawing?.id||record.page!==pageNumber)return;
+  if(record.kind==='count')takeoffUi.reviewMark(record.id);
+  else if(record.kind==='measure')takeoffUi.editMeasure(record.id);
+  else if(record.kind==='zone')zoneUi.openOutline(record.id);
+  else if(record.kind==='note'){const note=state.notes.find(n=>n.id===record.id);if(note){setNoteMode(true);openNote(note);}}
+}});
 layoutUi={clear:()=>{comparisonUi.clear();overlayUi.clear();floorplanUi.clear();},deactivate:()=>{comparisonUi.deactivate();overlayUi.deactivate();floorplanUi.deactivate();},paint:()=>{comparisonUi.paint();overlayUi.paint();floorplanUi.paint();}};
 let layoutTab='floorplan';
 function chooseLayout(tab){layoutTab=tab;if(tab==='compare')comparisonUi.activate();else if(tab==='overlay')overlayUi.activate();else floorplanUi.activate();overlayUi.paint();floorplanUi.paint();}

@@ -31,5 +31,6 @@ export function setupZones({context,api,reload,node,button,notice,setBaseMode}){
  $('page-surface').addEventListener('pointerup',()=>{if(drag){drag=null;paint();}});
  $('page-surface').addEventListener('pointercancel',()=>{if(drag){draft=drag.points;drag=null;paint();}});
  $('page-surface').addEventListener('contextmenu',e=>{if(active&&drawingOutline&&draft.length>=3){e.preventDefault();$('finish-zone').click();}});
- return {paint,deactivate,activate,clearDraft(){draft=[];drawingOutline=false;editing=null;drag=null;},get active(){return active;}};
+ function openOutline(id){const z=pageZones().find(z=>z.id===id);if(!z)return;activate();selected=z.heading_id;editing=z;drag=null;draft=z.points.map(p=>[...p]);drawingOutline=true;paint();}
+ return {paint,deactivate,activate,openOutline,clearDraft(){draft=[];drawingOutline=false;editing=null;drag=null;},get active(){return active;}};
 }

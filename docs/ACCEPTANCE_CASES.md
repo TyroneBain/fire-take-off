@@ -44,6 +44,14 @@ A019 — Length/zone multipliers (partial TESTED, 2026-10-28): 30 m length x2 sp
 
 A020 — Project lifecycle (partial TESTED, 2026-10-28): create/edit local metadata and valid dates, traverse six statuses, filter/sort Active/Own/Archived, archive/restore and reopen without altering child entities, drawing bytes or quantities. Force metadata/audit failures and stale edits to prove atomicity. Browser create/cancel/edit/filter/status/archive/restore passed. See [projects](evidence/projects-2026-10-28.json); full user roles and reference pixel parity remain unresolved.
 
-### A019 — Persistent same-discipline floorplans (partial TESTED, 2026-10-28)
+### A020 — Persistent same-discipline floorplans (partial TESTED, 2026-10-28)
 
-Join owned original/revision/cropped-rotated pages, align and cancel/save changes, navigate to another member and reopen. Stable common positions, native note/measurement/mark coordinates and workbook snapshot must survive. Reject cross-discipline, stale, invalid, duplicate and group-merging changes without partial writes; forced audit failure must roll back even drawing deletion. Removing a companion prunes singleton groups without deleting source sheets. Test whole-view rotation/UserUnit with independent rectangular bounds and saved-state isolation while panning in count mode. Evidence: [floorplans](evidence/floorplans-2026-10-28.json). Group merging, member scale, all-sheet annotations and cross-sheet measurements remain out of this tested subset.
+Join owned original/revision/cropped-rotated pages, align and cancel/save changes, navigate to another member and reopen. Stable common positions, native note/measurement/mark coordinates and workbook snapshot must survive. Reject cross-discipline, stale, invalid, duplicate and group-merging changes without partial writes; forced audit failure must roll back even drawing deletion. Removing a companion prunes singleton groups without deleting source sheets. Test whole-view rotation/UserUnit with independent rectangular bounds and saved-state isolation while panning in count mode. Evidence: [floorplans](evidence/floorplans-2026-10-28.json). Group merging, member scale and cross-sheet measurements remain out of this tested subset. Annotation review is covered separately by A021.
+
+### A021 — Floorplan member review (partial TESTED, 2026-10-28)
+
+Project saved counts/measures/zones/notes through actual cropped/rotated PDF viewports; heading visibility and layout drafts must apply consistently. Opening each annotation must navigate to its owner page and existing editor without changing quantities or records. Space-pan must not activate it. Tests and browser evidence: [member review](evidence/member-selection-review-2026-10-28.json).
+
+### A022 — Selection list reconciliation (partial TESTED, 2026-10-28)
+
+Current-drawing selection rows include every page, retain zero-match examples and reconcile included instances and quantities exactly. Excluded and moved-out matches must not inflate the heading; manual/unlinked/incoming examples appear explicitly. Actual element counts remain unknown. Tests cover mixed factors/classifications; browser ten-page totals stay 60/60 across page navigation, Original shows 5/5 plus one moved-out instance and destination shows 1/1. Source highlight and input state verified without API mutations. Same evidence as A021.

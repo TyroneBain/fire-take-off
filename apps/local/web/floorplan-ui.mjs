@@ -1,8 +1,9 @@
+import {floorplanAnnotationModel,renderFloorplanAnnotations} from './floorplan-annotations.mjs';
 import {floorplanFor,floorplanLayout,rotateVector,MAX_FLOORPLAN_PAGES} from './floorplan-model.mjs';
 import {comparisonScale} from './comparison.mjs';
 import {setupDrawingPicker} from './drawing-picker.mjs';
 const $=id=>document.getElementById(id);
-export function setupFloorplans({context,pdfjs,api,reload,activateBase,notice,openDrawing,suppressed}){
+export function setupFloorplans({context,pdfjs,api,reload,activateBase,notice,openDrawing,suppressed,openAnnotation,isMarkerVisible}){
   let active=false,visible=true,selected=null,draft=null,busy=false,drag=null,contextKey=null,generation=0,viewLayout=null,viewScale=1;
   const world=$('floorplan-world'),surface=$('page-surface'),stage=$('drawing-stage'),cache=new Map(),tasks=new Set();
   const data=()=>{const c=context();return floorplanFor(c.state||{},c.drawing?.id,c.pageNumber);};
@@ -34,13 +35,13 @@ export function setupFloorplans({context,pdfjs,api,reload,activateBase,notice,op
     world.querySelectorAll('.floorplan-sheet').forEach(e=>e.remove());
     for(const m of layout.rectangles){if(m.id===f.member.id)continue;const d=c.state.drawings.find(d=>d.id===m.drawing_id),key=`${d.id}:${m.page}:${rotation()}`,sheet=document.createElement('div');sheet.className='floorplan-sheet';sheet.dataset.memberId=m.id;sheet.classList.toggle('editing',active&&draft?.id===m.id);for(const [k,v]of Object.entries({left:m.left,top:m.top,width:m.width,height:m.height}))sheet.style[k]=`${v*viewScale}px`;
       const cached=cache.get(key),label=document.createElement('button');label.className='floorplan-open';label.textContent=`${d.name} · page ${m.page} · Open`;label.onclick=()=>navigate(m);label.disabled=busy;sheet.append(label);
-      if(cached?.canvas)sheet.append(cached.canvas);else {const status=document.createElement('span');status.className='floorplan-load';status.textContent=cached?.error?'Unable to load page':'Loading page…';sheet.append(status);if(cached?.error){const retry=document.createElement('button');retry.className='floorplan-retry';retry.textContent='Retry';retry.onclick=()=>{cache.delete(key);paint();};sheet.append(retry);}}
+      if(cached?.canvas){sheet.append(cached.canvas);sheet.append(renderFloorplanAnnotations(floorplanAnnotationModel(c.state,d.id,m.page,cached.viewport,viewScale,isMarkerVisible),{open:record=>navigate(m,record),disabled:busy||!!draft}));}else {const status=document.createElement('span');status.className='floorplan-load';status.textContent=cached?.error?'Unable to load page':'Loading page…';sheet.append(status);if(cached?.error){const retry=document.createElement('button');retry.className='floorplan-retry';retry.textContent='Retry';retry.onclick=()=>{cache.delete(key);paint();};sheet.append(retry);}}
       world.append(sheet);if(!cached)load(d,m.page,rotation(),key);
     }
   }
   async function load(d,pageNumber,userRotation,key){
     const epoch=generation,entry={};cache.set(key,entry);const task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});tasks.add(task);entry.task=task;
-    try{const pdf=await task.promise,page=await pdf.getPage(pageNumber);if(epoch!==generation||cache.get(key)!==entry)return;const angle=(page.rotate+userRotation+360)%360,v=page.getViewport({scale:1,rotation:angle}),scale=comparisonScale([v]),viewport=page.getViewport({scale,rotation:angle}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport,background:'white'}).promise;if(epoch!==generation||cache.get(key)!==entry)return;entry.canvas=canvas;paint();}
+    try{const pdf=await task.promise,page=await pdf.getPage(pageNumber);if(epoch!==generation||cache.get(key)!==entry)return;const angle=(page.rotate+userRotation+360)%360,v=page.getViewport({scale:1,rotation:angle}),scale=comparisonScale([v]),viewport=page.getViewport({scale,rotation:angle}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport,background:'white'}).promise;if(epoch!==generation||cache.get(key)!==entry)return;entry.canvas=canvas;entry.viewport=v;paint();}
     catch(error){if(epoch===generation){entry.error=true;paint();}}
     finally{tasks.delete(task);await task.destroy().catch(()=>{});}
   }
@@ -48,7 +49,7 @@ export function setupFloorplans({context,pdfjs,api,reload,activateBase,notice,op
   function cancel(){if(busy)return;draft=null;drag=null;paint();}
   async function save(){if(!draft||busy)return;const value={...draft};busy=true;controls();try{await api(`/api/floorplan-members/${value.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({x:value.x,y:value.y,version:value.version})});draft=null;drag=null;await reload();notice('Floorplan position saved');}catch(error){draft=null;drag=null;await reload().catch(()=>{});notice(error.message,true);}finally{busy=false;paint();}}
   async function remove(){const f=data();if(!f||!selected||busy)return;const id=selected;busy=true;controls();try{await api(`/api/floorplan-members/${id}?version=${f.group.version}`,{method:'DELETE'});draft=null;selected=null;await reload();notice('Drawing removed from floorplan');}catch(error){await reload().catch(()=>{});notice(error.message,true);}finally{busy=false;paint();}}
-  async function navigate(m){if(busy)return;cancel();const c=context(),d=c.state.drawings.find(d=>d.id===m.drawing_id);await openDrawing(d,m.page,'count');activate();}
+  async function navigate(m,annotation=null){if(busy||annotation&&draft)return;cancel();const c=context(),d=c.state.drawings.find(d=>d.id===m.drawing_id);await openDrawing(d,m.page,'count');if(context().drawing?.id!==d.id||context().pageNumber!==m.page)return;if(annotation)openAnnotation(annotation);else activate();}
   const picker=setupDrawingPicker({prefix:'floorplan',context:()=>{const c=context(),discipline=c.state.entities.find(e=>e.id===c.drawing?.discipline_id),takeoff=c.state.entities.find(e=>e.id===discipline?.parent_id),allowed=new Set([discipline?.id,takeoff?.id,takeoff?.parent_id]);return {...c,state:{...c.state,entities:c.state.entities.filter(e=>allowed.has(e.id)),drawings:c.state.drawings.filter(d=>d.discipline_id===discipline?.id)}};},onChoose:async(d,page)=>{
     const c=context(),f=data();if(busy)return;busy=true;controls();try{await api(`/api/drawings/${c.drawing.id}/floorplan-pages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:c.pageNumber,drawing_id:d.id,target_page:page,version:f?.group.version||0})});draft=null;visible=true;await reload();notice('Drawing added to floorplan');}catch(error){await reload().catch(()=>{});notice(error.message,true);}finally{busy=false;paint();}
   }});

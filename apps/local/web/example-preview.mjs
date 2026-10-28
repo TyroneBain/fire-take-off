@@ -1,3 +1,4 @@
+import {selectionList} from './selection-list.mjs';
 // Normalize native bounds across crop offsets and page rotation.
 export function exampleRectangle(viewport,bounds) {
   const [x0,y0,x1,y1]=bounds;
@@ -30,24 +31,32 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,api,
   return {
     paint(itemId){
       const list=document.getElementById('count-examples');list.replaceChildren();queue=[];
-      const state=context().state,records=(state?.countExamples||[]).filter(e=>e.item_id===itemId);
+      const state=context().state,model=selectionList(state,itemId,context().drawing?.id);
       const legacy=(state?.countMarks||[]).filter(m=>m.original_item_id===itemId&&m.origin==='automatic'&&!m.example_id).length;
       if(legacy)list.append(node('p',`${legacy} older matches need a selection link. Re-run Add to current across their drawings before changing multipliers.`,'hint'));
-      document.getElementById('example-summary').textContent=`Selections (${records.length})`;
-      if(!records.length){list.append(node('p','No source examples. Add an example to search for matching symbols.','hint'));return;}
-      records.forEach((record,index)=>{
-        const drawing=state.drawings.find(d=>d.id===record.example.drawing_id),row=node('div',null,'example-row');
-        const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;
-        const details=node('div');details.append(node('strong',`Selection ${index+1}`));
+      document.getElementById('example-summary').textContent=`Selections (${model.rows.length})`;
+      const scope=node('p',`This drawing · all pages: ${model.matches} matches · ${model.quantity} items`,'selection-scope');scope.id='selection-totals';list.append(scope);
+      if(!model.rows.length)list.append(node('p','No source examples. Add an example to search for matching symbols.','hint'));
+      const table=node('table',null,'selection-table'),caption=node('caption','Saved selections on the current drawing');caption.className='sr-only';table.append(caption);
+      const head=node('thead'),header=node('tr');for(const label of ['Selection','Elements','Matches','Multiplier','Total']){const th=node('th',label);th.scope='col';header.append(th);}head.append(header);table.append(head);const body=node('tbody');table.append(body);
+      model.rows.forEach(({record,matches,quantity,excluded,moved},index)=>{
+        const drawing=state.drawings.find(d=>d.id===record.example.drawing_id),row=node('tr');row.dataset.exampleId=record.id;
+        const selection=node('th');selection.scope='row';const preview=node('div',null,'example-preview');preview.dataset.exampleId=record.id;selection.append(preview,node('span',`Selection ${index+1}`));
+        const elements=node('td','—');elements.title='Element counts are unavailable for bitmap selections';elements.setAttribute('aria-label','Element count unavailable');
+        const count=node('td',String(matches),'selection-matches'),total=node('td',String(quantity),'selection-quantity');
+        const factor=node('td'),input=node('input');input.type='number';input.min='1';input.max='10000';input.step='1';input.required=true;input.value=record.multiplier||1;input.setAttribute('aria-label',`Multiplier for selection ${index+1}`);factor.append(input);
+        row.append(selection,elements,count,factor,total);body.append(row);
+        const detailRow=node('tr',null,'selection-details'),details=node('td');details.colSpan=5;
         if(drawing){details.append(node('small',`${drawing.name} · page ${record.example.page}`));const open=button('Go to selection',()=>openExample(record),'example-open');details.append(open);if(cache.has(record.id))show(preview,cache.get(record.id));else{preview.append(node('span','Loading preview…'));queue.push({record,drawing,container:preview});}}
         else{preview.append(node('span','Source removed'));details.append(node('small','The saved source drawing is no longer in this takeoff.'));}
-        const input=node('input');input.type='number';input.min='1';input.max='10000';input.step='1';input.required=true;input.value=record.multiplier||1;input.setAttribute('aria-label',`Multiplier for selection ${index+1}`);
-        const label=node('label','Multiplier');label.append(input);details.append(label);
-        const pageMarks=(state.countMarks||[]).filter(m=>m.example_id===record.id&&m.drawing_id===context().drawing?.id&&m.page===context().pageNumber&&m.included);
-        details.append(node('small',`This page: ${pageMarks.length} linked matches · ${pageMarks.reduce((sum,m)=>sum+(m.quantity??1),0)} items`));
-        const save=button('Save multiplier',async()=>{if(!input.reportValidity())return;save.disabled=true;try{await api(`/api/examples/${record.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({multiplier:Number(input.value),version:record.version})});await reload();notice('Selection multiplier saved');}catch(error){notice(error.message,true);}finally{save.disabled=!!legacy;}},'example-open');save.disabled=!!legacy;input.disabled=!!legacy;details.append(save);
-        row.append(preview,details);list.append(row);
+        const save=button('Save multiplier',async()=>{if(!input.reportValidity())return;save.disabled=true;input.disabled=true;try{await api(`/api/examples/${record.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({multiplier:Number(input.value),version:record.version})});await reload();notice('Selection multiplier saved');}catch(error){notice(error.message,true);}finally{input.disabled=!!legacy;save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);}},'example-open');save.disabled=true;input.disabled=!!legacy;input.addEventListener('input',()=>{save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);});details.append(save);
+        if(excluded||moved)details.append(node('small',`${excluded} excluded · ${moved} assigned to other headings`,'selection-adjustments'));
+        detailRow.append(details);body.append(detailRow);
       });
+      if(model.other.matches||model.other.excluded){const row=node('tr',null,'selection-other'),label=node('th','Other matches');label.scope='row';label.title='Manual, unlinked and incoming reclassified matches';row.append(label,node('td','—'),node('td',String(model.other.matches)),node('td','Mixed'),node('td',String(model.other.quantity)));body.append(row);}
+      if(model.rows.length||model.other.matches||model.other.excluded)list.append(table);
+      if(model.other.matches||model.other.excluded)list.append(node('p',`Other matches: ${model.other.manual} manual · ${model.other.unlinked} unlinked · ${model.other.reclassified} reclassified from other selections · ${model.other.excluded} excluded.`,'hint'));
+      if(model.rows.length)list.append(node('p','Included matches assigned to this heading, before zone multipliers. Elements are unavailable for bitmap selections.','hint'));
       if(document.getElementById('example-list').open)drain();
     },
     load:drain,
