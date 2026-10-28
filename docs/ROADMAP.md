@@ -17,6 +17,10 @@ ADR-0008 changes sequencing after successful Phase 0: the project/PDF core may p
 | 6 — Schedules/estimating | Quantity schedules, Excel and record outputs, price lists/kits/history, prelims, margins, configurable estimates, integrations/collaboration foundations | Workbook values reconcile with approved takeoff; cost/margin/rounding cases pass; quote exports reopen; integration/auth failures tested; remaining public workflow requirements covered. |
 | 7 — Parity validation | End-to-end acceptance suite, representative trade/size corpus, performance/accessibility/recovery testing and remaining collaboration/integrations | Every baseline feature VERIFIED against acceptance evidence or explicitly acknowledged unmet scope; no claim of full parity while any required entry remains unmet. |
 
+## Catalogue deferral — user instruction, 2026-10-28
+
+Do not implement the catalogue section yet; Tyrone will customise it later. F061 remains NOT STARTED, and catalogue-dependent portions of F043/F044 are deferred. Continue independent takeoff/drawing and estimating work; do not build substitute catalogue screens or populate product libraries. This is a sequencing exception to the full clone objective, not a completed feature.
+
 ## Initial priority
 
 P0: essential drawing/count/review/measurement/export workflows. P1: advanced takeoff, estimating and complete parity features. P2: reference functionality announced but not confirmed shipped, plus uncertain trade-specific behavior. Priorities sequence work; they never silently remove scope.

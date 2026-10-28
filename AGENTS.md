@@ -13,6 +13,8 @@ Build Fire Take Off as a private functional and visual clone of Countfire, repro
 
 Research public documentation and normal user-visible workflows in the supplied authorised account. Match the observed interface and behaviour closely; original implementation does not require a different UI. Use original or appropriately licensed code/assets and preserve provenance. The recorded permission comes from Tyrone; no Countfire source-code licence has been supplied. Do not bypass access controls. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
 
+Current user-directed exception (2026-10-28): do not build or clone the catalogue section yet. Tyrone will customise it later. Keep catalogue UI/product-library management and catalogue-dependent imports or kit management deferred; continue independent takeoff and estimating work. Do not treat full-parity scope as permission to implement the deferred catalogue.
+
 ## Engineering and verification
 
 - Inspect code before changing architecture; preserve completed functionality and unrelated user work.

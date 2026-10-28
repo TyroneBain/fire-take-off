@@ -28,13 +28,26 @@
     "invalid_page_keeps_dialog": true,
     "valid_overlay_loaded": true,
     "valid_comparison_loaded": true,
-    "complete_api_state_unchanged": true
+    "complete_api_state_unchanged": true,
+    "console_errors_warnings": 0
   },
   "limitations": [
     "Native selects, not full reference searchable-combobox visual/keyboard parity",
     "Floorplans remain unimplemented"
   ],
   "hosted": {
-    "status": "pending publication"
+    "commit": "d144a6b62331883e639b59e4ede1a2a66b96145d",
+    "run_id": 40650859633,
+    "job_id": 122690335799,
+    "passed": 74,
+    "failed": 0,
+    "duration_ms": 20207.717459,
+    "environment": "Ubuntu 24.04 / Node 24.22.0",
+    "conclusion": "success"
+  },
+  "delivery_verification": {
+    "published_files": 103,
+    "local_blob_mismatches": 0,
+    "private_repository": true
   }
 }

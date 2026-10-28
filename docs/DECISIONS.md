@@ -126,3 +126,7 @@ Implement multiple temporary source-page layers (provisional limit eight), visib
 ## ADR-0024 — Shared hierarchical drawing picker (accepted 2026-10-28)
 
 The normal reference Overlay chooser exposes Project → Takeoff → Discipline → Drawing. Replace our ambiguous flat comparison/overlay lists with one shared picker controller and pure hierarchy resolver. Default to the current drawing's project/takeoff/discipline; identify every choice by stable ID, not label. Changing an ancestor must discard invalid descendants and reset page one. Empty groups disable submission with a clear message. Validate the actual selected page again on submit. This improves source selection for existing tools and establishes a reusable same-discipline picker basis for floorplans; it does not implement floorplan persistence. Native selects are an initial accessible implementation, not verified parity with the reference searchable combobox styling. No database/API/source mutation.
+
+## ADR-0025 — Defer the catalogue for later customisation (accepted 2026-10-28)
+
+Tyrone explicitly instructed: “dont do the catalogue section yet - we will cusomise this later”. Do not build catalogue UI, populate product libraries or implement catalogue-dependent imports/kit management now. Preserve the feature inventory with NOT STARTED status and a user-directed deferral; do not label this a technical blocker or completed parity. Continue independent takeoff, drawing and estimating work. No catalogue code exists to remove.

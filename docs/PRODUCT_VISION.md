@@ -8,6 +8,8 @@ The core workflow is: create a project, organise drawing sets and disciplines, r
 
 Required trades include sprinkler, hydrant, electrical, mechanical and general construction. A trade being requested does not establish that Countfire has a dedicated module for it. Track evidence and unknowns separately. Include notes, coverage visualisation, Smart Select, connected measures and fittings, floorplans, specification comparison, libraries/kits, margins and preliminaries where public evidence supports them.
 
+Current user-directed exception (2026-10-28): do not build or clone the catalogue section yet. Tyrone will customise it later. Keep catalogue UI/product-library management and catalogue-dependent imports or kit management deferred; continue independent takeoff and estimating work. Do not treat full-parity scope as permission to implement the deferred catalogue.
+
 Success requires reliable workflows on representative authorised construction drawings, durable project recovery, traceable manual corrections, tested numerical accuracy and reproducible acceptance evidence per feature. A plausible interface, a single successful drawing or a marketing assertion is insufficient.
 
 Scope boundaries: Phase 0 establishes memory, research inventory, architecture evaluation and REA verification. No product build begins until its gate passes. No unrelated products or AI designer features. All branding, code and fixture assets must be original or appropriately licensed. Learn from public documentation and the supplied authorised account. Standing user permission is recorded in AUTHORIZATION.md; no third-party source licence is recorded. Do not circumvent access controls.
