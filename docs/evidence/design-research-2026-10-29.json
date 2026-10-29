@@ -296,9 +296,15 @@
   ],
   "delivery": {
     "branch": "main",
-    "local_HEAD_at_start": "81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d",
-    "remote_parent_checked": "c45bc9896e75205038e2118aa613edae41c3b599",
+    "remote_commit": "af75548da582ef1dff3a04fac9147f8cb1fdf84d",
+    "remote_tree": "c600d920bb57dc8b4c27e7b9339eb9d3ded91489",
+    "protected_parent": "c45bc9896e75205038e2118aa613edae41c3b599",
     "remote_visibility_checked": "private",
-    "pending": "Documentation-only protected delivery; no product code included"
+    "updated_paths": 27,
+    "unchanged_preexisting_paths": 135,
+    "all_delivered_blobs_match_local": true,
+    "local_main": "81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d",
+    "local_status": "Matching canonical commit object mirrored; branch/index not changed; parent/tree history not reconciled",
+    "receipt_followup": "This delivery receipt is a documentation-only follow-up to the report commit."
   }
 }
