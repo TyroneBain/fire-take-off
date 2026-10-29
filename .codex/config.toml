@@ -16,9 +16,13 @@ description = "Reviews Apple HIG-informed UX; proposes changes without modifying
 config_file = "agents/apple_designer.toml"
 
 [agents.fire_workflow]
-description = "Reviews sprinkler/hydrant estimator workflows and practical acceptance criteria."
+description = "Reviews multidisciplinary MEP estimating workflows across six trades."
 config_file = "agents/fire_workflow.toml"
 
 [agents.estimating_excel]
 description = "Reviews pricing and spreadsheet reconciliation; deferred until core recognition is proven."
 config_file = "agents/estimating_excel.toml"
+
+[agents.competitive_analyst]
+description = "Evidence-based analysis of construction takeoff competitors and product opportunities."
+config_file = "agents/competitive_analyst.toml"
