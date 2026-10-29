@@ -1,6 +1,10 @@
 # Roadmap
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+## Active gate — UI/UX research and design approval, 2026-10-29
+
+Tyrone explicitly paused development for research, an application audit, three alternative layouts, visual/interaction specifications and a staged preservation plan. [Report and wireframes](design/PHASE_1_UI_UX_RESEARCH.md) prepared for discussion; no concept approved, no UI/functionality/calculation change made. The target now uses a distinctive interface, superseding visual cloning. Next executable task is review with Tyrone and record his direction. Do not resume F076 or other product implementation before resolving this gate. Catalogue remains deferred. Original phase numbering/history below remains intact; this checkpoint does not declare the broader Phase 1 complete.
+
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
 
 Every phase updates CURRENT_STATE and parity IDs. Dependencies flow in order; Phase 1 research may refine later work but may not waive acceptance gates without a recorded decision.
 

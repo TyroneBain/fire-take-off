@@ -1,6 +1,6 @@
 # Testing strategy
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
 
 ## Foundation checks
 
@@ -124,3 +124,8 @@ ADR-0031 hosted confirmation: source 8cae73aa, run 40668482691/job 122748974913 
 2026-10-29 recount:125/125 final local tests pass,18593.990107 ms. Seven new tests cover actual PDF original/revision/edited matching and independent centres, correction/factor/manual/dedup behavior, selection/target snapshots and scope limits, audit rollback, cancellation/missing/legacy sources, schema15/reopen/workbook/deleted-source provenance and HTTP gates. Initial targeted5/7: fixture closure read a closed DB and localhost EPERM; fixed fixture and permitted full run. First full124/125 failed an old group test expecting schema15; updated to16 and full125/125 passed. Browser worker adds4/removes1 with exact six revised centres, replay keeps IDs, cancellation preserves state, competing review causes409 without recount writes, reload exact and reviewed Excel agrees10+11. Automation sessionStorage exhausted accumulated snapshots; removed only named prior acceptance snapshots and verified the competing review event plus otherwise exact state. [Evidence](evidence/drawing-recounts-2026-10-29.json).
 
 Recount hosted confirmation:234390c, run40818250599/job123264349979 passes125/125, zero failures,52263.008143 ms on Ubuntu24.04/Node24.22.0. All144 source blobs matched local; subsequent update is evidence/documentation only.
+
+
+## UI/UX research checkpoint — 2026-10-29
+
+Existing automated suite rerun: 125 passed, zero failed, 20543.946924ms. No new product tests or implementation changes in this phase. [Design report](design/PHASE_1_UI_UX_RESEARCH.md) section 9 proposes task-based A/B evaluation and separately labelled performance targets; no estimator usability study, screen-reader acceptance or realistic large-project performance test has occurred. Candidate opaque colour pairs were computed using WCAG relative luminance; this does not establish app conformance. Preserve numeric/export/coordinate contracts during any later approved presentation migration. Evidence: [design research](evidence/design-research-2026-10-29.json).

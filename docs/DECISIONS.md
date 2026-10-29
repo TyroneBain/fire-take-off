@@ -1,6 +1,6 @@
 # Decision record
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
 
 ## ADR-0010 — Working takeoff loop with bounded original matching (accepted 2026-10-22)
 
@@ -198,3 +198,10 @@ Public Revised drawings (https://help.countfire.com/en/articles/64566-revised-dr
 Implement the same-discipline addition subset first: import the revision as a separate immutable drawing, then explicitly Recount drawing using all saved selections in that discipline. Our explicit action differs from reference automatic upload matching. Do not replace/delete original sources or infer migration of manual corrections between different drawings. Source definitions, original drawing results, groups, calibrations, zones and measurements remain unchanged. On the target retain reviewed/reclassified/excluded/manual records and factors; remove only obsolete unchecked source-assigned automatic detections. New detections require review. Repeated runs deduplicate and preserve identities. Overlapping definitions within the same heading use stable creation/ID order. Cross-heading overlap remains a review obligation.
 
 One transaction validates the target digest, complete selection set and selection/heading versions, source references and complete target-mark snapshot. Commit all target detections plus a discipline-owned recount ledger, or nothing. Preserve removed unchecked records and source definition/factor provenance in that ledger, including after source deletion. Schema16 adds count_drawing_recounts. Workbook history and snapshot digest expose the operation. Limit one target drawing,20 pages,50 saved selections,5000 results and4M pixels/page; cancellation or failed source loading never submits partial results. Missing sources and legacy binary-elements-1 require repair/re-edit rather than silently changing algorithms. The current matcher remains same-size/orientation; no recognition parity claim.
+
+
+## ADR-0036 — User-directed design research gate (accepted scope change, 2026-10-29)
+
+Tyrone explicitly requests competitive functional capability with a distinctive premium modern interface, superseding ADR-0012's visual-copying objective. Pause development for authoritative research, a current-app audit, three layout alternatives, visual/interaction proposals, accessibility/usability evaluation and a staged preservation plan. Stop for overall design approval before interface implementation/refactoring or calculation changes. This user instruction supersedes the previous autonomous next-feature sequencing, including F076. Catalogue remains deferred.
+
+[Research proposal](design/PHASE_1_UI_UX_RESEARCH.md), [complete existing-feature audit](design/FEATURE_AUDIT.md), [sources](design/SOURCE_REGISTER.md) and seven original static wireframes are design artifacts only. Concept A is recommended for evaluation; B remains a close alternative and wins the report's general weighted heuristic. No concept, token palette, framework migration, undo architecture, new allocation policy or performance budget has been accepted. No production source/test/fixture/package changes are part of this checkpoint. Existing 125 tests pass; recognition/accessibility/full-parity limitations remain.

@@ -1,6 +1,6 @@
 # Feature parity inventory
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
 
 Baseline researched 2026-10-22. Project/PDF, counting, measurements, zones and exports have partial tested scopes; individual rows record current status. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
 
@@ -163,3 +163,23 @@ Drawing workspace evidence: [2026-10-28](evidence/drawing-workspace-2026-10-28.j
 2026-10-29 count groups: ADR-0034/schema15 expands F012 (partial TESTED) with persistent flat groups and display controls. 118/118 automated tests and real browser drag/cancel/stale/reload/export checks pass. Group changes preserve all prior quantity/source tables and five numerical/audit workbook sheets exactly. [Evidence](evidence/count-groups-2026-10-29.json). No nested/reordered groups or complete visual/global-save parity claim.
 
 2026-10-29 revision recount: ADR-0035/schema16 expands F033 partial TESTED. 125/125 local tests include actual original/revised PDF matching against independently declared changed centres and edited-selection reuse. Browser retains exclusions/reclassification/manual/factor, removes one unchecked false result, adds four missing matches, preserves original10/revised11 quantities, rejects stale writes and exports reviewed output. [Evidence](evidence/drawing-recounts-2026-10-29.json). F076/F077 track newly separated copying/replacement obligations.
+
+
+## Design research overlay — 2026-10-29
+
+The user now requests a distinctive interface and has paused implementation for design approval. [Complete feature audit](design/FEATURE_AUDIT.md) preserves all 77 canonical feature states (35 TESTED partial, 42 NOT STARTED, none VERIFIED), with documentation discrepancies explicitly identified. A static wireframe does not promote any feature. Catalogue remains deferred. The following additional design requirements have traceable proposed acceptance; all remain **NOT STARTED** as product implementation.
+
+| ID | Requirement/source | Proposed workflow and acceptance | Status | Limitation / priority |
+| --- | --- | --- | --- | --- |
+| UX001 | Scoped quantity interpretation; user design brief | Every raw/included/reviewed/allocated/export value names scope and unit; trace rows to geometry and reconcile frozen fixtures | NOT STARTED | Presentation proposed; P0 |
+| UX002 | Adaptive workspace; user brief, Apple layout/sidebar research | Collapsible/resizable panels preserve view and focus at 1280/1440/1920 and enlarged text | NOT STARTED | Concepts A/B untested; P0 |
+| UX003 | Semantic tokens and independent states; user brief, Apple colour research | Theme/state contrast, non-colour cues and category/review/inclusion distinction pass complete workflow checks | NOT STARTED | Dark candidates only, no implemented system; P0 |
+| UX004 | Unified draft/save feedback; user brief | Immediate writes versus drafts explicit; failure/conflict retains input; navigation cannot silently discard work | NOT STARTED | Current module-specific semantics remain; P0 |
+| UX005 | Reliable undo/redo; user brief | Inverse operations preserve versions, quantities, provenance and atomic bulk operations; conflict/reload tests | NOT STARTED | Audit is not undo; architecture proposed only; P0 |
+| UX006 | Resumable review queue and completeness checks; user brief | Pending cross-sheet result found and corrected without losing place; zero detections never implies checked sheet | NOT STARTED | Existing per-page review is partial substrate; P0 |
+| UX007 | Zone overlap/impact explanation; user brief | Show winning priority, outside-zone omission and exact before/after draft allocation; cancel leaves committed totals | NOT STARTED | Existing allocation retained; live preview unbuilt; P0 |
+| UX008 | Reconciliation/export readiness; user brief | Actual server blockers, scope and unit-specific totals visible; stale preview cannot silently export another version | NOT STARTED | XLSX exists; snapshot/readiness UX not built; P0 |
+| UX009 | Accessible precision interaction; user brief, WCAG2.2 | Complete keyboard and non-drag pointer geometry workflows; focus, semantics, magnification, screen-reader tests | NOT STARTED | No conformance claim; P0 |
+| UX010 | Large-workspace responsiveness; user brief | Benchmark representative PDF/symbol sets, virtualised lists preserve focus/selection, cancellation prevents stale results | NOT STARTED | Targets proposed, unmeasured; P1 |
+
+These UX rows extend the inventory without changing the 77 historical F-series counts. Source findings and proposed acceptance details are in the design report and source register. General discovery remains open; these rows do not claim an exhaustive design specification.

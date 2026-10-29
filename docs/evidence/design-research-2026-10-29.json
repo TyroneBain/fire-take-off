@@ -1,0 +1,304 @@
+{
+  "date": "2026-10-29",
+  "phase": "Research/design only; approval pending",
+  "environment": {
+    "os": "macOS-26.7.1-x86_64-i386-64bit-Mach-O",
+    "node": "v24.22.0",
+    "browser": "Connected Chrome; viewport measurement through DOM",
+    "schema": 16
+  },
+  "tests": {
+    "command": "npm test",
+    "passed": 125,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 20543.946924,
+    "log": ".local/design-audit-tests.log",
+    "log_sha256": "6f27d45cb5eae26ef80932036707970660e147065d4361c9d20cf9737bc4cb12",
+    "limits": "Existing automated acceptance only; no new estimator/screen-reader/large-corpus benchmark"
+  },
+  "preservation": {
+    "protected_file_count": 85,
+    "sha256_before_and_after": {
+      "apps/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "apps/local/takeoff-store.mjs": "4354852b020126c06b4da5e5629d1f113d6a7298df272134d8221dce0fcfc33b",
+      "apps/local/selection-moves.mjs": "dd813d3077d92202b137889716d598ae6833a270d51656d11b959682d77748f4",
+      "apps/local/selection-edits.mjs": "99d041e03734c09ce1e5278316cf2b8ee4fe8f999232314cede8876798d5be06",
+      "apps/local/workbook.mjs": "21263eda54861c82dae14e5f877f3619370cfce24c879589e66a395149b8c2ec",
+      "apps/local/zone-allocation.mjs": "f3caf024eb9bab03edf1c750eed8a7846428ff4d4712f8d782b3196e5c056102",
+      "apps/local/coverage-store.mjs": "91188c45c4875f47f73644300efb7d00b556adcffbf8515673e1da66e5c9be01",
+      "apps/local/zone-store.mjs": "d2fd239520a400f60e3abe0f2fb090da49c9fd6bf975b507b9af97940ed29ac2",
+      "apps/local/store.mjs": "ebe1b04c357cb790672b3c3c89a83dce23b8916cfb5b751d5fae3a882fb212f8",
+      "apps/local/server.mjs": "3317a251a7adbbe4d1eab3f2cd52522c1f45f335c60497218cd22ca45e719485",
+      "apps/local/floorplan-store.mjs": "7629221e0aa4f2ee0ae705c4d9c925eefcf053a8e9325b22d7cfec113c89680c",
+      "apps/local/project-store.mjs": "b0b4dd61d798d0d9f2a71235d3b18c753c4341be50012d353263f55fd60c84ca",
+      "apps/local/quantity-multipliers.mjs": "fea059b97714462b589ac20b4df2e92d184daf8bd61054da82f180be9f3ad8d9",
+      "apps/local/pdf-inspect.mjs": "51cde03e50ad64cfcb85c5a2c1095314bc087af60985c571c5439027d03e8612",
+      "apps/local/drawing-recounts.mjs": "7cf23fa67e83023e89ed07bf77b3fc1041db92c5d458aa1e8c0d4016562c54e7",
+      "apps/local/count-group-store.mjs": "cd589e203db41068e1c0d9f21862d1fc9993b142207742dd40c825f04f7c903a",
+      "apps/local/web/matcher.mjs": "b96fe7b2f2d42a520360336208b33a4e08cd561cd481de8fd32af23de4643da3",
+      "apps/local/web/selection-editor.mjs": "9bcb2a9e8c7ba8c44154edb099ddd089479cef86e532aa0dda3fd20a934cabe9",
+      "apps/local/web/takeoff-geometry.mjs": "625cf0ad7e7827e593b7e3ed87d735039bbb2c73e0db2cce9ed801df91e471db",
+      "apps/local/web/measurement-editor.mjs": "4b2e478cdcffea7fe2eb45e21404399b97bb9b844a66371088e64f61cdcfb18a",
+      "apps/local/web/index.html": "092f492dee684dc09e2eb3787aa564d2455ccf038d6aef12e6a6ec90c6e11467",
+      "apps/local/web/drawing-picker.mjs": "8f350426779216052aef17d39821b21734f8b2dafb7dd0b5e03810fa1624e458",
+      "apps/local/web/selection-deletion.mjs": "7e3c237e8c0303a0c8d9171b0fb20551cd926aaabca78ca5166808925dc1be6d",
+      "apps/local/web/count-groups.mjs": "4ab9bff85a7220e8f2d1f4475fe1f1a07051dac45a7919668c947e06a50c4e35",
+      "apps/local/web/recognize-drawing.mjs": "abeda10898b4fd84a2594e0af195892b20b04ab1069ac4bbd563982dc1419e71",
+      "apps/local/web/overlay.mjs": "7033fa569c0b92a079f3c4e3f48299e2a32ef8b854ae884671b962bcfa5fc0d3",
+      "apps/local/web/coverage.mjs": "d87490c8c81b09a0403d552f7eae9edc6bbcc1c0a42760811916d7d80acc4aa4",
+      "apps/local/web/coverage-input.mjs": "151da89a38fefd236ddf52a92aaac9aa9b3e1724bbbe466114faf7459f1529c1",
+      "apps/local/web/overlay-ui.mjs": "90b73698c7f7097ac8f8fb865904b82bbaf05588199ab041b94ad6a2e02b2e9a",
+      "apps/local/web/projects.css": "882ed2839c89f96f6ca01377d5204d11cfa87b5da84edbff6f49b5f2e3dee0e2",
+      "apps/local/web/navigation.mjs": "838c246f23e4e36c74baa53763f6f3308d181f3ded9892f42f3bfe463cfa12c1",
+      "apps/local/web/count-headings.mjs": "802bd8702e0a7a1da4bc0e6904a087b52a883597d4512c083e39180bbffa1965",
+      "apps/local/web/pdf-elements.mjs": "6adf31a662fd9448d826f49f677dc56c4858bc3db70154a23da49eea93fa6d4f",
+      "apps/local/web/takeoff-ui.mjs": "07ad8bc44383b347139992f7dd5a76dbe1ce76174319e76257fe523ad912dec8",
+      "apps/local/web/project-model.mjs": "da64457c332416c220c264c038dd06d827d5e795fa8d267ec67f899b8ebe09f7",
+      "apps/local/web/drawing-recount.mjs": "9534a6e85e7e869f6dd16fb9c1c38ab57087dd33ee4670776932a40855dcdb70",
+      "apps/local/web/drawing-workspace.css": "fcd58ad6a9a6426c9f4d1c7f30617b05fadb476024baaa072198ebe018b143d6",
+      "apps/local/web/floorplan-model.mjs": "e85d306f6414a9b0968efe45a86042c297796c4e416d7a1ad8db7114fcaaaa46",
+      "apps/local/web/example-preview.mjs": "a8c47b834f850189c68c0be80a853ed4dcbd2dd9eae4cb2ba729ef2feffabbc5",
+      "apps/local/web/zone-ui.mjs": "b0a05cca0c84ce485700759c7b085ba776b4d875cecdb0d64b6037448981149e",
+      "apps/local/web/style.css": "8dfe8f7b51543f6e91c7053e5295572d6ca78e1bf6652ff58086578494fe0fd1",
+      "apps/local/web/app.mjs": "7126d3825c153e456d136f8cfc95e3190d311859b9b82969b419b43694b4c93c",
+      "apps/local/web/match-worker.mjs": "68bbd65f3a32842b72a0871941a94023b24d296db185f1e643fd52a168e63cea",
+      "apps/local/web/coordinates.mjs": "da00a56924892df526d7b9a62174e139967a86b795baaa3e3484b3f1e5591de1",
+      "apps/local/web/floorplan-annotations.mjs": "8353a854203e593e48af3ddfbc6c8266331cbc2bcfdd69ea7f38e70aec07659b",
+      "apps/local/web/floorplan-ui.mjs": "ec7307e7b2fda0cf0f62537dd8e7cf5b1fe360e7e8924fbf2d06691661d18222",
+      "apps/local/web/project-ui.mjs": "763a16f21dc2a1d9b99bcb9ac08bd589fe2375170a79bf3c94d45eddf9afc7ad",
+      "apps/local/web/comparison-ui.mjs": "fb718eab76d4ddcb3a86c261d9e6ae0b84b6972ad1f45b1c4d8a888f691cc770",
+      "apps/local/web/count-group-ui.mjs": "f9cc03a0c963404ff7d8ffdf21eedb0b86d06ed60b0c671c3baf8030ef345860",
+      "apps/local/web/comparison.mjs": "3b7280a6cf1d18166792b02726988a820965ac1c9e5bd6ac65dd902be84e7878",
+      "apps/local/web/favicon.svg": "87094cad8ed8c3a42c1f5d431e6515ad73206b9b5bf3ea979e71dbbf4f8d342f",
+      "apps/local/web/selection-list.mjs": "bee5231f6abb3b9dcb6b0382f72ca62a6a3f2428ebfc5fa47c9853a6d7d852f0",
+      "apps/local/web/selection-movement.mjs": "201949e93f2d859aa2aed8d6827ba6bcd317d9653e68da8b9437d760366ad0b1",
+      "tests/comparison.test.mjs": "d78aa935eea17021065232b296784b6635e3fa410dad299eea4434ade72caf7e",
+      "tests/coverage.test.mjs": "05d2ffa83a1b1584fde42cc3a6d90658c632de5fa7d26dd12f5fb2156370dc3b",
+      "tests/drawing-recounts.test.mjs": "75ab8998ab63980ff5c447b8a7c08bcf0ddbed996838a99428c07ab17de3ded1",
+      "tests/overlay.test.mjs": "030a024c17e62015930055b64366c0e59e24bcbfc3ed23373894104ca4ecf28c",
+      "tests/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests/selection-movement.test.mjs": "737f020d28958a3501e63d9c2bf452ac63d42a5c432089d55c802cd0f828fbaf",
+      "tests/quantity-multipliers.test.mjs": "f149aac09f9b786cae467b1b910517a5eb0b482e86f44723cfe4ba1297b4844c",
+      "tests/floorplan-annotations.test.mjs": "8a6e9a02bae260d4ef47d66684f35959a7fb8f56cc5911ff59febe40bd70426c",
+      "tests/drawing-picker.test.mjs": "2402400f8dfa01523ecefa3b4386598dbb8e45e3cba9ae1ce298641957579ef1",
+      "tests/selection-deletion.test.mjs": "43d1be649a08b8b9f296bb25092851aa397609975a62d6beb0b445a48a9e5e4b",
+      "tests/selection-list.test.mjs": "4165ce74da682e850c22c219c25a27a5534c6e3a73d57d9922ad9dbfb1a4289e",
+      "tests/projects.test.mjs": "d054dfcf4f569d10d216f3a6320e5a376635b4672d0b73b3d5b8100c06b05c3a",
+      "tests/floorplans.test.mjs": "a81d4582eac2b5df5afb7a5c19e4fe20046c4fd06b374eb3c05c4f43c7ca375a",
+      "tests/takeoff.test.mjs": "2e1587554cb8b47d9f7c6e535c612115c87ca905cc085769d201f479f45c61e1",
+      "tests/recognition-negative-controls.test.mjs": "7c733de82739c91b96f418fb1c375a519ce73dbeb21c392e576f6ac8681a442e",
+      "tests/selection-editing.test.mjs": "7c29a14e955b6a04dc9daf16f99217c7561620c17a6d8b1426ddcbfc1c2ea0d5",
+      "tests/count-groups.test.mjs": "e5fe034d4e349028c23a6a22c418a497a556b9706937a33421921fd4c260e766",
+      "tests/local-app.test.mjs": "e48f5e7da517dc639af94c187a17753083b85760585c64f8973fd8b988c778d1",
+      "fixtures/drawings/README.md": "194f7c8b5501246f8a4e9b38e5b4a6839d101765e3a0b59f3343a9b192116825",
+      "fixtures/rea-smoke/README.md": "de6f3e4a75cd32e58c555b6e439b61ec98e7befa270472623e0804c0fb44e6d5",
+      "fixtures/rea-smoke/package.json": "5dc6d5a61cdc85345c924d6d484bd63d1e04252999b390692804208075a50376",
+      "fixtures/rea-smoke/app.mjs": "98c50acbb0a7a730d8fad270404dfb21fa774e53b5198f0014f80e491842c2ea",
+      "fixtures/rea-smoke/calculation.mjs": "0f43187221be1f8d855aa72ab5a88ae26f32e90d40edd41fe4fb595e244a9185",
+      "fixtures/rea-smoke/app.test.mjs": "3c2b2869d451c2ffc9564c48989ee25c21e5a0c78c6680fe1e3a2370b76fb66c",
+      "scripts/inspect-drawing-fixture.swift": "bc0169c443954d7df93c76e299122fcdc2439c58605f9ff5880f86d8adaeaf08",
+      "scripts/repair-rea.sh": "51a699f9d93cb728bde71bcfac64ac7f2945e7476bb9095c7bd317c367f677a5",
+      "scripts/generate-drawing-fixture.mjs": "b33c0d736bfc3704f864879e7e587d284b487e3f596d98b134ee81ce958e2afb",
+      "scripts/derive-drawing-corpus.swift": "a8e0375034d2a83a4c96d7672ab4a6b2e1e492c433327c8b4e7e345683b7acd2",
+      ".github/workflows/test.yml": "6e5dd0954e036bc75305ea49d3c5b3af05a7baa79613d3fdb785de25e02027c8",
+      ".github/workflows/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "package.json": "42f53b376b01e7a264b6b4248317f164aeb99da8c52966e60caddeeae401eed2",
+      "package-lock.json": "bd22feeeb1fd2e0928330ec2c1bf2f6bb0b2ebd6f6cc0b95a90f9f82d8605221"
+    },
+    "changed_files": [],
+    "live_state_sha256_before": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc",
+    "live_state_sha256_after": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc",
+    "live_state_mutated": false,
+    "reference_saved_mutations": false
+  },
+  "layout_observations": [
+    {
+      "viewport": [
+        1792,
+        907
+      ],
+      "count_panel": [
+        350,
+        815
+      ],
+      "panel_content_height": 1428,
+      "review_list_top_y": 1239.78125,
+      "drawing_stage_width": 1382
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "method": "Explicit viewport emulation; reset afterwards",
+      "count_panel": [
+        350,
+        708
+      ],
+      "panel_content_height": 1428,
+      "review_list_top_y": 1239.78125,
+      "drawing_stage_width": 870
+    }
+  ],
+  "contrast_method": "WCAG sRGB opaque-pair relative luminance; not rendered application conformance",
+  "contrast_pairs": [
+    {
+      "role": "text",
+      "foreground": "#F2F4F7",
+      "background": "#222831",
+      "ratio": 13.460716908536416,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "secondary",
+      "foreground": "#B8C0CC",
+      "background": "#222831",
+      "ratio": 8.086720037012253,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "muted",
+      "foreground": "#9AA6B5",
+      "background": "#222831",
+      "ratio": 6.000305336509135,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "control boundary",
+      "foreground": "#657386",
+      "background": "#222831",
+      "ratio": 3.072202546347264,
+      "normal_text_4_5": false,
+      "nontext_3": true
+    },
+    {
+      "role": "amber action label",
+      "foreground": "#191D23",
+      "background": "#E3A34D",
+      "ratio": 7.74335774053687,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "amber on paper",
+      "foreground": "#E3A34D",
+      "background": "#FFFFFF",
+      "ratio": 2.1847189896618127,
+      "normal_text_4_5": false,
+      "nontext_3": false
+    },
+    {
+      "role": "blue on paper",
+      "foreground": "#205BC5",
+      "background": "#FFFFFF",
+      "ratio": 6.242395918227679,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "focus on dark",
+      "foreground": "#90B8FF",
+      "background": "#222831",
+      "ratio": 7.406016598673159,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "warning",
+      "foreground": "#F3C969",
+      "background": "#222831",
+      "ratio": 9.442572236052381,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "error",
+      "foreground": "#F28B82",
+      "background": "#222831",
+      "ratio": 6.208731017734588,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "success",
+      "foreground": "#7BC8A4",
+      "background": "#222831",
+      "ratio": 7.514722085432127,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "teal category",
+      "foreground": "#007D7A",
+      "background": "#FFFFFF",
+      "ratio": 4.982827760787278,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "purple category",
+      "foreground": "#7A4BB3",
+      "background": "#FFFFFF",
+      "ratio": 6.026031605487731,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "orange category",
+      "foreground": "#9B4B00",
+      "background": "#FFFFFF",
+      "ratio": 6.176210312232226,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "blue action label",
+      "foreground": "#191D23",
+      "background": "#90B8FF",
+      "ratio": 8.44729605791026,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    },
+    {
+      "role": "teal action label",
+      "foreground": "#191D23",
+      "background": "#75CBC1",
+      "ratio": 8.916746704050698,
+      "normal_text_4_5": true,
+      "nontext_3": true
+    }
+  ],
+  "feature_snapshot": {
+    "F_entries": 77,
+    "TESTED_partial": 35,
+    "NOT_STARTED": 42,
+    "VERIFIED": 0,
+    "new_UX_requirements_NOT_STARTED": 10
+  },
+  "limitations": [
+    "No estimator usability participants",
+    "No screen-reader acceptance",
+    "No physical laptop/trackpad test",
+    "No live Bluebeam, Autodesk or Figma testing; official documentation/illustrations only",
+    "No implemented theme/token system",
+    "REA not reverified in this design-only phase"
+  ],
+  "failed_checks": [
+    "Some Apple web fetches returned JavaScript shell; rendered Chrome content used",
+    "Guessed physical-keyboards/inspector and old Figma editor URLs inaccessible; official replacements used",
+    "resize_page returned without changed viewport; explicit emulation succeeded",
+    "Initial shell loopback read blocked by sandbox; authorised escalated read succeeded",
+    "First multi-file documentation patch failed validation atomically; corrected documentation update succeeded"
+  ],
+  "delivery": {
+    "branch": "main",
+    "local_HEAD_at_start": "81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d",
+    "remote_parent_checked": "c45bc9896e75205038e2118aa613edae41c3b599",
+    "remote_visibility_checked": "private",
+    "pending": "Documentation-only protected delivery; no product code included"
+  }
+}

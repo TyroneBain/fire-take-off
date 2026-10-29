@@ -1,6 +1,6 @@
 # REA setup — live MCP verified
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
 
 On 2026-10-22 this fresh Codex session called `binary_session` with expected package version 6.7.0 and `analyze_javascript_application` on our owned fixture. Live identity is aligned with workflow 42, Codex client 0.163.0 and 207 catalog tools. Analysis succeeded; all seven independent source comparisons passed; behavior tests passed 3/3. [Live evidence](evidence/rea-live-mcp-2026-10-22.json) preserves identity, digest, checks and limitations. Full bundle is retained locally at `.local/rea-live-mcp-2026-10-22.json`. Static graph coverage is complete; semantic coverage remains unknown with explicit dynamic-call/data-flow limitations. This proves the required fixture workflow, not native provider availability or runtime execution by REA. No configuration changes were needed.
 
@@ -113,3 +113,8 @@ Follow-up on 2026-10-22: Chrome DevTools MCP is registered with `npx -y chrome-d
 ## Fresh live confirmation — 2026-10-28
 
 The current session successfully called binary_session with expected package 6.7.0 and analyzed only fixtures/rea-smoke through live MCP. Identity remains aligned (workflow 42, 207 tools; client now 0.165.0). All seven source-grounded checks and 3/3 independent behavior tests pass. Static graph coverage complete; semantic coverage unknown with retained limitations. No configuration repair, package download or native provider installation. Evidence: [fresh fixture report](evidence/rea-live-mcp-2026-10-28.json); complete one-record bundle .local/rea-live-mcp-2026-10-28.json is ignored. This does not imply access to Countfire's server implementation or establish complete reconstruction capability. Phase 0 remains complete.
+
+
+## Design-only checkpoint — 2026-10-29
+
+Current work is the user-requested research/design proposal; no REA installation/configuration or new owned-fixture analysis was performed in this phase. Prior live MCP evidence remains separately dated and is not replaced by design/browser observations. Product development is paused for design approval; see [ADR-0036](DECISIONS.md).

@@ -1,4 +1,12 @@
-# Standing authorisation for the private Countfire clone
+# Standing authorisation and current design gate
+
+## Current instruction — 2026-10-29
+
+Tyrone requests competitive Countfire functionality with a distinctive premium modern Fire Take Off interface, superseding the earlier copied-interface objective. Research public guidance and actual authorised interfaces, audit the existing application, propose three alternatives and stop for discussion. **No redesign, refactor, UI implementation or functionality/calculation changes until approval of the overall design system, layout and UX.** The [proposal](design/PHASE_1_UI_UX_RESEARCH.md) is not approval. Documentation and research artifacts may be maintained/delivered under standing authorisation. Catalogue remains deferred.
+
+Standing permission for normal authorised reference inspection, original implementation after the gate, testing and private repository delivery remains valid. Routine permission must not be requested again. This design decision is a user-imposed checkpoint, not an inferred restriction.
+
+## Historical authorisation — superseded where inconsistent above
 
 Confirmed by Tyrone on 2026-10-23, following repeated instructions on 2026-10-22: “clone count fire - change all your notes that we have permission to clone for private” and “stop asking for permission - you have my full permission for everything”.
 
@@ -10,4 +18,4 @@ This records the user's permission. It does not record a licence or permission g
 
 Keep the repository and application private. Exclude credentials, browser profiles, customer drawings and private account data from Git. Use owned/licensed fixtures for tests. Do not bypass access controls or expand this task into unrelated personal files, system-security changes, messages to other people or public publication. Actual sandbox/tool restrictions remain in effect; user authorisation and tool capability are separate facts. Record concrete blockers and recovery steps without repeatedly seeking the same authorisation.
 
-This is the current authorisation record. It supersedes earlier notes that treated private functional/visual cloning or normal authorised account inspection as awaiting the user's permission, including the earlier overnight restriction on authenticated inspection. Historical observation ledgers and failed-tool reports remain unchanged because they describe what actually happened. REA owned-fixture verification remains separate from product parity evidence.
+This historical authorisation superseded earlier notes that treated private functional/visual cloning or normal authorised account inspection as awaiting the user's permission, including the earlier overnight restriction on authenticated inspection. Historical observation ledgers and failed-tool reports remain unchanged because they describe what actually happened. REA owned-fixture verification remains separate from product parity evidence.
