@@ -20,3 +20,6 @@ The **main Codex session is the lead engineer/orchestrator**; it owns task alloc
 
 ## Invocation
 Codex versions differ in multi-agent availability. The project-scoped `.codex/config.toml` defines role names and config files; confirm the installed Codex version recognizes this syntax and has multi-agent support enabled. If not, treat these role descriptions as instructions for the lead agent until supported. Do not assume agents launch automatically. Keep the main session as coordinator.
+
+## Specialist knowledge base
+All non-design specialists must read `docs/AGENT_TECHNICAL_REFERENCE.md` and verify the current official references relevant to each task. Apple designer reads `docs/design/APPLE_HIG_AGENT_REFERENCE.md`. These are curated source indexes and acceptance contracts, not training weights or proof that external sources have been reviewed. The lead checks source versions, benchmark evidence and implementation before accepting work.
