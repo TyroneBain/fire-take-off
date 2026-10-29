@@ -1,0 +1,24 @@
+# Project-scoped Codex multi-agent roles. Enable multi-agent support in your Codex installation if required.
+[agents]
+max_threads = 4
+max_depth = 1
+
+[agents.vector_engineer]
+description = "Owns independent vector PDF symbol extraction and recognition; highest-priority implementation."
+config_file = "agents/vector_engineer.toml"
+
+[agents.qa_benchmark]
+description = "Independently tests recognition, corrections, persistence, and exports."
+config_file = "agents/qa_benchmark.toml"
+
+[agents.apple_designer]
+description = "Reviews Apple HIG-informed UX; proposes changes without modifying recognition code."
+config_file = "agents/apple_designer.toml"
+
+[agents.fire_workflow]
+description = "Reviews sprinkler/hydrant estimator workflows and practical acceptance criteria."
+config_file = "agents/fire_workflow.toml"
+
+[agents.estimating_excel]
+description = "Reviews pricing and spreadsheet reconciliation; deferred until core recognition is proven."
+config_file = "agents/estimating_excel.toml"
