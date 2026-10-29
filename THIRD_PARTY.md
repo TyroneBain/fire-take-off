@@ -1,6 +1,6 @@
 # Third-party dependencies
 
-Fire Take Off is authorised by Tyrone as a private functional and visual clone; see [the standing authorisation](docs/AUTHORIZATION.md). Its application code and synthetic fixtures are original. No Countfire assets or source are included. This dependency ledger records actual third-party licences separately from the user's project permission.
+Fire Take Off is an independently implemented fire-protection takeoff product; see [current product direction](docs/AUTHORIZATION.md). Its application code and synthetic fixtures are original. No Countfire assets or source are included. This dependency ledger records actual third-party licences separately from the user's project permission.
 
 | Component | Installed version | Licence | Purpose |
 | --- | --- | --- | --- |
