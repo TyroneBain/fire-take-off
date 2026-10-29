@@ -53,3 +53,6 @@ Earlier project documents contain requests for a visual Countfire clone. Those i
 - The immediate engineering priority remains the counting/recognition engine and realistic accuracy benchmarks; avoid unrelated feature work or UI polish until this works reliably.
 - Existing takeoff products offering similar features do not by themselves establish freedom to operate. Track patent, copyright, design, trademark, licensing and contractual questions for review before commercial release. Do not claim legal clearance, but do not confuse unverified risks with a finding of infringement.
 - Preserve current working functionality and project history. Use small testable milestones and report demonstrated results, not assumed Countfire parity.
+
+## Competitive AI roadmap — 2026-10-30
+Read `docs/COMPETITIVE_AI_ROADMAP_2026-10.md` before planning new features. Countfire's publicly announced Smart Select and forthcoming legend takeoff are competitive benchmarks, not implementation specifications. Finish measured P0 counting accuracy before starting AI features. Maintain original implementation and human-reviewed quantities.
