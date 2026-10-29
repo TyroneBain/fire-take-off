@@ -12,6 +12,21 @@ Build an independently implemented fire-protection takeoff and estimating produc
 - Handle real-world vector and raster PDFs, rotated/scaled symbols and visually similar nonmatches as explicit engineering targets. Measure precision, recall, latency and regression results on owned/licensed ground-truth fixtures. Do not claim parity or superiority without comparative evidence.
 - Retain existing working functionality and tests. Improve recognition algorithms when benchmarks demonstrate gains; do not invent unrelated workflows or replace established counting interactions merely to be different.
 
+
+## Immediate priority — vector-element symbol recognition (2026-10-30)
+The owner's explicit requirement is the practical Countfire-style counting capability: select a symbol (e.g. SSVG), choose the specific constituent lines/shapes that define it while excluding intersecting pipework or other unwanted geometry, automatically find equivalent symbols, mark each match in a persistent user-selected colour, and reconcile the quantity. This is a **functional** benchmark, not permission to copy competitor implementation or distinctive UI.
+
+**Stop expanding unrelated features and do not spend this milestone polishing the interface.** Before replacing the existing matcher, audit `apps/local/web/matcher.mjs`, PDF.js rendering/operator access, selection-cleaning UI, existing worker/scoping, saved corrections and tests. The current `binary-overlap-1` raster matcher is a useful baseline but does not establish element-level recognition or real-drawing accuracy.
+
+Implement a staged, independently designed proof of concept:
+1. On original or licensed vector PDFs, extract usable path/stroke/curve/transform information from PDF drawing operations; investigate whether grouping and identity survive CAD exports. Document limitations of PDF.js operator lists and nested forms/clipping rather than assuming vector objects correspond neatly to whole symbols.
+2. Build interactive selection of constituent geometric elements with inclusion/exclusion, including ignoring pipework crossing a selected sprinkler symbol. Preserve source coordinates and existing example identity; never silently discard manual edits.
+3. Match normalised arrangements across pages/drawings using efficient spatial candidate search and explicit tolerances; support translation and 90-degree rotations first, then measured scale tolerance where needed. Distinguish near-lookalikes and overlapping strokes. Retain the raster matcher as a fallback for image-only/flattened PDFs.
+4. Connect detections to existing colour overlays, count items, review/correction, persistence and Excel export without rewriting working subsystems. Keep cancellation atomic and existing review decisions intact on reruns.
+5. Create independently labelled vector and raster fixtures with identical symbols, distractors, intersecting pipework, rotated/scaled examples, nested form objects and realistic page sizes. Measure precision, recall, false positives, missed matches, time and memory. Do not claim parity or superiority until representative authorised real-drawing benchmarks support it.
+
+**Execution gate:** First record a concise technical feasibility assessment and incremental plan in project documentation, then build the smallest end-to-end vector-element selection/matching demonstration and run regression tests. If vector extraction cannot reliably recover selectable elements for some PDFs, report the evidence and choose a hybrid approach rather than forcing a brittle design. Do not overwrite or reset Codex's concurrent unpushed changes; coordinate before editing application code.
+
 ## Independent implementation and IP boundaries
 - Countfire may be used as a competitive functional benchmark through public documentation and normal authorised use, subject to applicable terms.
 - Do not copy or closely reproduce Countfire's source code, assets, icons, text, branding, distinctive screen layouts, or trade dress. Do not extract proprietary data or bypass access controls.
