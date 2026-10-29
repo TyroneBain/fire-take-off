@@ -1,8 +1,8 @@
 # Fire Take Off
 
-Standing user permission: [private functional and visual Countfire clone](docs/AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Development direction: [independent product and IP boundaries](docs/AUTHORIZATION.md). Historical observations and test results retain their original dates.
 
-A private functional and visual Countfire clone, explicitly authorised by Tyrone and independently implemented as Fire Take Off. The first runnable increment provides local projects, takeoffs, disciplines, persistent PDF import, a PDF viewer, page-space notes and editable page metadata. Full feature parity is not implemented.
+An independently implemented fire-protection estimating and drawing takeoff application. Automatic symbol recognition and colour-coded counts are core competitive requirements. The first runnable increment provides local projects, takeoffs, disciplines, persistent PDF import, a PDF viewer, page-space notes and editable page metadata. Full feature parity is not implemented.
 
 ## Run locally
 
@@ -63,7 +63,7 @@ Coverage review: select a count heading or a point measurement, set Coverage rad
 
 To clean a saved count selection, expand **Selections** and choose **Edit**. Click or drag to erase vector paths, use **Restore** or hold Shift to bring them back, and choose **Done** to recount the discipline. **Cancel** leaves saved data intact. Reviewed corrections and multipliers are retained; obsolete unchecked detections are removed. Text/image selections and clipped/composited drawings are not yet editable. Erase all then Done deletes the selection after confirmation, as does the × control on its row. Shift-click skips confirmation. Deletion removes all linked instances, including reviewed/reclassified results; manual and other-selection counts remain.
 
-The cleaned matcher ignores erased detail while checking retained linework and surrounding blank space. It currently requires the same size and orientation; review every result. Independent negative controls and the original six-symbol PDF pass, but realistic trade-drawing recognition and complete Countfire parity remain unfinished. Latest local suite: **125/125 passing** (2026-10-29).
+The cleaned matcher ignores erased detail while checking retained linework and surrounding blank space. It currently requires the same size and orientation; review every result. Independent negative controls and the original six-symbol PDF pass, but realistic trade-drawing recognition and complete real-world workflow validation remain unfinished. Latest local suite: **125/125 passing** (2026-10-29).
 
 Drag a saved selection preview onto another heading to move the definition across drawings, or use **Move** to choose a heading with the keyboard. Factors, review decisions and individually reclassified matches are kept. Conflicting destination instances must be resolved first. Empty moved-from headings disappear from the sidebar while their names remain in the audit; Move can restore the original heading. Excel includes Selection moves history.
 
