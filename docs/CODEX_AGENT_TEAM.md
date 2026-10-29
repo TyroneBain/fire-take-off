@@ -5,7 +5,7 @@ The **main Codex session is the lead engineer/orchestrator**; it owns task alloc
 ## Start order
 1. **Vector engineer**: immediately inspect our code with REA and implement the smallest independent vector matching improvement.
 2. **QA benchmark**: independently prepare tests and report evidence in parallel; do not edit the same files as vector engineer.
-3. **Fire workflow**: supply short estimator acceptance scenarios and edge cases.
+3. **Multi-trade MEP workflow**: supply short estimator acceptance scenarios across electrical, lighting, fire, security/alarms, data/AV and mechanical, starting with fire.
 4. **Apple designer**: review and draft UX recommendations only, no production changes until recognition benchmark.
 5. **Estimating/Excel**: deferred until counting benchmark is demonstrated.
 
@@ -23,3 +23,6 @@ Codex versions differ in multi-agent availability. The project-scoped `.codex/co
 
 ## Specialist knowledge base
 All non-design specialists must read `docs/AGENT_TECHNICAL_REFERENCE.md` and verify the current official references relevant to each task. Apple designer reads `docs/design/APPLE_HIG_AGENT_REFERENCE.md`. These are curated source indexes and acceptance contracts, not training weights or proof that external sources have been reviewed. The lead checks source versions, benchmark evidence and implementation before accepting work.
+
+## Competitive intelligence
+The competitive_analyst agent studies Countfire, Groundplan and other takeoff products from dated public sources and permitted normal UI observation. It reports evidence, unknowns, benchmarkable gaps and small actionable proposals to the lead. It is research-only and must not interrupt the vector-engineering and QA priority or copy proprietary implementations.
