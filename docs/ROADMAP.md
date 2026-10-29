@@ -1,5 +1,8 @@
 # Roadmap
 
+> **Current authority (2026-10-30):** `docs/PRODUCT_EXECUTION_SOURCE_OF_TRUTH.md` governs product priorities and resolves conflicting historical layout/prototype directives below. Keep the dated history as evidence; do not execute superseded requests without checking the current authority. Security and independent-IP boundaries always apply.
+
+
 **Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
 
 
