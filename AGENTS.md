@@ -46,3 +46,10 @@ Implement a staged, independently designed proof of concept:
 
 ## Historical records
 Earlier project documents contain requests for a visual Countfire clone. Those instructions are superseded by this independent-product objective. Preserve historical evidence and user decision records as history, not as current implementation instructions.
+
+## Standing product decisions — owner confirmation, 2026-10-30
+- Fire Take Off is a legitimate independent competitor in the construction takeoff market. Aim to equal Countfire's practical symbol selection, element inclusion/exclusion, automatic recognition, review and colour-coded counting capabilities, and ultimately improve on accuracy and usability.
+- **Functional parity does not mean copying implementation.** All application code, recognition algorithms, architecture, UI expression, graphics and assets must be original or appropriately licensed. Do not access, reverse engineer or copy Countfire proprietary code or assets; do not use its service in breach of contractual restrictions to develop a competitor. Publicly documented functional behaviour can inform requirements.
+- The immediate engineering priority remains the counting/recognition engine and realistic accuracy benchmarks; avoid unrelated feature work or UI polish until this works reliably.
+- Existing takeoff products offering similar features do not by themselves establish freedom to operate. Track patent, copyright, design, trademark, licensing and contractual questions for review before commercial release. Do not claim legal clearance, but do not confuse unverified risks with a finding of infringement.
+- Preserve current working functionality and project history. Use small testable milestones and report demonstrated results, not assumed Countfire parity.
