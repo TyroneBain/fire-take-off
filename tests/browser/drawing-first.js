@@ -14,7 +14,7 @@ async () => {
   const expected=d.name==='Ground.pdf'?[[100,100],[200,100],[300,100],[100,200],[200,200],[300,200]]:[[200,100],[300,100],[100,200],[200,200],[300,200],[350,150]];
   check(expected.every(([x,y])=>s.countMarks.some(m=>m.drawing_id===d.id&&Math.hypot(m.x-x,m.y-y)<1)),d.name+' independently declared centres');
  }
- $('edit-count-item').click();$('item-name').value='Sprinkler heads';$('item-form').requestSubmit();
+ $('item-actions').open=true;$('edit-count-item').click();$('item-name').value='Sprinkler heads';$('item-form').requestSubmit();
  await wait(async()=>!( $('item-dialog').open)&&(await state()).countItems[0].name==='Sprinkler heads','rename');check(true,'Rename persists without recount');
  const excluded=s.countMarks.find(m=>m.drawing_id===ground.id);
  document.querySelector(`[data-mark-id="${excluded.id}"]`).click();$('match-included').checked=false;$('match-form').requestSubmit();
@@ -29,7 +29,7 @@ async () => {
  check(JSON.stringify(await state())===before,'Cancelled matching creates no heading or partial results');
  $('count-scope').value='drawing';$('select-example').click();drag([90,90,110,110]);await stable();s=await state();
  const second=s.countItems.find(i=>i.id!==first.id);check(second?.name==='Symbol 1'&&s.countMarks.filter(m=>m.item_id===second.id).length===6,'New symbol and drawing-only scope stay separate');
- const beforeView=JSON.stringify(s),rect=$('drawing-stage').getBoundingClientRect();$('toggle-task-panel').click();
+ const beforeView=JSON.stringify(s);$('collapse-count-items').click();check(!document.querySelector('.selection-card'),'Collapse items hides previews');$('collapse-count-items').click();check(document.querySelectorAll('.selection-card').length===3,'Expand items restores previews');$('count-filter').value='no such item';$('count-filter').dispatchEvent(new Event('input'));check(!document.querySelector('.count-item')&&$('active-count').hidden,'Filtering hides unrelated item controls');$('count-filter').value='';$('count-filter').dispatchEvent(new Event('input'));const rect=$('drawing-stage').getBoundingClientRect();$('toggle-task-panel').click();
  check($('task-panel').hidden&&$('drawing-stage').getBoundingClientRect().width>rect.width,'Panel collapse returns space to the drawing');$('toggle-task-panel').click();
  for(const tool of ['measure','zone','note','layout','page','count']){$(tool+'-tool').click();check($(tool+'-tool').getAttribute('aria-pressed')==='true',tool+' remains available in task panel');}
  check(JSON.stringify(await state())===beforeView,'Switching tools and panels leaves quantities unchanged');
@@ -40,5 +40,6 @@ async () => {
  stage.dispatchEvent(new PointerEvent('pointerup',{pointerId:10,button:0,bubbles:true}));
  document.dispatchEvent(new KeyboardEvent('keyup',{key:' ',code:'Space',bubbles:true}));
  check($('cancel-match').hidden&&JSON.stringify(await state())===beforeView,'Space pan never starts counting');
+ document.querySelector('.selection-card').click();await wait(()=>$('selection-dialog').open,'selection editor');check(true,'Selection preview opens real editor');$('selection-cancel').click();check(JSON.stringify(await state())===beforeView,'Cancelling preview editor preserves state');
  return {passed:checks.length,checks,headingNames:(await state()).countItems.map(i=>i.name),marks:(await state()).countMarks.length};
 }

@@ -1,5 +1,8 @@
 # Fire Take Off — permanent operating instructions
 
+**Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
+
+
 **Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
 
 
@@ -13,9 +16,9 @@
 
 ## Product objective
 
-Build Fire Take Off as a private, independently implemented fire protection takeoff and estimating platform competitive with Countfire's complete user-facing workflows. Current user direction (2026-10-29) requires a distinctive premium modern interface, superseding the earlier visual-clone objective. Tyrone has explicitly granted standing authorisation; see [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md). Do not ask again for routine project steps already covered by that authorisation. Include all required and publicly documented features in FEATURE_PARITY.md. Interface mockups do not constitute functional parity. Do not introduce unrelated products or AI designer features.
+Build Fire Take Off as a private, independently implemented fire protection takeoff and estimating platform competitive with Countfire's complete user-facing workflows. Latest user direction (2026-10-29) requires close reproduction of Countfire’s observed interface and workflows, superseding the distinctive right-panel interpretation. Tyrone has explicitly granted standing authorisation; see [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md). Do not ask again for routine project steps already covered by that authorisation. Include all required and publicly documented features in FEATURE_PARITY.md. Interface mockups do not constitute functional parity. Do not introduce unrelated products or AI designer features.
 
-Research public documentation and normal user-visible workflows in the supplied authorised account. Learn from observed workflows while designing our own interface; do not equate visual copying with functional completeness. Use original or appropriately licensed code/assets and preserve provenance. The recorded permission comes from Tyrone; no Countfire source-code licence has been supplied. Do not bypass access controls. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
+Research public documentation and normal user-visible workflows in the supplied authorised account. Reproduce observed workflows and layout with independent code; interface resemblance does not establish functional completeness. Use original or appropriately licensed code/assets and preserve provenance. The recorded permission comes from Tyrone; no Countfire source-code licence has been supplied. Do not bypass access controls. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
 
 Current user-directed exception (2026-10-28): do not build or clone the catalogue section yet. Tyrone will customise it later. Keep catalogue UI/product-library management and catalogue-dependent imports or kit management deferred; continue independent takeoff and estimating work. Do not treat full-parity scope as permission to implement the deferred catalogue.
 

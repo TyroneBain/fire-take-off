@@ -20,12 +20,18 @@ function notice(message, error = false) {
   $('message').textContent = message; $('message').hidden = false; $('message').classList.toggle('error', error);
   clearTimeout(messageTimer); messageTimer = setTimeout(() => { $('message').hidden = true; }, error ? 10000 : 4500);
 }
+let pendingWrites=0,writeFailed=false;
 async function api(path, options = {}) {
-  const response = await fetch(path, { ...options, headers: { 'X-Fire-Token': token || '', ...options.headers } });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Operation failed');
-  return data;
+  const write=options.method&&!['GET','HEAD'].includes(options.method);if(write){if(!pendingWrites)writeFailed=false;pendingWrites++;$('save-status').textContent='Saving…';}
+  try {
+    const response = await fetch(path, { ...options, headers: { 'X-Fire-Token': token || '', ...options.headers } });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Operation failed');
+    if(write)$('save-status').textContent=writeFailed?'Not saved':pendingWrites>1?'Saving…':'Saved';return data;
+  } catch(error){if(write){writeFailed=true;$('save-status').textContent='Not saved';}throw error;}
+  finally {if(write)pendingWrites--;}
 }
+
 function node(tag, text, className) { const element = document.createElement(tag); if (text != null) element.textContent = text; if (className) element.className = className; return element; }
 function button(text, action, className) { const b = node('button', text, className); b.addEventListener('click', action); return b; }
 function children(parent, kind) { return state.entities.filter(e => e.parent_id === parent && e.kind === kind); }

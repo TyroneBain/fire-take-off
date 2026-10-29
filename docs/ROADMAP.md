@@ -1,5 +1,8 @@
 # Roadmap
 
+**Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
+
+
 **Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
 
 
@@ -112,3 +115,6 @@ Recount234390c delivered privately and passes125/125 hosted. Copy items modal/ca
 
 
 2026-10-29 ADR-0041: user lifted prototype gate; first drawing-first counting production increment passes125/125 regression and20 owned browser checks, with Excel reconciliation. Continue evidence-led selection/heading and checking/output workflows. Existing catalogue deferral and full parity gates remain.
+
+
+2026-10-29 ADR-0042: user rejects complexity and restores exact-reference objective. Count workspace simplification tested125/125 plus25 browser checks. Continue reference Measure/Zone and item-property flows; do not return to the right-inspector interpretation. Full save/source visibility/matching/output gates remain open.

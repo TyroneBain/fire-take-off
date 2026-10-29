@@ -1,0 +1,256 @@
+{
+  "date": "2026-10-29",
+  "decision": "ADR-0042",
+  "reference": {
+    "method": "Normal authorised beta demo UI, temporary unsaved selection; no source/account asset extraction",
+    "empty": "Left 60px rail, adjacent 350px panel, brief Auto-count items prompt",
+    "populated": "Search/collapse/visibility, Create item/group, compact heading with inline selection thumbnails; thumbnail Edit opens Manage selection",
+    "scratchResult": "Temporary A selection showed125 matches and2 elements; numerical accuracy not independently verified",
+    "cleanup": "Cancel editor, reload accepted own beforeunload; empty state and disabled Save changes observed"
+  },
+  "environment": "macOS / Node24.22.0 / Chrome / original vector fixtures",
+  "automated": {
+    "passed": 125,
+    "failed": 0,
+    "duration_ms": 19477.945902
+  },
+  "browser": {
+    "passed": 25,
+    "checks": [
+      "Direct unnamed selection counted twelve known symbols",
+      "Six per drawing and other discipline untouched",
+      "Ground.pdf independently declared centres",
+      "Level 1.pdf independently declared centres",
+      "Rename persists without recount",
+      "Additional example does not duplicate marks",
+      "Reviewed exclusion survives additional example",
+      "Both examples retained under one heading",
+      "Empty-symbol failure leaves saved state unchanged",
+      "Cancelled matching creates no heading or partial results",
+      "New symbol and drawing-only scope stay separate",
+      "Collapse items hides previews",
+      "Expand items restores previews",
+      "Filtering hides unrelated item controls",
+      "Panel collapse returns space to the drawing",
+      "measure remains available in task panel",
+      "zone remains available in task panel",
+      "note remains available in task panel",
+      "layout remains available in task panel",
+      "page remains available in task panel",
+      "count remains available in task panel",
+      "Switching tools and panels leaves quantities unchanged",
+      "Space pan never starts counting",
+      "Selection preview opens real editor",
+      "Cancelling preview editor preserves state"
+    ],
+    "headingNames": [
+      "Sprinkler heads",
+      "Symbol 1"
+    ],
+    "marks": 18
+  },
+  "geometry": [
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "rail": {
+        "x": 0,
+        "y": 64,
+        "w": 60,
+        "h": 712
+      },
+      "panel": {
+        "x": 60,
+        "y": 64,
+        "w": 350,
+        "h": 712
+      },
+      "canvas": {
+        "x": 410,
+        "y": 64,
+        "w": 870,
+        "h": 712
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "modes": [
+        {
+          "mode": "count",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "measure",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "zone",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "note",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "layout",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "page",
+          "active": true,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "rail": {
+        "x": 0,
+        "y": 64,
+        "w": 60,
+        "h": 812
+      },
+      "panel": {
+        "x": 60,
+        "y": 64,
+        "w": 350,
+        "h": 812
+      },
+      "canvas": {
+        "x": 410,
+        "y": 64,
+        "w": 1030,
+        "h": 812
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "modes": [
+        {
+          "mode": "count",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "measure",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "zone",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "note",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "layout",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "page",
+          "active": true,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "rail": {
+        "x": 0,
+        "y": 64,
+        "w": 60,
+        "h": 992
+      },
+      "panel": {
+        "x": 60,
+        "y": 64,
+        "w": 350,
+        "h": 992
+      },
+      "canvas": {
+        "x": 410,
+        "y": 64,
+        "w": 1510,
+        "h": 992
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "modes": [
+        {
+          "mode": "count",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "measure",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "zone",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "note",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "layout",
+          "active": true,
+          "overflow": false
+        },
+        {
+          "mode": "page",
+          "active": true,
+          "overflow": false
+        }
+      ]
+    }
+  ],
+  "saveStatus": {
+    "injected409LeavesStateUnchanged": true,
+    "failedStatus": "Not saved",
+    "retryStatus": "Saved",
+    "globalPendingTransaction": false
+  },
+  "preservation": {
+    "changedAppFiles": 5,
+    "preservedAppFiles": 49,
+    "mainStoreWritesPerformed": false,
+    "testStore": ".local/reference-simple-final on4177",
+    "mainStateSha256": "f63cd4487d979cc85c19b099cc049a20af1130e069da6efd96279307500f1ba4",
+    "historicalComparison": "Different from prior-turn838872... checkpoint: one additional count item/example. No fresh start-of-turn state snapshot, so no before/after state-identity claim. Existing data retained; no reset or database edit."
+  },
+  "failures": [
+    "git diff --check caught whitespace, corrected; final check clean"
+  ],
+  "limitations": [
+    "This increment matches observed Count layout structure, not exact whole-application parity",
+    "Existing immediate persistence instead of Countfire global Save",
+    "Marker-only visibility instead of source-element hiding",
+    "Neutral names, limited matcher and no Smart Select/floating references/rotation parity",
+    "Existing review/export policy and detailed Measure/Zone panels not matched fully",
+    "No representative large-list benchmark or accessibility certification"
+  ],
+  "delivery": {
+    "state": "Pending protected private delivery"
+  }
+}

@@ -30,6 +30,15 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,edit
   }
   function show(container,data){const image=node('img');image.src=data;image.alt='Saved symbol example';container.replaceChildren(image);}
   return {
+    cards(itemId,container){
+      const state=context().state,model=selectionList(state,itemId,context().drawing?.id);
+      for(const {record,quantity} of model.rows){
+        const card=button('',()=>editExample(record),'selection-card');card.setAttribute('aria-label',`Edit selection for ${state.countItems.find(i=>i.id===itemId)?.name}`);card.title='Edit selection';
+        const preview=node('div',null,'example-preview');card.append(preview,node('span',String(quantity),'selection-card-total'));card.dataset.exampleId=record.id;card.draggable=true;card.addEventListener('dragstart',e=>movement.start(e,record));card.addEventListener('dragend',()=>movement.end());
+        const drawing=state.drawings.find(d=>d.id===record.example.drawing_id);if(cache.has(record.id+':'+record.version))show(preview,cache.get(record.id+':'+record.version));else if(drawing){preview.append(node('span','…'));queue.push({record,drawing,container:preview});}
+        container.append(card);
+      }
+    },
     paint(itemId){
       const list=document.getElementById('count-examples');list.replaceChildren();queue=[];
       const state=context().state,model=selectionList(state,itemId,context().drawing?.id);
