@@ -1,5 +1,8 @@
 # Fire Take Off — development instructions
 
+**Current product direction:** Read `docs/PRODUCT_EXECUTION_SOURCE_OF_TRUTH.md` first, followed by `docs/ENGINEERING_QUALITY_STRATEGY.md`. Historical roadmap/prototype instructions may be superseded. Use repeatable project skills in `.agents/skills/` and benchmark protocol `docs/BENCHMARK_AND_FAILURE_REGISTER.md`. Do not mistake written plans for implemented features.
+
+
 ## Product objective
 Build an independently implemented fire-protection takeoff and estimating product with symbol-counting performance and practical workflows competitive with Countfire. The central requirement is accurate, fast, reviewable symbol recognition and colour-coded counts, not a visually identical competitor product.
 
