@@ -1,6 +1,6 @@
 # Feature parity inventory
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
 Baseline researched 2026-10-22. Project/PDF, counting, measurements, zones and exports have partial tested scopes; individual rows record current status. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
 
@@ -183,3 +183,8 @@ The user now requests a distinctive interface and has paused implementation for 
 | UX010 | Large-workspace responsiveness; user brief | Benchmark representative PDF/symbol sets, virtualised lists preserve focus/selection, cancellation prevents stale results | NOT STARTED | Targets proposed, unmeasured; P1 |
 
 These UX rows extend the inventory without changing the 77 historical F-series counts. Source findings and proposed acceptance details are in the design report and source register. General discovery remains open; these rows do not claim an exhaustive design specification.
+
+
+## Interactive design validation — 2026-10-29
+
+The [standalone A/B prototype](design/INTERACTIVE_PROTOTYPE_REVIEW.md) exercises proposed UX001–UX010 interactions using fictional data. Its 11 model tests and 41 browser interaction checks validate the study only. All production feature states remain unchanged; no F-series or UX-series requirement is promoted by this prototype. Recognition, durable undo/autosave, large-result performance and production export integration remain subject to their own acceptance tests and further implementation approval.

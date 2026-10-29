@@ -1,10 +1,10 @@
 # Roadmap
 
-## Active gate — UI/UX research and design approval, 2026-10-29
+## Active gate — interactive prototype review, 2026-10-29
 
-Tyrone explicitly paused development for research, an application audit, three alternative layouts, visual/interaction specifications and a staged preservation plan. [Report and wireframes](design/PHASE_1_UI_UX_RESEARCH.md) prepared for discussion; no concept approved, no UI/functionality/calculation change made. The target now uses a distinctive interface, superseding visual cloning. Next executable task is review with Tyrone and record his direction. Do not resume F076 or other product implementation before resolving this gate. Catalogue remains deferred. Original phase numbering/history below remains intact; this checkpoint does not declare the broader Phase 1 complete.
+Tyrone provisionally approves A on larger displays adapting toward B on laptops. An independent interactive prototype is implemented and tested under `prototypes/workspace-v1/`, using fictional data and original schematic drawings. [Review report](design/INTERACTIVE_PROTOTYPE_REVIEW.md) records exact screen-space measurements, A/B tradeoffs and limits. **Next task: obtain Tyrone's prototype feedback; do not implement production UI.** No production functionality, calculation or data change is authorised by this prototype. Do not resume F076 or catalogue work. Original phase numbering/history below remains intact; this checkpoint does not declare broader Phase 1 complete.
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
 Every phase updates CURRENT_STATE and parity IDs. Dependencies flow in order; Phase 1 research may refine later work but may not waive acceptance gates without a recorded decision.
 

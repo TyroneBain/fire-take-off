@@ -1,0 +1,561 @@
+{
+  "date": "2026-10-29",
+  "scope": "Isolated fictional UI prototype; no production feature status promotion",
+  "environment": "macOS, Node v24.22.0, Chrome desktop, deviceScaleFactor 1",
+  "modelTests": {
+    "command": "node --test prototypes/workspace-v1/tests/*.test.cjs",
+    "passed": 11,
+    "failed": 0,
+    "durationMs": 118.751916
+  },
+  "browserWorkflow": {
+    "checks": [
+      {
+        "name": "a: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "a: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "a: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "a: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "a: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "a: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "a: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "a: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "b: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "b: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "b: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "b: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "b: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "b: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "b: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "b: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "drawing switch restores zoom",
+        "passed": true
+      },
+      {
+        "name": "maximise expands canvas",
+        "passed": true
+      },
+      {
+        "name": "restore preserves zoom",
+        "passed": true
+      },
+      {
+        "name": "zone factor contribution",
+        "passed": true
+      },
+      {
+        "name": "overlap priority contribution",
+        "passed": true
+      },
+      {
+        "name": "first drawing reviewed but project still blocked",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to next drawing review",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to scale blocker",
+        "passed": true
+      },
+      {
+        "name": "all blockers resolved, advisories separate",
+        "passed": true
+      },
+      {
+        "name": "CSV contains fictional disclaimer and reconciled all-sheet quantities",
+        "passed": true
+      },
+      {
+        "name": "reset restores seed and clears edits",
+        "passed": true
+      }
+    ],
+    "passed": 27,
+    "csvDownload": "Blob contents checked; file download suppressed by test",
+    "final": {
+      "sheet": "01",
+      "layout": "b",
+      "mode": "auto",
+      "tool": "select",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6355555555555555,
+        "ox": 32.61111111111114,
+        "oy": 20,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          955,
+          612
+        ]
+      },
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "browserInteractions": {
+    "checks": [
+      {
+        "name": "example opens explicit seeded scan preview",
+        "passed": true
+      },
+      {
+        "name": "cancelled demo scan preserves state",
+        "passed": true
+      },
+      {
+        "name": "completed demo scan opens seeded review without edits",
+        "passed": true
+      },
+      {
+        "name": "explicit tab navigation cancels pending scan transition",
+        "passed": true
+      },
+      {
+        "name": "canvas coordinate creates manual correction",
+        "passed": true
+      },
+      {
+        "name": "undo removes manual correction",
+        "passed": true
+      },
+      {
+        "name": "note applied at drawing location",
+        "passed": true
+      },
+      {
+        "name": "note undo restores drawing",
+        "passed": true
+      },
+      {
+        "name": "B collapse expands canvas",
+        "passed": true
+      },
+      {
+        "name": "B restore preserves drawing centre",
+        "passed": true
+      },
+      {
+        "name": "A both panels collapse",
+        "passed": true
+      },
+      {
+        "name": "A restore returns both panels",
+        "passed": true
+      },
+      {
+        "name": "auto layout defers panel relocation during edit",
+        "passed": true
+      },
+      {
+        "name": "auto layout applies after edit committed",
+        "passed": true
+      }
+    ],
+    "passed": 14,
+    "method": "DOM interaction scenario in Chrome at 1280x800; not a human usability test",
+    "final": {
+      "sheet": "01",
+      "layout": "b",
+      "mode": "auto",
+      "tool": "select",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6355555555555555,
+        "ox": 32.61111111111114,
+        "oy": 20,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          955,
+          612
+        ]
+      },
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "layouts": [
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "mode": "auto",
+      "layout": "b",
+      "canvas": [
+        955,
+        612
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "mode": "a",
+      "layout": "a",
+      "canvas": [
+        718,
+        612
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "mode": "b",
+      "layout": "b",
+      "canvas": [
+        955,
+        612
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "auto",
+      "layout": "a",
+      "canvas": [
+        878,
+        712
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "a",
+      "layout": "a",
+      "canvas": [
+        878,
+        712
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "b",
+      "layout": "b",
+      "canvas": [
+        1115,
+        712
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "mode": "auto",
+      "layout": "a",
+      "canvas": [
+        1358,
+        892
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "mode": "a",
+      "layout": "a",
+      "canvas": [
+        1358,
+        892
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "mode": "b",
+      "layout": "b",
+      "canvas": [
+        1595,
+        892
+      ],
+      "noDocumentOverflow": true,
+      "noSummaryOverflow": true,
+      "reviewInside": true
+    }
+  ],
+  "manualAutomation": {
+    "dividerDrag": "Real Chrome drag to stable canvas target: width 320 \u2192 420; canvas955 \u2192 855. ArrowLeft resized420 \u2192 412; Restore returned320.",
+    "directFile": "file:///Users/tyronebain/Projects/fire-take-off/prototypes/workspace-v1/index.html loaded; diagnostics available; no errors/warnings.",
+    "screenshots": "Three exact viewport Auto screenshots visually inspected; fictional data only."
+  },
+  "preservation": {
+    "sha256Files": 85,
+    "changedFiles": [],
+    "apiStateBytes": 320277,
+    "apiStateSha256": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc",
+    "databaseWrites": false,
+    "productionTests": "Not rerun during this prototype phase; previous dated 125/125 research checkpoint retained."
+  },
+  "failuresAndRecovery": [
+    "Initial static-server bind EPERM; authorised escalated loopback server succeeded.",
+    "Chrome sourcePath and screenshot filePath rejected by MCP server workspace roots; inline evaluation and returned image bytes used within authorised project workspace.",
+    "Initial favicon404 fixed with original favicon.svg; subsequent console clean.",
+    "Drag to dynamically redrawn symbol returned detached node after resizing; retried to stable canvas target successfully.",
+    "Initial scan test used fixed1200ms delay and observed pre-completion state; changed to bounded condition wait (4s), passed14/14."
+  ],
+  "limits": [
+    "SVG drawing stand-ins, not PDF rendering or recognition",
+    "Seeded scan is labelled simulation",
+    "Memory-only demo transactions; no production autosave or undo promise",
+    "CSV fictional output; production Excel disconnected",
+    "No real estimator usability results, screen-reader certification, large-file or thousands-of-symbol performance results"
+  ],
+  "delivery": {
+    "privateRepository": "TyroneBain/fire-take-off",
+    "expectedParent": "d97f6b5a8bbca19d5435e0daafb5dcd5dd2aa968",
+    "state": "Prepared; publication requires observed ref readback"
+  },
+  "additionalPanelAndPanChecks": {
+    "max": {
+      "canvas": [
+        530,
+        595
+      ],
+      "nav": "320",
+      "inspector": "420",
+      "summaryFits": true,
+      "overflow": false
+    },
+    "pan": {
+      "x": -40,
+      "y": -30,
+      "scaleUnchanged": true
+    }
+  },
+  "contrastRatios": {
+    "mainTextPanel": 13.46,
+    "secondaryTextPanel": 8.09,
+    "darkTextAmber": 7.74,
+    "selectionWhite": 6.24,
+    "focusPanel": 7.41,
+    "inputBorderShell": 4.28
+  }
+}

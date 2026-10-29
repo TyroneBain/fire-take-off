@@ -1,6 +1,6 @@
 # Testing strategy
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
 ## Foundation checks
 
@@ -129,3 +129,10 @@ Recount hosted confirmation:234390c, run40818250599/job123264349979 passes125/12
 ## UI/UX research checkpoint — 2026-10-29
 
 Existing automated suite rerun: 125 passed, zero failed, 20543.946924ms. No new product tests or implementation changes in this phase. [Design report](design/PHASE_1_UI_UX_RESEARCH.md) section 9 proposes task-based A/B evaluation and separately labelled performance targets; no estimator usability study, screen-reader acceptance or realistic large-project performance test has occurred. Candidate opaque colour pairs were computed using WCAG relative luminance; this does not establish app conformance. Preserve numeric/export/coordinate contracts during any later approved presentation migration. Evidence: [design research](evidence/design-research-2026-10-29.json).
+
+
+## Isolated design-prototype checks — 2026-10-29
+
+Run `node --test prototypes/workspace-v1/tests/*.test.cjs` independently of the product suite. Execute `tests/browser-scenario.js` and `tests/browser-interactions.js` from that prototype directory as async function expressions in Chrome against port4174; the latter requires1280×800. They use DOM interactions, not human usability measurements. Inspect three requested viewports, compare A/B with identical state, exercise real pointer/keyboard divider input, and verify direct file opening. Preserve the85-file production SHA256 baseline and the live production state hash before/after. Do not run prototype actions against port4173.
+
+Observed11/11 model tests and27+14 browser checks pass; nine layout combinations have no document/summary horizontal overflow. Screenshot review and token contrast calculation are bounded evidence, not accessibility certification. No production test result is newly claimed for this prototype-only session. Evidence: `docs/evidence/interactive-prototype-2026-10-29.json`.

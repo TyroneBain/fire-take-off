@@ -1,10 +1,10 @@
 # Product vision
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). UI development is paused for the user-requested design decision; historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
 Fire Take Off is a private, independently implemented fire protection estimating and automated takeoff platform. The current objective (2026-10-29) is competitive Countfire functionality with a distinctive premium modern design: precision, productivity and clarity before decoration. The earlier copied-interface objective is superseded. The initial user is a single estimator using a private application on macOS. Complete functional workflow scope, including publicly documented collaboration and integrations, remains in the backlog.
 
-Development is paused at the user's explicit design checkpoint. [Research, three concepts and the proposed design system](design/PHASE_1_UI_UX_RESEARCH.md) must be discussed and approved before implementation. Graphite/white/amber is a preferred direction under evaluation, not an accepted production design. No architecture, calculation policy or feature completion is established by these wireframes.
+Tyrone provisionally approves A on large displays adapting toward B on smaller screens, with graphite shell, white drawing, warm amber actions, blue selection and explicit quantity/review states. The [independent interactive prototype](design/INTERACTIVE_PROTOTYPE_REVIEW.md) is ready for review. This approves design exploration only. No production architecture, calculation policy or feature completion is established by its fictional behaviour, and production UI implementation requires further explicit approval.
 
 The core workflow is: create a project, organise drawing sets and disciplines, review high-resolution PDFs, select and count symbols across drawings/floors, inspect and correct results, calibrate and measure, divide quantities into zones, handle overlays/revisions, produce auditable schedules and Excel outputs, then price and export estimates.
 
