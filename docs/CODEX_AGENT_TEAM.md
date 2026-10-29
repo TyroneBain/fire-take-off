@@ -26,3 +26,6 @@ All non-design specialists must read `docs/AGENT_TECHNICAL_REFERENCE.md` and ver
 
 ## Competitive intelligence
 The competitive_analyst agent studies Countfire, Groundplan and other takeoff products from dated public sources and permitted normal UI observation. It reports evidence, unknowns, benchmarkable gaps and small actionable proposals to the lead. It is research-only and must not interrupt the vector-engineering and QA priority or copy proprietary implementations.
+
+## Current operating strategy (2026-10-30)
+Read `docs/ENGINEERING_QUALITY_STRATEGY.md` first for acceptance gates, benchmark fixtures, data integrity, failure register and local agent verification. All eight custom agents must include `name`, `description`, and `developer_instructions`. The current specialist roles also include `competitive_analyst`, `data_integrity` and `performance_reliability`. Keep four or fewer concurrent specialist threads and only one writer per code area. Agent role definitions are not evidence of execution; verify locally in a new Codex session.
