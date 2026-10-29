@@ -59,3 +59,6 @@ Read docs/COMPETITIVE_AI_ROADMAP_2026-10.md and review dated public evidence for
 
 ### Owner-confirmed competitive set
 Research Countfire, Groundplan, Ensign estimating software, Procore, STACK, Trimble construction takeoff and estimating products, and Bluebeam Revu. Also track PlanSwift and Autodesk Takeoff. Compare specific products rather than treating a company as one feature set; verify current editions, pricing, integrations, workflows and evidence. Official starting points: https://www.procore.com/ ; https://www.stackct.com/ ; https://www.trimble.com/ ; https://www.bluebeam.com/ ; https://groundplan.com/ . Identify the precise Ensign product and source before making claims. Maintain dated evidence and clearly distinguish vendor claims from hands-on tests.
+
+## Estimating scope breakdown and simPRO research
+The estimating_excel specialist must read `docs/SIMPRO_ESTIMATING_INTEGRATION_RESEARCH.md`. Investigate optional per-page, per-zone and custom-package pricing with auditable overall totals, and supported simPRO quote/job cost-centre handoff. Use official simPRO documentation and verify exact API/import support, licensing and permissions; no invented endpoints or unsanctioned quote writes. Prioritise a reconciled Excel breakdown and reviewed mapping before direct integration. This research can proceed without modifying the counting engine.
