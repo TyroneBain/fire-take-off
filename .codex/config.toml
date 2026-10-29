@@ -1,6 +1,7 @@
 # Project-scoped Codex multi-agent roles. Enable multi-agent support in your Codex installation if required.
 [agents]
-max_threads = 4
+enabled = true
+max_concurrent_threads_per_session = 4
 max_depth = 1
 
 [agents.vector_engineer]
@@ -26,3 +27,11 @@ config_file = "agents/estimating_excel.toml"
 [agents.competitive_analyst]
 description = "Evidence-based analysis of construction takeoff competitors and product opportunities."
 config_file = "agents/competitive_analyst.toml"
+
+[agents.data_integrity]
+description = "Independent saved-state, privacy, migration and export-integrity review."
+config_file = "agents/data_integrity.toml"
+
+[agents.performance_reliability]
+description = "Independent PDF scale, speed, memory and cancellation profiling."
+config_file = "agents/performance_reliability.toml"
