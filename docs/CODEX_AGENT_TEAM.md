@@ -1,5 +1,8 @@
 # Codex specialist team — 2026-10-30
 
+**Current execution authority:** `docs/PRODUCT_EXECUTION_SOURCE_OF_TRUTH.md`. Use `.agents/skills/` for repeatable PDF investigation, independent benchmarking, estimating reconciliation, competitor evidence and release validation. Track real-world evidence using `docs/BENCHMARK_AND_FAILURE_REGISTER.md`. Do not claim skills are loaded until checked in local Codex.
+
+
 The **main Codex session is the lead engineer/orchestrator**; it owns task allocation, architecture decisions, merges, and final acceptance. Specialist agents are advisory or narrow-scope implementers, not autonomous competing leads. This is a project configuration, not evidence that agents are running.
 
 ## Start order
