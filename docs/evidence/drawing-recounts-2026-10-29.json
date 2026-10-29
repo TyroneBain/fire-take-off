@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-29",
+  "decision": "ADR-0035",
+  "schema": 16,
+  "feature": "F033 partial TESTED",
+  "acceptance": "A028",
+  "environment": "macOS / Node24.22.0 / Chrome / owned synthetic sources",
+  "sources": [
+    "https://help.countfire.com/en/articles/64566-revised-drawings",
+    "https://help.countfire.com/en/articles/87610-copying-items"
+  ],
+  "reference_scope": "Public guidance read through Chrome; no current-beta upload/replacement execution claim",
+  "automated": {
+    "command": "npm test",
+    "passed": 125,
+    "failed": 0,
+    "duration_ms": 18593.990107,
+    "new_tests": 7,
+    "initial_targeted": "5/7: closed fixture DB and localhost EPERM",
+    "first_full": "124/125: old group migration test expected schema15 instead of16",
+    "fixes": "Capture input before closing fixture; update latest schema assertion; permitted complete125/125 rerun",
+    "actual_pdf_original_and_revision": true,
+    "actual_edited_selection_reuse": true,
+    "independent_revision_centres": [
+      [
+        200,
+        100
+      ],
+      [
+        300,
+        100
+      ],
+      [
+        350,
+        150
+      ],
+      [
+        100,
+        200
+      ],
+      [
+        200,
+        200
+      ],
+      [
+        300,
+        200
+      ]
+    ]
+  },
+  "browser": {
+    "separate_owned_project": "Revision recount acceptance",
+    "confirmation_cancel_exact": true,
+    "running_cancel_exact": true,
+    "added": 4,
+    "removed_unchecked_false_results": 1,
+    "six_actual_revision_centres_verified": true,
+    "original_results_exact": true,
+    "exclusion_reclassification_manual_factor_retained": true,
+    "replay_added": 0,
+    "replay_removed": 0,
+    "replay_marks_exact": true,
+    "stale_competing_review_409": true,
+    "only_competing_review_event_and_version_changed": true,
+    "reload_exact": true,
+    "unreviewed_export_status": 409,
+    "console": "no warnings/errors after reload",
+    "automation_issue": "sessionStorage quota from accumulated acceptance snapshots; removed named prior test snapshots only, then checked complete state plus expected review event"
+  },
+  "export": {
+    "status": 200,
+    "bytes": 16759,
+    "snapshot_sha256": "dabc26f898d3605e8fe7dae223ac3d663fa0f4c65fda2a97d56ba9c2727f29bb",
+    "ignored_artifact": ".local/recount-browser-export-2026-10-29.xlsx",
+    "independent_exceljs_reopen": true,
+    "instances": 13,
+    "all_reviewed": true,
+    "original_quantity": 10,
+    "revision_quantity": 11,
+    "recount_history_rows": 2
+  },
+  "preservation": {
+    "backup": ".local/schema15-before-drawing-recounts-2026-10-29.sqlite",
+    "backup_schema": 15,
+    "backup_marks": 91,
+    "migration_prior_tables_exact": 28,
+    "after_browser_prior_rows_preserved": true,
+    "current_marks": 104,
+    "source_hashes_verified": 5
+  },
+  "limitations": [
+    "explicit target-only action rather than automatic upload matching",
+    "no drawing replacement or cross-discipline copy",
+    "same-size/orientation bounded matcher, not realistic-trade recognition parity",
+    "at most50 selections/20 pages/5000 results/4M pixels per page",
+    "legacy cleaned algorithm requires explicit re-edit",
+    "no migration of manual corrections between drawings",
+    "full visual/functional clone incomplete; catalogue deferred"
+  ],
+  "delivery": {
+    "parent": "a1eea4bc7e364b96454e24b1097b1cfc6f3c75e4",
+    "source_commit": "pending",
+    "hosted": "pending"
+  }
+}

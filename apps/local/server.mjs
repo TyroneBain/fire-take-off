@@ -113,6 +113,8 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
         if(groupMember)return send(200,store.assignCountGroup(groupMember[1],body));
         return send(200,request.method==='PATCH'?store.renameCountGroup(countGroup[1],body):store.deleteCountGroup(countGroup[1],body));
       }
+      const recount=url.pathname.match(/^\/api\/drawings\/([\w-]+)\/recount$/);
+      if(recount&&request.method==='POST'){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.recountDrawing(recount[1],body));}
       const counts=url.pathname.match(/^\/api\/disciplines\/([\w-]+)\/counts$/);
       if(request.method==='POST'&&counts){if(!body)throw new AppError(400,'JSON required');return send(201,store.createCount(counts[1],body));}
       const manual=url.pathname.match(/^\/api\/items\/([\w-]+)\/marks$/);

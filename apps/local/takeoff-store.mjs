@@ -1,3 +1,4 @@
+import {drawingRecounts} from './drawing-recounts.mjs';
 import {validElementSelection} from './web/pdf-elements.mjs';
 import { randomUUID } from 'node:crypto';
 import {validMultiplier} from './quantity-multipliers.mjs';
@@ -81,6 +82,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     } catch(error) {db.exec('ROLLBACK TO match_decision; RELEASE match_decision');throw error;}
   }
   return {
+    ...drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,fail}),
     snapshot(){
       const calibrations=db.prepare('SELECT * FROM calibrations ORDER BY drawing_id,page').all().map(c=>({...c,points:JSON.parse(c.points)}));
       return {countItems:db.prepare('SELECT * FROM count_items ORDER BY created,id').all().map(i=>({...i,example:i.example?JSON.parse(i.example):null})),
@@ -88,6 +90,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         countMarks:db.prepare('SELECT m.*,coalesce(e.multiplier,1) AS multiplier FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id ORDER BY m.created,m.id').all().map(m=>({...m,quantity:m.included?m.multiplier:0})),calibrations,
         countSelectionEvents:db.prepare('SELECT * FROM count_selection_events ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
         countSelectionDeletions:db.prepare('SELECT * FROM count_selection_deletions ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous)})),
+        countDrawingRecounts:db.prepare('SELECT * FROM count_drawing_recounts ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
         countSelectionMoves:db.prepare('SELECT * FROM count_selection_moves ORDER BY rowid').all().map(e=>({...e,previous:JSON.parse(e.previous),current:JSON.parse(e.current)})),
         countExampleEvents:db.prepare('SELECT * FROM count_example_events ORDER BY rowid').all(),
         measurementFactorEvents:db.prepare('SELECT * FROM measurement_factor_events ORDER BY rowid').all(),

@@ -1,3 +1,4 @@
+import {migrateDrawingRecounts} from './drawing-recounts.mjs';
 import {migrateCountGroups,countGroupStore} from './count-group-store.mjs';
 import {migrateSelectionMoves} from './selection-moves.mjs';
 import {migrateSelectionEdits,migrateSelectionDeletion} from './selection-edits.mjs';
@@ -42,7 +43,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -71,6 +72,7 @@ export async function openStore(directory) {
   migrateSelectionDeletion(db);
   migrateSelectionMoves(db);
   migrateCountGroups(db);
+  migrateDrawingRecounts(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {

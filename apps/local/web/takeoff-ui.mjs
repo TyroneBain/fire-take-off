@@ -1,3 +1,4 @@
+import {runDrawingRecount} from './drawing-recount.mjs';
 import {setupCountGroups} from './count-group-ui.mjs';
 import {visibleCountHeadings} from './count-headings.mjs';
 import {setupSelectionMovement} from './selection-movement.mjs';
@@ -36,6 +37,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     grouping.render(list,available,filter,item=>{const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));row.append(b,visibility);movement.attach(row,item);grouping.attach(row,item);return row;});
     const allHidden=available.length>0&&available.every(i=>hiddenMarkers.has(i.id));$('toggle-count-markers').textContent=allHidden?'Show markers':'Hide markers';$('toggle-count-markers').setAttribute('aria-pressed',String(allHidden));previews.paint(selectedItem);
     const coverage=$('count-coverage');coverage.replaceChildren();const selected=available.find(i=>i.id===selectedItem),scaled=!!c.state.calibrations?.find(v=>v.drawing_id===c.drawing?.id&&v.page===c.pageNumber);if(selected)coverage.append(coverageInput({record:selected,kind:'items',api,reload,notice,node,scaled}));
+    $('recount-drawing').disabled=!!job||!available.some(i=>(c.state.countExamples||[]).some(e=>e.item_id===i.id));
     for(const id of ['add-manual-match','add-current-example','edit-count-item'])$(id).disabled=!selectedItem||!!job;
     const current=marks().filter(m=>m.item_id===selectedItem&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);
     $('review-page').disabled=!current.length||!!job;
@@ -149,6 +151,14 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('calibration-form').onsubmit=async e=>{e.preventDefault();const c=context(),previous=c.state.calibrations.find(v=>v.drawing_id===c.drawing.id&&v.page===c.pageNumber);$('save-calibration').disabled=true;try{await api(`/api/drawings/${c.drawing.id}/calibration`,json('POST',{page:c.pageNumber,points:draft,distance:Number($('known-distance').value),unit:$('known-unit').value,version:previous?.version||0}));$('calibration-dialog').close();draft=[];action=null;await reload();paint();notice('Drawing scale saved');}catch(error){$('calibration-error').textContent=error.message;}finally{$('save-calibration').disabled=false;}};
   function cancelJob(){if(job){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
   $('cancel-match').onclick=cancelJob;
+  $('recount-drawing').onclick=async()=>{
+    if(job)return;const c=context();if(!c.drawing)return;
+    if(!confirm(`Recount ${c.drawing.name} using saved selections? Reviewed corrections and manual matches on this drawing are kept. Other drawings stay unchanged.`))return;
+    const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=$('manual-item').disabled=true;paint();
+    try{const body=await runDrawingRecount({state:c.state,target:c.drawing,pdfjs,run,progress:text=>$('count-progress').textContent=text});if(run.cancelled)throw new Error('Recount cancelled; no results saved');$('cancel-match').hidden=true;const result=await api(`/api/drawings/${c.drawing.id}/recount`,json('POST',body));await reload();const message=`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Review new results.`;$('count-progress').textContent=message;notice(message);}
+    catch(e){const message=run.cancelled?'Recount cancelled; no results saved':e.message;$('count-progress').textContent=message;notice(message,!run.cancelled);}
+    finally{if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=$('manual-item').disabled=false;paint();}
+  };
   async function runMatching(bounds,targetItem,edit=null){
     const c=context(),source=edit?c.state.drawings.find(d=>d.id===edit.record.example.drawing_id):c.drawing,sourcePage=edit?edit.record.example.page:c.pageNumber,label=targetItem?.name||$('count-name').value.trim();
     const targets=edit||$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
