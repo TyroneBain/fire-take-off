@@ -6,7 +6,7 @@ async () => {
  function submit(form){q(form).requestSubmit();}
  function mode(value){$('arrangement').value=value;$('arrangement').dispatchEvent(new Event('change',{bubbles:true}));}
  click('#reset-demo');click('#reset-confirm');await pause();
- for(const arrangement of ['a','b']){
+ for(const arrangement of ['a','b','compact']){
   mode(arrangement);await pause();click('[data-mark="01-2"]');
   check(arrangement+': direct selection opens properties',prototypeSnapshot().selected==='01-2'&&prototypeSnapshot().tab==='properties');
   input('factor','3');click('#sheet-title');check(arrangement+': dirty edit prevents context loss',prototypeSnapshot().sheet==='01'&&prototypeSnapshot().dirty);

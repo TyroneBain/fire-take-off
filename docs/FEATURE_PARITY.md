@@ -188,3 +188,6 @@ These UX rows extend the inventory without changing the 77 historical F-series c
 ## Interactive design validation — 2026-10-29
 
 The [standalone A/B prototype](design/INTERACTIVE_PROTOTYPE_REVIEW.md) exercises proposed UX001–UX010 interactions using fictional data. Its 11 model tests and 41 browser interaction checks validate the study only. All production feature states remain unchanged; no F-series or UX-series requirement is promoted by this prototype. Recognition, durable undo/autosave, large-result performance and production export integration remain subject to their own acceptance tests and further implementation approval.
+
+
+A Compact refinement (2026-10-29): same independent prototype now offers a stable right inspector, temporary searchable sheet chooser, compact symbol rows and progressive quantity disclosure.11 model and62 browser checks pass; no production F/UX status promotion. See `design/A_COMPACT_REVIEW.md` for the distinction between layout approval and unimplemented Countfire heading/selection/check/save/output workflow fidelity.

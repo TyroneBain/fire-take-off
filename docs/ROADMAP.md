@@ -1,5 +1,7 @@
 # Roadmap
 
+**Latest refinement — 2026-10-29:** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.
+
 ## Active gate — interactive prototype review, 2026-10-29
 
 Tyrone provisionally approves A on larger displays adapting toward B on laptops. An independent interactive prototype is implemented and tested under `prototypes/workspace-v1/`, using fictional data and original schematic drawings. [Review report](design/INTERACTIVE_PROTOTYPE_REVIEW.md) records exact screen-space measurements, A/B tradeoffs and limits. **Next task: obtain Tyrone's prototype feedback; do not implement production UI.** No production functionality, calculation or data change is authorised by this prototype. Do not resume F076 or catalogue work. Original phase numbering/history below remains intact; this checkpoint does not declare broader Phase 1 complete.

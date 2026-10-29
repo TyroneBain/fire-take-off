@@ -15,7 +15,7 @@ Research public documentation and normal user-visible workflows in the supplied 
 
 Current user-directed exception (2026-10-28): do not build or clone the catalogue section yet. Tyrone will customise it later. Keep catalogue UI/product-library management and catalogue-dependent imports or kit management deferred; continue independent takeoff and estimating work. Do not treat full-parity scope as permission to implement the deferred catalogue.
 
-Current user-directed design gate (2026-10-29, updated): Tyrone provisionally approves Concept A on large displays adapting toward B on smaller screens. A separate interactive prototype using fictional data is authorised under `prototypes/workspace-v1/`. Do not modify production application code, calculations, database or project data. Prototype layouts/interactions are design validation only, not implemented product features. Stop and present the prototype for review; production UI implementation requires a further explicit approval. Catalogue remains deferred.
+Current user-directed design gate (2026-10-29, refined): Tyrone approves the visual identity and Concept A provisionally, and requests an A Compact comparison with a stable right inspector and temporary drawing chooser. Refine only the existing fictional prototype. The recommendation is Compact on laptops/full A on larger screens; this remains pending final approval. Do not modify production code, calculations, database or saved projects. After layout approval, separately validate Countfire workflow fidelity; the prototype's invented scan/review/export steps are not accepted parity requirements. Stop and present the refinement for review. Catalogue remains deferred.
 
 ## Engineering and verification
 

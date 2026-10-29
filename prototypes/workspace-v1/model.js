@@ -25,6 +25,6 @@
  next.events.push({type:action.type,sheet:sheet.code,record:action.mark||action.zone||'',sequence:next.events.length+1});return next;
  }
  function history(initial){let state=clone(initial),past=[],future=[];return {get state(){return state;},get canUndo(){return past.length>0;},get canRedo(){return future.length>0;},apply(a){const next=change(state,a);past.push(state);future=[];state=next;return state;},undo(){if(past.length){future.push(state);state=past.pop();}return state;},redo(){if(future.length){past.push(state);state=future.pop();}return state;},reset(){state=clone(initial);past=[];future=[];}};}
- function layout(mode,width){return mode==='auto'?(width<1440?'b':'a'):mode;}
+ function layout(mode,width){return mode==='auto'?(width<1600?'compact':'a'):mode;}
  root.FTOStudy={fixture,zoneFor,totals,readiness,change,history,layout};
 })(globalThis);

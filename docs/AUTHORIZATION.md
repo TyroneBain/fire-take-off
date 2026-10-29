@@ -1,5 +1,7 @@
 # Standing authorisation and current design gate
 
+**Latest refinement — 2026-10-29:** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.
+
 ## Current instruction — 2026-10-29
 
 Tyrone requests competitive Countfire functionality with a distinctive premium modern Fire Take Off interface, superseding the earlier copied-interface objective. Following the research report, he provisionally approves Concept A on large displays adapting toward B on smaller screens and authorises a separate interactive prototype using fictional data. **Production UI implementation is not approved.** Do not modify production functionality, calculations, database or saved project data. [Interactive prototype and comparison](design/INTERACTIVE_PROTOTYPE_REVIEW.md) are ready for review; prototype approval and production implementation require a further user decision. Documentation, isolated prototype tests, local commits and private repository delivery remain authorised. Stop after presenting the prototype. Catalogue remains deferred.

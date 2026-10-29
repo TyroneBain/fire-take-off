@@ -1,0 +1,731 @@
+{
+  "date": "2026-10-29",
+  "scope": "A Compact isolated prototype refinement; no production implementation",
+  "environment": "macOS, Node24.22.0, Chrome desktop deviceScaleFactor1",
+  "modelTests": {
+    "passed": 11,
+    "failed": 0,
+    "durationMs": 111.452764
+  },
+  "workflow": {
+    "checks": [
+      {
+        "name": "a: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "a: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "a: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "a: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "a: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "a: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "a: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "a: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "b: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "b: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "b: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "b: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "b: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "b: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "b: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "b: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "compact: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "compact: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "compact: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "compact: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "compact: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "compact: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "compact: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "compact: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "drawing switch restores zoom",
+        "passed": true
+      },
+      {
+        "name": "maximise expands canvas",
+        "passed": true
+      },
+      {
+        "name": "restore preserves zoom",
+        "passed": true
+      },
+      {
+        "name": "zone factor contribution",
+        "passed": true
+      },
+      {
+        "name": "overlap priority contribution",
+        "passed": true
+      },
+      {
+        "name": "first drawing reviewed but project still blocked",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to next drawing review",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to scale blocker",
+        "passed": true
+      },
+      {
+        "name": "all blockers resolved, advisories separate",
+        "passed": true
+      },
+      {
+        "name": "CSV contains fictional disclaimer and reconciled all-sheet quantities",
+        "passed": true
+      },
+      {
+        "name": "reset restores seed and clears edits",
+        "passed": true
+      }
+    ],
+    "passed": 35,
+    "csvDownload": "Blob contents checked; file download suppressed by test",
+    "final": {
+      "sheet": "01",
+      "layout": "compact",
+      "mode": "auto",
+      "tool": "count",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6192857142857143,
+        "ox": 19.999999999999943,
+        "oy": 27.321428571428555,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          907,
+          612
+        ]
+      },
+      "chooserOpen": false,
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "interactions": {
+    "checks": [
+      {
+        "name": "example opens explicit seeded scan preview",
+        "passed": true
+      },
+      {
+        "name": "cancelled demo scan preserves state",
+        "passed": true
+      },
+      {
+        "name": "completed demo scan opens seeded review without edits",
+        "passed": true
+      },
+      {
+        "name": "explicit tab navigation cancels pending scan transition",
+        "passed": true
+      },
+      {
+        "name": "canvas coordinate creates manual correction",
+        "passed": true
+      },
+      {
+        "name": "undo removes manual correction",
+        "passed": true
+      },
+      {
+        "name": "note applied at drawing location",
+        "passed": true
+      },
+      {
+        "name": "note undo restores drawing",
+        "passed": true
+      },
+      {
+        "name": "B collapse expands canvas",
+        "passed": true
+      },
+      {
+        "name": "B restore preserves drawing centre",
+        "passed": true
+      },
+      {
+        "name": "A both panels collapse",
+        "passed": true
+      },
+      {
+        "name": "A restore returns both panels",
+        "passed": true
+      },
+      {
+        "name": "auto layout defers panel relocation during edit",
+        "passed": true
+      },
+      {
+        "name": "auto layout applies after edit committed",
+        "passed": true
+      }
+    ],
+    "passed": 14,
+    "method": "DOM interaction scenario in Chrome at 1280x800; not a human usability test",
+    "final": {
+      "sheet": "01",
+      "layout": "compact",
+      "mode": "auto",
+      "tool": "count",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6192857142857143,
+        "ox": 19.999999999999943,
+        "oy": 27.321428571428555,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          907,
+          612
+        ]
+      },
+      "chooserOpen": false,
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "compact": {
+    "passed": 13,
+    "checks": [
+      {
+        "name": "Count is initial tool; primary action available",
+        "passed": true
+      },
+      {
+        "name": "drawing review distinct from project export blockers",
+        "passed": true
+      },
+      {
+        "name": "quantity breakdown starts collapsed",
+        "passed": true
+      },
+      {
+        "name": "quantity explanation remains available",
+        "passed": true
+      },
+      {
+        "name": "classification search filters without changing totals",
+        "passed": true
+      },
+      {
+        "name": "chooser overlays without moving canvas or right inspector",
+        "passed": true
+      },
+      {
+        "name": "search Enter switches sheet and preserves active tool",
+        "passed": true
+      },
+      {
+        "name": "previous drawing restores exact zoom",
+        "passed": true
+      },
+      {
+        "name": "Escape closes chooser and returns focus",
+        "passed": true
+      },
+      {
+        "name": "outside pointer dismisses chooser",
+        "passed": true
+      },
+      {
+        "name": "inspector collapse retains drawing launcher",
+        "passed": true
+      },
+      {
+        "name": "inspector restores on right",
+        "passed": true
+      },
+      {
+        "name": "right inspector resizes to upper limit",
+        "passed": true
+      }
+    ],
+    "method": "Automated DOM events; not an estimator usability study"
+  },
+  "measurements": [
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "a",
+      "zoom": 0.8,
+      "canvas": [
+        718,
+        612
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 439416,
+      "unobstructedPaperArea": 439416,
+      "paperPercent": 54.49,
+      "chooserOcclusion": 0,
+      "inspectorX": 960,
+      "inspectorRight": 1280,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "b",
+      "zoom": 0.7999999999999999,
+      "canvas": [
+        955,
+        612
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 584460,
+      "unobstructedPaperArea": 584460,
+      "paperPercent": 72.48,
+      "chooserOcclusion": 0,
+      "inspectorX": 0,
+      "inspectorRight": 320,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "compact",
+      "zoom": 0.8,
+      "canvas": [
+        907,
+        612
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 555084,
+      "unobstructedPaperArea": 555084,
+      "paperPercent": 68.83,
+      "chooserOcclusion": 0,
+      "inspectorX": 960,
+      "inspectorRight": 1280,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "a",
+      "zoom": 0.8,
+      "canvas": [
+        878,
+        712
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 625136,
+      "unobstructedPaperArea": 625136,
+      "paperPercent": 77.52,
+      "chooserOcclusion": 0,
+      "inspectorX": 1120,
+      "inspectorRight": 1440,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "b",
+      "zoom": 0.8,
+      "canvas": [
+        1115,
+        712
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 793880,
+      "unobstructedPaperArea": 793880,
+      "paperPercent": 98.45,
+      "chooserOcclusion": 0,
+      "inspectorX": 0,
+      "inspectorRight": 320,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "compact",
+      "zoom": 0.7999999999999999,
+      "canvas": [
+        1067,
+        712
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 759704,
+      "unobstructedPaperArea": 759704,
+      "paperPercent": 94.21,
+      "chooserOcclusion": 0,
+      "inspectorX": 1120,
+      "inspectorRight": 1440,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "a",
+      "zoom": 0.8,
+      "canvas": [
+        1358,
+        892
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 806400,
+      "unobstructedPaperArea": 806400,
+      "paperPercent": 100,
+      "chooserOcclusion": 0,
+      "inspectorX": 1600,
+      "inspectorRight": 1920,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "b",
+      "zoom": 0.8,
+      "canvas": [
+        1595,
+        892
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 806400,
+      "unobstructedPaperArea": 806400,
+      "paperPercent": 100,
+      "chooserOcclusion": 0,
+      "inspectorX": 0,
+      "inspectorRight": 320,
+      "overflow": false,
+      "summaryFits": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "compact",
+      "zoom": 0.8,
+      "canvas": [
+        1547,
+        892
+      ],
+      "paper": [
+        1120,
+        720
+      ],
+      "visiblePaperArea": 806400,
+      "unobstructedPaperArea": 806400,
+      "paperPercent": 100,
+      "chooserOcclusion": 0,
+      "inspectorX": 1600,
+      "inspectorRight": 1920,
+      "overflow": false,
+      "summaryFits": true
+    }
+  ],
+  "openChooser": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "layout": "compact",
+    "zoom": 0.7999999999999999,
+    "canvas": [
+      1067,
+      712
+    ],
+    "paper": [
+      1120,
+      720
+    ],
+    "visiblePaperArea": 759704,
+    "unobstructedPaperArea": 545688,
+    "paperPercent": 67.67,
+    "chooserOcclusion": 214016,
+    "inspectorX": 1120,
+    "inspectorRight": 1440,
+    "overflow": false,
+    "summaryFits": true
+  },
+  "comparison": {
+    "url": "http://127.0.0.1:4174/comparison/index.html",
+    "nativeScreenshotWidths": [
+      1440,
+      1440,
+      1440,
+      1440
+    ],
+    "sameDrawing": "FP-101",
+    "zoom": 0.8,
+    "visuallyInspected": true
+  },
+  "preservation": {
+    "files": 85,
+    "changed": [],
+    "stateSha256": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc"
+  },
+  "limitations": [
+    "3 drawings /2 classifications /12 marks per sheet; no high-volume performance acceptance",
+    "SVG stand-in, seeded scan, memory-only demo undo, fictional CSV",
+    "No measured estimator results or accessibility certification"
+  ],
+  "failures": [
+    "Counting help URL could not be opened; not used as evidence",
+    "Sandbox ps denied; approved process inspection succeeded; only identified prototype server restarted for JPEG support",
+    "Comparison directory URL404; explicit /comparison/index.html loaded with4 native images"
+  ],
+  "reference": "https://www.countfire.com/blog/new-takeoff-experience",
+  "delivery": {
+    "state": "Pending observed private remote readback"
+  }
+}

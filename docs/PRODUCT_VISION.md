@@ -1,5 +1,7 @@
 # Product vision
 
+**Latest refinement — 2026-10-29:** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.
+
 Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
 Fire Take Off is a private, independently implemented fire protection estimating and automated takeoff platform. The current objective (2026-10-29) is competitive Countfire functionality with a distinctive premium modern design: precision, productivity and clarity before decoration. The earlier copied-interface objective is superseded. The initial user is a single estimator using a private application on macOS. Complete functional workflow scope, including publicly documented collaboration and integrations, remains in the backlog.
