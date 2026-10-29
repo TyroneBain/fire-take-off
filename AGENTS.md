@@ -1,44 +1,33 @@
-# Fire Take Off — permanent operating instructions
-
-**Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
-
-
-**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
-
-
-## Start every session
-
-1. Read this file, docs/AUTHORIZATION.md, docs/PRODUCT_VISION.md, docs/ROADMAP.md and docs/CURRENT_STATE.md before development.
-2. Confirm repository root and origin (TyroneBain/fire-take-off), current branch, worktree changes and relevant existing code. Read applicable nested instructions.
-3. Recover verified progress from CURRENT_STATE.md and its evidence. Chat history is not permanent memory.
-4. Before any UI/UX work, read [docs/design/APPLE_DESIGN_RULES.md](docs/design/APPLE_DESIGN_RULES.md). Apply the retained Apple study to interaction hierarchy, grouping, proximity, consistency, document focus and accessibility. Aesthetic resemblance alone is insufficient. Tyrone rejected the separation between top-left tool selectors and right-side working controls; the revised coherent task panel is the basis for the newly authorised workflow work.
-5. Follow the roadmap. Phase 0 must pass its exit criteria before product development begins. Document any justified roadmap or architecture change before implementing it.
+# Fire Take Off — development instructions
 
 ## Product objective
+Build an independently implemented fire-protection takeoff and estimating product with symbol-counting performance and practical workflows competitive with Countfire. The central requirement is accurate, fast, reviewable symbol recognition and colour-coded counts, not a visually identical competitor product.
 
-Build Fire Take Off as a private, independently implemented fire protection takeoff and estimating platform competitive with Countfire's complete user-facing workflows. Latest user direction (2026-10-29) requires close reproduction of Countfire’s observed interface and workflows, superseding the distinctive right-panel interpretation. Tyrone has explicitly granted standing authorisation; see [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md). Do not ask again for routine project steps already covered by that authorisation. Include all required and publicly documented features in FEATURE_PARITY.md. Interface mockups do not constitute functional parity. Do not introduce unrelated products or AI designer features.
+## Non-negotiable counting behaviour
+- Import and render construction PDFs without altering original documents.
+- Let users select one or more examples of a symbol, search the chosen page/drawing/discipline scope, and highlight detected instances in a user-selected colour.
+- Maintain clear per-symbol and per-heading quantities, with persistent colour assignments.
+- Allow users to accept/reject matches, add missed instances, reclassify, correct selections, and rerun counts without silently losing manual corrections.
+- Preserve traceability from totals to individual marks and exported quantities.
+- Handle real-world vector and raster PDFs, rotated/scaled symbols and visually similar nonmatches as explicit engineering targets. Measure precision, recall, latency and regression results on owned/licensed ground-truth fixtures. Do not claim parity or superiority without comparative evidence.
+- Retain existing working functionality and tests. Improve recognition algorithms when benchmarks demonstrate gains; do not invent unrelated workflows or replace established counting interactions merely to be different.
 
-Research public documentation and normal user-visible workflows in the supplied authorised account. Reproduce observed workflows and layout with independent code; interface resemblance does not establish functional completeness. Use original or appropriately licensed code/assets and preserve provenance. The recorded permission comes from Tyrone; no Countfire source-code licence has been supplied. Do not bypass access controls. REA functionality tests use our own fixture only. Never record credentials, browser profiles, customer drawings or private account data in Git.
+## Independent implementation and IP boundaries
+- Countfire may be used as a competitive functional benchmark through public documentation and normal authorised use, subject to applicable terms.
+- Do not copy or closely reproduce Countfire's source code, assets, icons, text, branding, distinctive screen layouts, or trade dress. Do not extract proprietary data or bypass access controls.
+- Build an original, efficient UI using docs/design/APPLE_DESIGN_RULES.md for general usability principles, not Apple's proprietary assets. Similar generic controls and functional steps may be necessary; do not deliberately recreate distinctive visual expression.
+- Do not assume independent code eliminates patent, contract, design or trade-mark risk. Flag uncertain rights issues for professional review before commercial launch.
+- Use original or properly licensed test fixtures and dependencies; record licence provenance.
+- Never describe the product as a Countfire clone in new product-facing copy.
 
-Current user-directed exception (2026-10-28): do not build or clone the catalogue section yet. Tyrone will customise it later. Keep catalogue UI/product-library management and catalogue-dependent imports or kit management deferred; continue independent takeoff and estimating work. Do not treat full-parity scope as permission to implement the deferred catalogue.
+## Engineering workflow
+1. Inspect the existing repository, docs/CURRENT_STATE.md, docs/ROADMAP.md and docs/FEATURE_PARITY.md before edits.
+2. Focus on the user's requested feature. Do not redesign, rebuild or expand scope without approval.
+3. Implement changes in small, testable increments, keeping data formats and saved work compatible.
+4. Add automated tests for count accuracy, colour mapping, manual corrections, persistence and export reconciliation.
+5. Document measured outcomes, limitations, tests and next steps accurately. Do not claim tests ran unless observed.
+6. Keep the repository private; do not commit credentials or customer drawings. Do not force-push or discard unrelated changes.
+7. The catalogue remains deferred until the user requests it.
 
-Current user-directed design gate (2026-10-29, refined): Tyrone approves the visual identity and Concept A provisionally, and requests an A Compact comparison with a stable right inspector and temporary drawing chooser. Refine only the existing fictional prototype. The recommendation is Compact on laptops/full A on larger screens; this remains pending final approval. Do not modify production code, calculations, database or saved projects. After layout approval, separately validate Countfire workflow fidelity; the prototype's invented scan/review/export steps are not accepted parity requirements. Stop and present the refinement for review. Catalogue remains deferred.
-
-## Engineering and verification
-
-- Inspect code before changing architecture; preserve completed functionality and unrelated user work.
-- Record major decisions and trade-offs in docs/DECISIONS.md; recommendations are not accepted architecture.
-- Maintain one traceable FEATURE_PARITY entry per requirement, with source, workflow, status, acceptance tests, limitations and priority. Discoveries expand the inventory; unknowns remain explicit.
-- Allowed feature states: NOT STARTED, IN DEVELOPMENT, IMPLEMENTED, TESTED, VERIFIED, BLOCKED. VERIFIED requires relevant passing acceptance tests and recorded evidence, environment and date. Do not promote statuses based on documentation, installation or mocks.
-- Test meaningful behavior and failure cases. Never claim functionality, installation, MCP access, commits or pushes succeeded without observing evidence.
-- Keep docs/TEST_STRATEGY.md and known limitations current. Do not confuse REA doctor success with live MCP analysis.
-- Exclude credentials and private drawings/data. Use synthetic or explicitly licensed fixtures with provenance. Keep the GitHub repository private; do not publish or change visibility.
-- Commit verified changes with meaningful messages and push authorised completed work to the existing repository; never force-push, discard unrelated changes or overwrite a changed remote head.
-
-## Durable handover after every meaningful session
-
-Update docs/CURRENT_STATE.md before committing: exactly what is finished, incomplete, broken/blocked, tests actually run, evidence paths, architecture/roadmap changes, current branch/commit references, remote delivery state and the next executable task. Keep FEATURE_PARITY, ROADMAP, DECISIONS and REA_SETUP consistent. Record failed checks as well as successes. If publication is blocked, preserve all local work and exact recovery steps. Report observed results without inventing completion.
-
-## REA
-
-Read docs/REA_SETUP.md before changing REA. Follow the official morluto/rea documentation, inspect exact setup plans, preserve unrelated Codex configuration, and install no optional native applications without approval. Pin the tested version. Verify registration, matching instructions, official Codex health checks and an actual owned-fixture analysis separately. An absent live REA tool catalog remains an unresolved Phase 0 requirement even when the CLI works. After a required restart, verify tools inside that new session before lifting the Phase 0 gate.
+## Historical records
+Earlier project documents contain requests for a visual Countfire clone. Those instructions are superseded by this independent-product objective. Preserve historical evidence and user decision records as history, not as current implementation instructions.
