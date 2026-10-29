@@ -531,7 +531,14 @@
   "delivery": {
     "privateRepository": "TyroneBain/fire-take-off",
     "expectedParent": "d97f6b5a8bbca19d5435e0daafb5dcd5dd2aa968",
-    "state": "Prepared; publication requires observed ref readback"
+    "state": "Published; fresh remote ref readback confirmed",
+    "commit": "bc58881f246af56e16286fcc726be1df33bcea45",
+    "tree": "309260c3803eeb31248b6ebb454f6fe7865bab24",
+    "artifactBlobsMatched": 23,
+    "otherRemoteFilesUnchanged": 154,
+    "canonicalCommitObjectMirroredLocally": true,
+    "localBranchAndIndexPreserved": true,
+    "completeLocalHistoryReconciled": false
   },
   "additionalPanelAndPanChecks": {
     "max": {

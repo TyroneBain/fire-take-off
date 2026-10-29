@@ -396,3 +396,10 @@ This receipt is a documentation-only follow-up. No new product CI result is clai
 **Delivery at authoring:** local branchmain/HEAD81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d and pre-existing staged/unstaged work preserved. Existing private origin confirmed; remote main parentd97f6b5a8bbca19d5435e0daafb5dcd5dd2aa968/tree2735d504b2aa542554013c1360f70a6878fee624. Only explicitly listed prototype/design/doc artifacts will be delivered with expected-head protection; publication is pending until observed readback. Do not reset/rebase/reconcile the current index. If delivery fails, preserve files and retry against a freshly checked remote head.
 
 **Open:** http://127.0.0.1:4174/ (independent loopback server; `node prototypes/workspace-v1/serve.mjs` to restart), or open `prototypes/workspace-v1/index.html` directly. Production remains separate on4173. **Exact next task:** Tyrone tries A/B at1280 and1440, review/correction, overlap factors and reconciliation, then gives prototype feedback. Record approval or requested refinements; production implementation requires further explicit approval.
+
+
+### Interactive prototype delivery receipt — 2026-10-29
+
+Prototype/report commit **bc58881f246af56e16286fcc726be1df33bcea45**, tree **309260c3803eeb31248b6ebb454f6fe7865bab24**, published to the existing private main with expected-parent protection againstd97f6b5a8bbca19d5435e0daafb5dcd5dd2aa968. Fresh ref readback confirmed the new head. All23 delivered artifact blobs match local hashes; all154 other existing remote files remain unchanged. Canonical commit object mirrored locally and hash verified; local main/index remain at their pre-existing state. This is not a claim of complete local history/tree reconciliation. Preserve existing staged/unstaged work.
+
+This receipt is a two-file documentation follow-up. No new hosted production test result is claimed. The prototype server remains on4174; normal browser viewport restored, Auto layout and initial fictional state ready for review. Further production implementation still requires Tyrone's explicit approval.
