@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "scope": "ADR-0043: direct measurement creation and recoverable drawing drafts; partial F017–F021 only",
+  "scope": "ADR-0043: direct measurement creation and recoverable drawing drafts; partial F017\u2013F021 only",
   "environment": {
     "node": "24.22.0",
     "browser": "Chrome MCP; desktop 1280x800, 1440x900, 1920x1080",
@@ -106,7 +106,7 @@
           "name": "Area 1",
           "quantity": {
             "value": 100.71275817692906,
-            "unit": "m²"
+            "unit": "m\u00b2"
           }
         },
         {
@@ -284,7 +284,16 @@
         "overflow": []
       }
     ],
-    "console": "No Chrome warnings/errors in final release test page"
+    "console": "No Chrome warnings/errors in final release test page",
+    "hosted": {
+      "run": 40860153145,
+      "job": 123401047239,
+      "conclusion": "success",
+      "passed": 127,
+      "failed": 0,
+      "duration_ms": 54781.666634,
+      "url": "https://github.com/TyroneBain/fire-take-off/actions/runs/40860153145"
+    }
   },
   "production": {
     "beforeSha256": "bcec834362257186d97b225bcad502d2b3e4b86a25f1ec93eb93dc265d589e7f",
@@ -293,7 +302,7 @@
     "schema": 16
   },
   "initialFailures": [
-    "Browser-generated click coordinates rounded to integer CSS pixels. Replaced impossible exact UI numeric assertions with explicit bounded tolerances (0.3m for 50m, 2m² for 100m², 0.2m for 10m and 20m clip); exact native geometry remains covered by Node tests.",
+    "Browser-generated click coordinates rounded to integer CSS pixels. Replaced impossible exact UI numeric assertions with explicit bounded tolerances (0.3m for 50m, 2m\u00b2 for 100m\u00b2, 0.2m for 10m and 20m clip); exact native geometry remains covered by Node tests.",
     "Harness waited on server state before zone DOM refresh; now waits for both.",
     "Harness used measurement_id instead of quantitySchedule source_id; corrected.",
     "Count pan harness left its synthetic click suppression pending; measurement test consumes the matching inactive click before drawing.",
@@ -309,6 +318,12 @@
   ],
   "delivery": {
     "expectedParent": "af2f22b35bea7454a4533fdb252ad740cae81ace",
-    "status": "Ready for private expected-head publication; final receipt appended after observed delivery"
+    "status": "Source published; remote readback matched; canonical commit object mirrored locally",
+    "sourceCommit": "aca3dfb9a3247a9f3a367be7cc2752cb3819402a",
+    "sourceTree": "5e0c4bf77db12998491f33235e43d430a9017c5a",
+    "changedManifestPaths": 18,
+    "otherBlobsPreserved": 185,
+    "privateRepositoryConfirmed": true,
+    "localBranchUnchanged": "81ebfd25e4a2f3ab8d14c394f0fcc15073ae9f5d"
   }
 }
