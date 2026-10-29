@@ -56,3 +56,6 @@ Earlier project documents contain requests for a visual Countfire clone. Those i
 
 ## Competitive AI roadmap — 2026-10-30
 Read `docs/COMPETITIVE_AI_ROADMAP_2026-10.md` before planning new features. Countfire's publicly announced Smart Select and forthcoming legend takeoff are competitive benchmarks, not implementation specifications. Finish measured P0 counting accuracy before starting AI features. Maintain original implementation and human-reviewed quantities.
+
+## Competitive execution plan — mandatory gate (2026-10-30)
+Read `docs/COUNTING_COMPETITIVE_EXECUTION_PLAN_2026-10.md` at the beginning of each Codex session. Treat it as the controlling gate-based plan for counting competitiveness: baseline audit, vector feasibility, end-to-end recognition, real-drawing Countfire benchmark and go/no-go decision. Its proposed performance thresholds are targets, not achieved results. Do not divert into AI, cosmetic redesign or peripheral features before the core counting benchmark unless the owner explicitly changes priorities. Maintain evidence and preserve local/unpushed work.
