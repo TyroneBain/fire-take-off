@@ -1,3 +1,4 @@
+import {setupCountGroups} from './count-group-ui.mjs';
 import {visibleCountHeadings} from './count-headings.mjs';
 import {setupSelectionMovement} from './selection-movement.mjs';
 import {setupSelectionDeletion} from './selection-deletion.mjs';
@@ -17,6 +18,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const items=()=>visibleCountHeadings(context().state||{},context().drawing?.discipline_id);
   const marks=()=>context().state?.countMarks||[];
   const hiddenMarkers=new Set();
+  const grouping=setupCountGroups({context,api,reload,node,button,notice,paint,hiddenMarkers,onVisibilityChange});
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
   const movement=setupSelectionMovement({context,api,reload,notice,onMoved:id=>{selectedItem=id;highlightedExample=null;paint();}});
   const deletion=setupSelectionDeletion({context,api,reload,notice});
@@ -31,7 +33,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const c=context();if(!c.state)return;
     const available=items();if(!available.some(i=>i.id===selectedItem))selectedItem=available[0]?.id||null;
     const list=$('count-items');list.replaceChildren();const filter=$('count-filter').value.toLowerCase();
-    for(const item of available){if(!item.name.toLowerCase().includes(filter))continue;const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));row.append(b,visibility);movement.attach(row,item);list.append(row);}
+    grouping.render(list,available,filter,item=>{const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{selectedItem=item.id;action=null;reclassification=null;paint();},'count-item');b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));const examples=(c.state.countExamples||[]).filter(e=>e.item_id===item.id).length;if(examples)b.append(node('small',`${examples} example${examples===1?'':'s'}`));if(pending.length)b.append(node('small',`${pending.length} to review`));const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));row.append(b,visibility);movement.attach(row,item);grouping.attach(row,item);return row;});
     const allHidden=available.length>0&&available.every(i=>hiddenMarkers.has(i.id));$('toggle-count-markers').textContent=allHidden?'Show markers':'Hide markers';$('toggle-count-markers').setAttribute('aria-pressed',String(allHidden));previews.paint(selectedItem);
     const coverage=$('count-coverage');coverage.replaceChildren();const selected=available.find(i=>i.id===selectedItem),scaled=!!c.state.calibrations?.find(v=>v.drawing_id===c.drawing?.id&&v.page===c.pageNumber);if(selected)coverage.append(coverageInput({record:selected,kind:'items',api,reload,notice,node,scaled}));
     for(const id of ['add-manual-match','add-current-example','edit-count-item'])$(id).disabled=!selectedItem||!!job;
@@ -110,7 +112,8 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   $('reclassify-previous').onclick=()=>moveReclassification(-1);$('reclassify-next').onclick=()=>moveReclassification(1);$('reclassify-filter').oninput=paintReclassification;
   document.addEventListener('keydown',e=>{
     if(mode!=='count'||job||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]')||e.target.closest?.('input,textarea,select,[contenteditable]'))return;
-    if(e.key.toLowerCase()==='r'){e.preventDefault();toggleReclassification();}
+    if(e.key.toLowerCase()==='g'){e.preventDefault();grouping.create();}
+    else if(e.key.toLowerCase()==='r'){e.preventDefault();toggleReclassification();}
     else if(reclassification){
       if(e.key==='Escape'){e.preventDefault();if(!reclassifying){reclassification=null;paint();}}
       else if(e.key==='Tab'){e.preventDefault();moveReclassification(e.shiftKey?-1:1);}

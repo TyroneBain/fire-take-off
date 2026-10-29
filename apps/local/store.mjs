@@ -1,3 +1,4 @@
+import {migrateCountGroups,countGroupStore} from './count-group-store.mjs';
 import {migrateSelectionMoves} from './selection-moves.mjs';
 import {migrateSelectionEdits,migrateSelectionDeletion} from './selection-edits.mjs';
 import {migrateCoverage,coverageStore} from './coverage-store.mjs';
@@ -41,7 +42,7 @@ export async function openStore(directory) {
     ) STRICT;
     CREATE UNIQUE INDEX IF NOT EXISTS drawing_source_unique ON drawings(discipline_id,digest);`);
   let version = db.prepare('SELECT version FROM schema_version').get().version;
-  if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
+  if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].includes(version)) { db.close(); throw new Error('Unsupported database schema'); }
   if (version === 1) { db.exec(`BEGIN;
     CREATE TABLE notes (
       id TEXT PRIMARY KEY, drawing_id TEXT NOT NULL REFERENCES drawings(id) ON DELETE CASCADE,
@@ -69,6 +70,7 @@ export async function openStore(directory) {
   migrateSelectionEdits(db);
   migrateSelectionDeletion(db);
   migrateSelectionMoves(db);
+  migrateCountGroups(db);
   const entity = id => db.prepare('SELECT * FROM entities WHERE id=?').get(id);
   let parsing = 0;
   function requireEntity(id, kind) {
@@ -90,18 +92,19 @@ export async function openStore(directory) {
     if (typeof value !== 'string' || !value.trim() || value.trim().length > 4000) throw new AppError(400, 'Note must contain 1–4000 characters');
     return value.trim();
   }
+  const grouping=countGroupStore(db,{requireEntity,name,AppError});
   const coverage=coverageStore(db,{AppError});
   const takeoff=takeoffStore(db,{drawing,requireEntity,name,AppError});
   const floorplans=floorplanStore(db,{drawing,AppError});
   const projects=projectStore(db,{requireEntity,name,AppError});
   const zone=zoneStore(db,{drawing,requireEntity,name,AppError});
   return {
-    ...takeoff,...zone,...floorplans,updateCoverage:coverage.updateCoverage,updateProject:projects.updateProject,
+    ...grouping,...takeoff,...zone,...floorplans,updateCoverage:coverage.updateCoverage,updateProject:projects.updateProject,
     close: () => db.close(),
     snapshot: () => {const state={ entities: db.prepare('SELECT * FROM entities ORDER BY created,id').all(),
       drawings: db.prepare('SELECT * FROM drawings ORDER BY created,id').all().map(row => ({ ...row, pages: JSON.parse(row.pages) })),
       notes: db.prepare('SELECT * FROM notes ORDER BY created,id').all(),
-      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot(),...projects.projectSnapshot(),...floorplans.floorplanSnapshot(),...coverage.coverageSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
+      pageMetadata: db.prepare('SELECT * FROM page_metadata ORDER BY drawing_id,number').all(),...takeoff.snapshot(),...zone.zoneSnapshot(),...projects.projectSnapshot(),...floorplans.floorplanSnapshot(),...coverage.coverageSnapshot(),...grouping.groupSnapshot() };return {...state,quantitySchedule:quantitySchedule(state)};},
     create(kind, parentId, value, metadata={}) {
       const expectedParent = { project: null, takeoff: 'project', discipline: 'takeoff' };
       if (!Object.hasOwn(expectedParent, kind)) throw new AppError(400, 'Invalid entity type');

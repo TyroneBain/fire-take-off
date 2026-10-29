@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-29",
+  "decision": "ADR-0034",
+  "schema": 15,
+  "feature": "F012 partial TESTED",
+  "acceptance": "A027",
+  "environment": "macOS / Node24.22.0 / Chrome / owned synthetic PDFs",
+  "reference": {
+    "source": "Normal authorised beta UI; scratch selection only",
+    "observed": [
+      "Create group and Misc",
+      "inline group naming",
+      "real heading drag preserves count1",
+      "Collapse groups / Expand all"
+    ],
+    "cleanup": "Reload without Save restored Auto-count items; Group research absent",
+    "no_reference_code_or_assets_saved": true
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 118,
+    "failed": 0,
+    "duration_ms": 19504.813141,
+    "new_tests": 7,
+    "targeted_restricted_run": "6/7 passed; HTTP bind EPERM; permitted full rerun passed",
+    "coverage": [
+      "lifecycle/no-op/reopen",
+      "stale/cross-scope/invalid/reserved/duplicate",
+      "audit rollback",
+      "selection movement and deletion membership",
+      "quantity/source/workbook isolation",
+      "schema14 migration",
+      "group partition/search",
+      "HTTP token/body/version gates"
+    ]
+  },
+  "browser": {
+    "cancel_exact": true,
+    "real_heading_drag": true,
+    "chooser_misc_and_return": true,
+    "rename": true,
+    "g_shortcut": true,
+    "collapse_filter_reveal_restore": true,
+    "marker_counts_before_hidden_restored": [
+      3,
+      1,
+      3
+    ],
+    "visibility_saved_state_exact": true,
+    "populated_delete_409_exact": true,
+    "empty_delete": true,
+    "competing_edit_409_exact": true,
+    "reload_exact": true,
+    "audit_events": 8,
+    "quantity_source_tables_unchanged": true,
+    "console": "no warnings/errors",
+    "automation_issue": "One navigation helper waited for wrong-case filename; stopped helper and resumed with exact visible label; no application failure"
+  },
+  "export": {
+    "http_status": 200,
+    "bytes": 18201,
+    "snapshot_sha256": "9634d0a4d1fec9188b6d31303e7a7211c576c0922687f9f37214ed34fc2600ce",
+    "ignored_artifact": ".local/groups-browser-export-2026-10-29.xlsx",
+    "independent_exceljs_reopen": true,
+    "unchanged_sheets": [
+      "Movement",
+      "Count instances",
+      "Quantity detail",
+      "Review history",
+      "Selection moves"
+    ],
+    "group": "Wet systems updated",
+    "group_events": 8
+  },
+  "preservation": {
+    "backup": ".local/schema14-before-count-groups-2026-10-29.sqlite",
+    "backup_schema": 14,
+    "marks": 91,
+    "prior_tables_identical": 24,
+    "source_files_hash_verified": 5
+  },
+  "limitations": [
+    "flat creation-order groups only",
+    "no heading/group manual reorder",
+    "no create-within-group shortcut or Smart Select",
+    "populated deletion requires ungroup first: original provisional policy",
+    "modal naming differs from reference inline naming",
+    "immediate commits rather than global Save",
+    "complete functional/visual parity remains open"
+  ],
+  "delivery": {
+    "parent": "ae28b4f8a38024cbcbbf04439ee78e42fa47c70f",
+    "source_commit": "pending",
+    "hosted": "pending"
+  }
+}
