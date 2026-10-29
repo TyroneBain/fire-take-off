@@ -99,7 +99,16 @@
   ],
   "delivery": {
     "parent": "a1eea4bc7e364b96454e24b1097b1cfc6f3c75e4",
-    "source_commit": "pending",
-    "hosted": "pending"
+    "source_commit": "234390c8fe62dbea1cb03dc84380fc31304e3eb0",
+    "tree": "f4c78ab09360ba8d48fa8e9b68ce3b7c7f88fcb7",
+    "private": true,
+    "readback": true,
+    "all144_source_blobs_match": true,
+    "run": 40818250599,
+    "job": 123264349979,
+    "hosted_passed": 125,
+    "hosted_failed": 0,
+    "hosted_duration_ms": 52263.008143,
+    "hosted_environment": "Ubuntu24.04 / Node24.22.0"
   }
 }
