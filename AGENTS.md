@@ -69,3 +69,6 @@ Owner has provided Codex with authorised user access to Countfire and wants the 
 
 ## Codex specialist delegation — 2026-10-30
 Read `docs/CODEX_AGENT_TEAM.md` and project `.codex/config.toml`. The main Codex session is the lead/orchestrator; specialist agents are vector_engineer, qa_benchmark, apple_designer, fire_workflow and estimating_excel. Start vector and QA work first, use REA on our own repository, prevent concurrent edits to the same files, and defer cosmetic and estimating work. Agent definitions do not launch automatically; check local Codex multi-agent support. Preserve local/unpushed work before pulling.
+
+## Current cross-agent quality strategy (2026-10-30)
+Before starting new work, read `docs/ENGINEERING_QUALITY_STRATEGY.md` and `docs/CODEX_AGENT_TEAM.md`. Eight custom specialist agents are registered in `.codex/config.toml`: vector_engineer, qa_benchmark, apple_designer, fire_workflow (multidisciplinary MEP), estimating_excel, competitive_analyst, data_integrity and performance_reliability. The main Codex session is the lead, not a ninth spawned specialist. Verify TOML and actual local multi-agent loading before delegating. Preserve uncommitted local changes; prioritize a measurable, real-drawing sprinkler recognition demo with QA and exact export reconciliation. Never mistake configuration or synthetic tests for proven product parity.
