@@ -453,3 +453,8 @@ Preservation:85 protected production source/test/fixture/package/CI hashes uncha
 Limits: fictional SVG/seeded scan, fixed measurement/zones, memory-only undo, original demo review/export policies, CSV;3 drawings/2 classifications/12 marks per sheet. No human usability or perfect-UX claim; no real recognition/heading/selection/save/output parity inferred. Explicit reference workflow remains the next product objective, without unnecessary invented steps.
 
 Delivery: localmain81ebfd2/index and unrelated work preserved. Private documentation/prototype delivery prepared against fresh expected remote head; only explicit paths included. Exact next task: review the changed coherent task-panel design; then implement the verified Countfire count-heading→selection→checking/correction→save/output sequence only once production work is explicitly authorised. Continue prototype refinement if feedback requires it.
+
+
+### Task-panel delivery receipt — 2026-10-29
+
+Published privately as `05483644cf6aba5200f39cbfb677e50a1067ceb4`, tree `2861a6949cc0791473432def0490ad1c34410981`, with expected-parent protection against `c7ad149d7475165e699549f68a3372dbdab02343`. Fresh remote main readback confirmed. All 21 delivered artifact blobs match local content; 172 other existing remote files remain unchanged. Canonical commit object mirrored locally and hash verified. Local main/index and unrelated work remain preserved; full local history reconciliation is not claimed. This receipt is a two-file documentation follow-up. No new production or hosted test result is claimed. Prototype remains on loopback 4174, with Auto layout, Count and initial fictional state ready for review. Next task remains prototype review before separately authorised production workflow work.

@@ -1160,7 +1160,14 @@
     "Global durable undo, full heading workflow and actual Countfire feature parity remain production work"
   ],
   "delivery": {
-    "state": "Pending private ref readback"
+    "state": "Private remote main readback confirmed",
+    "commit": "05483644cf6aba5200f39cbfb677e50a1067ceb4",
+    "tree": "2861a6949cc0791473432def0490ad1c34410981",
+    "expectedParent": "c7ad149d7475165e699549f68a3372dbdab02343",
+    "verifiedBlobs": 21,
+    "unchangedOtherFiles": 172,
+    "localCanonicalCommitMirrored": true,
+    "localBranchAndIndexPreserved": true
   },
   "walkthroughImagesLoaded": 3
 }
