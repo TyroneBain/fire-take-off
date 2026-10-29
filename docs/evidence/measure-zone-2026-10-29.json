@@ -1,0 +1,314 @@
+{
+  "date": "2026-10-29",
+  "scope": "ADR-0043: direct measurement creation and recoverable drawing drafts; partial F017–F021 only",
+  "environment": {
+    "node": "24.22.0",
+    "browser": "Chrome MCP; desktop 1280x800, 1440x900, 1920x1080",
+    "server": "127.0.0.1:4180",
+    "data": ".local/measure-zone-release",
+    "fixture": "scripts/prepare-drawing-first-acceptance.mjs; original synthetic PDFs with independently declared geometry"
+  },
+  "reference": {
+    "sources": [
+      "https://www.countfire.com/blog/new-takeoff-experience",
+      "https://help.countfire.com/en/articles/64556-itemising-measurements"
+    ],
+    "observations": [
+      "Normal visible beta Measure: type dropdown and Create; current dropdown point 1, length 2, area 3",
+      "Create length opens editable <Unnamed length> heading before geometry; ours remains geometry-backed and cannot persist an empty heading",
+      "Visible Zone empty state: outline area to split quantities",
+      "Temporary unnamed reference heading discarded by reload; Save changes disabled afterwards"
+    ],
+    "limits": [
+      "Public help web reader failed; itemisation article was read in its public Chrome tab",
+      "No proprietary source/assets copied; no reference Save changes used",
+      "No new REA execution or configuration; prior owned-fixture evidence stays separately dated"
+    ]
+  },
+  "tests": {
+    "node": {
+      "passed": 127,
+      "failed": 0,
+      "duration_ms": 18285.690206,
+      "log": ".local/measure-zone-tests.log"
+    },
+    "count": {
+      "passed": 25,
+      "checks": [
+        "Direct unnamed selection counted twelve known symbols",
+        "Six per drawing and other discipline untouched",
+        "Ground.pdf independently declared centres",
+        "Level 1.pdf independently declared centres",
+        "Rename persists without recount",
+        "Additional example does not duplicate marks",
+        "Reviewed exclusion survives additional example",
+        "Both examples retained under one heading",
+        "Empty-symbol failure leaves saved state unchanged",
+        "Cancelled matching creates no heading or partial results",
+        "New symbol and drawing-only scope stay separate",
+        "Collapse items hides previews",
+        "Expand items restores previews",
+        "Filtering hides unrelated item controls",
+        "Panel collapse returns space to the drawing",
+        "measure remains available in task panel",
+        "zone remains available in task panel",
+        "note remains available in task panel",
+        "layout remains available in task panel",
+        "page remains available in task panel",
+        "count remains available in task panel",
+        "Switching tools and panels leaves quantities unchanged",
+        "Space pan never starts counting",
+        "Selection preview opens real editor",
+        "Cancelling preview editor preserves state"
+      ],
+      "headingNames": [
+        "Sprinkler heads",
+        "Symbol 1"
+      ],
+      "marks": 18
+    },
+    "measureZone": {
+      "passed": 21,
+      "checks": [
+        "Independent fixture has no measurements",
+        "Create starts unnamed length without a prerequisite form",
+        "Cursor preview includes the next segment",
+        "Backspace removes the last draft vertex",
+        "Escape discards draft without saved changes",
+        "Two endpoints open known-distance calibration",
+        "300 PDF points independently calibrated to 30 metres",
+        "Click-last/right-click race saves one 50 metre run",
+        "Right-click closes independently verified 100 square metre area",
+        "Failed save retains geometry and leaves quantities unchanged",
+        "Retry saves exactly one ten metre run",
+        "Reference type and create keyboard shortcuts",
+        "Manual point saves one unit",
+        "Saved measurement opens adjacent editor without competing create controls",
+        "Infrequent zone options and reconciliation disclose locally",
+        "Zone Backspace removes a corner",
+        "Zone save failure retains editable outline",
+        "Rapid zone completion writes one outline",
+        "Zone allocation clips the known 50 metre run to 20 metres",
+        "Zone cancellation leaves all saved data intact",
+        "Space navigation cannot add measurement points"
+      ],
+      "measurements": [
+        {
+          "kind": "length",
+          "name": "Length 1",
+          "quantity": {
+            "value": 49.96436284866112,
+            "unit": "m"
+          }
+        },
+        {
+          "kind": "area",
+          "name": "Area 1",
+          "quantity": {
+            "value": 100.71275817692906,
+            "unit": "m²"
+          }
+        },
+        {
+          "kind": "length",
+          "name": "Length 2",
+          "quantity": {
+            "value": 10.035587188612105,
+            "unit": "m"
+          }
+        },
+        {
+          "kind": "point",
+          "name": "Point 1",
+          "quantity": {
+            "value": 1,
+            "unit": "ea"
+          }
+        }
+      ],
+      "zones": 1
+    },
+    "unscaledAndAsync": {
+      "passed": 4,
+      "checks": [
+        "Blank name retains draft and never creates an unnamed saved record",
+        "Pending save disables repeat completion and cancellation",
+        "Late save belongs to original drawing and unscaled length stays unknown",
+        "Late save cannot restore the old draft on another drawing"
+      ]
+    },
+    "reloadPreservesState": true,
+    "layouts": [
+      {
+        "tool": "count",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "measure",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "zone",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "note",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "layout",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "page",
+        "width": 1280,
+        "height": 800,
+        "canvasWidth": 870,
+        "canvasHeight": 712,
+        "overflow": []
+      },
+      {
+        "tool": "count",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "measure",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "zone",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "note",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "layout",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "page",
+        "width": 1440,
+        "height": 900,
+        "canvasWidth": 1030,
+        "canvasHeight": 812,
+        "overflow": []
+      },
+      {
+        "tool": "count",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      },
+      {
+        "tool": "measure",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      },
+      {
+        "tool": "zone",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      },
+      {
+        "tool": "note",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      },
+      {
+        "tool": "layout",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      },
+      {
+        "tool": "page",
+        "width": 1920,
+        "height": 1080,
+        "canvasWidth": 1510,
+        "canvasHeight": 992,
+        "overflow": []
+      }
+    ],
+    "console": "No Chrome warnings/errors in final release test page"
+  },
+  "production": {
+    "beforeSha256": "bcec834362257186d97b225bcad502d2b3e4b86a25f1ec93eb93dc265d589e7f",
+    "afterSha256": "bcec834362257186d97b225bcad502d2b3e4b86a25f1ec93eb93dc265d589e7f",
+    "changedSections": [],
+    "schema": 16
+  },
+  "initialFailures": [
+    "Browser-generated click coordinates rounded to integer CSS pixels. Replaced impossible exact UI numeric assertions with explicit bounded tolerances (0.3m for 50m, 2m² for 100m², 0.2m for 10m and 20m clip); exact native geometry remains covered by Node tests.",
+    "Harness waited on server state before zone DOM refresh; now waits for both.",
+    "Harness used measurement_id instead of quantitySchedule source_id; corrected.",
+    "Count pan harness left its synthetic click suppression pending; measurement test consumes the matching inactive click before drawing.",
+    "Unscaled harness initially treated Opening as ready and then reopened an already selected sheet; corrected waits and avoided redundant switch.",
+    "Visual inspection exposed inherited #calibrate width:100% overriding class rule; fixed ID specificity and confirmed no horizontal control overflow in 18 layouts."
+  ],
+  "limitations": [
+    "No persistent measurement headings/groups, itemisation or dominant-zone itemised allocation",
+    "No PDF-edge snapping, snap-length lock, global Save/undo or full Countfire parity",
+    "Measurements remain independent saved geometry records and immediate writes; scale is calibrated by known length",
+    "Draft cursor preview does not calculate or commit live quantities",
+    "Final UI tests validate owned simple corpus; no actual estimator usability study or representative production performance benchmark"
+  ],
+  "delivery": {
+    "expectedParent": "af2f22b35bea7454a4533fdb252ad740cae81ace",
+    "status": "Ready for private expected-head publication; final receipt appended after observed delivery"
+  }
+}

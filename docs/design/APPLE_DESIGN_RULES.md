@@ -52,3 +52,5 @@ The [task-panel revision](TASK_PANEL_REVIEW.md) now groups four tool selectors w
 
 
 Production response after explicit resume (ADR-0041): selectors and active controls share the right task panel; New symbol clears old context, optional controls disclose locally, and the drawing receives reclaimed rail width. This is a tested initial port; full prototype navigation/resizing and complete accessibility acceptance remain future work.
+
+Current production response (ADR-0042/0043): left tool rail with adjacent task controls replaces the rejected right panel. Measurement type, Create, editable name, draft feedback and correction stay together. Saved measurements have one name/quantity row; infrequent actions disclose locally. Blue draft geometry, visible text states and guarded/recoverable writes preserve precision and honest feedback. Production is authorised; earlier prototype-only gates above are historical. These are our applied design choices, not an Apple mandate or a human usability-test result.

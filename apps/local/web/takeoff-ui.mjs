@@ -1,3 +1,4 @@
+import {setupMeasurementCreation} from './measurement-creation.mjs';
 import {nextSymbolName} from './count-entry.mjs';
 import {runDrawingRecount} from './drawing-recount.mjs';
 import {setupCountGroups} from './count-group-ui.mjs';
@@ -15,20 +16,21 @@ import { inkImage,exampleImage,MATCHER_VERSION } from './matcher.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
-  let mode=null,action=null,selectedItem=null,drag=null,draft=[],job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false,highlightedExample=null;
+  let mode=null,action=null,selectedItem=null,drag=null,job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false,highlightedExample=null;
   const json=(method,body)=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const items=()=>visibleCountHeadings(context().state||{},context().drawing?.discipline_id);
   const marks=()=>context().state?.countMarks||[];
   const hiddenMarkers=new Set(),collapsedItems=new Set();
   const grouping=setupCountGroups({context,api,reload,node,button,notice,paint,hiddenMarkers,onVisibilityChange});
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
+  const measurementCreation=setupMeasurementCreation({context,api,reload,notice,onChange:()=>paint(),clearEditor:()=>measurementEditor.clear(),isActive:()=>mode==='measure'});
   const movement=setupSelectionMovement({context,api,reload,notice,onMoved:id=>{selectedItem=id;highlightedExample=null;paint();}});
   const deletion=setupSelectionDeletion({context,api,reload,notice});
   const removeSelection=async(record,options)=>{const result=await deletion.request(record,options);if(result){highlightedExample=null;paint();}return result;};
   const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements}),cancelMatching:()=>cancelJob()});
   const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,editExample:record=>selectionEditor.open(record),removeSelection,movement,api,reload,notice});
   $('example-list').addEventListener('toggle',()=>{if($('example-list').open)previews.load();});
-  function deactivate(){$('page-surface').classList.remove('count-selecting');$('count-drawing-actions').hidden=true;measurementEditor.clear();reclassification=null;mode=null;action=null;draft=[];drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
+  function deactivate(){$('page-surface').classList.remove('count-selecting');$('count-drawing-actions').hidden=true;measurementEditor.clear();reclassification=null;mode=null;action=null;measurementCreation.clear();drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;if(next==='count'){action='select';selectionTarget=items().find(i=>i.id===selectedItem)||null;}$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
   function point(event){const c=context();if(!c.viewport)return null;const p=pagePoint(c.viewport,$('pdf-canvas').getBoundingClientRect(),event.clientX,event.clientY),v=c.drawing.pages[c.pageNumber-1].view;return p[0]>=v[0]&&p[0]<=v[2]&&p[1]>=v[1]&&p[1]<=v[3]?p:null;}
   function paint(){
@@ -69,9 +71,16 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     $('calibration-status').textContent=calibration?`Scale set · ${calibration.distance} ${calibration.unit} reference`:'No scale set for this page';
     const measurements=c.state.measurements?.filter(m=>m.drawing_id===c.drawing?.id&&m.page===c.pageNumber)||[];
     const measured=$('measure-list');measured.replaceChildren();
-    for(const m of measurements){const row=node('div',null,'measure-row');row.append(node('strong',`${m.name}${m.multiplier>1?` ×${m.multiplier}`:''}`),node('span',m.quantity.value===null?'Set scale to calculate':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`));row.append(button('Edit',()=>measurementEditor.open(m)),button('Remove',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));if(m.kind==='point')row.append(coverageInput({record:m,kind:'measurements',api,reload,notice,node,scaled}));measured.append(row);}
-    $('finish-measure').disabled=!['length','area'].includes(action)||draft.length<(action==='area'?3:2);
-    $('cancel-measure').disabled=!action;
+    $('measure-intro').hidden=measurements.length>0;
+    for(const m of measurements){
+      const row=node('div',null,'measure-row compact-measure'),open=button(`${m.name}${m.multiplier>1?` ×${m.multiplier}`:''}`,()=>measurementEditor.open(m),'measure-open');open.title=`Edit ${m.name}`;
+      const total=node('strong',m.quantity.value===null?'Set scale':`${m.quantity.value.toLocaleString(undefined,{maximumFractionDigits:3})} ${m.quantity.unit}`,'measure-quantity');total.title='This measurement on this drawing';
+      const options=node('details',null,'measure-options'),summary=node('summary','⋯');summary.setAttribute('aria-label',`Options for ${m.name}`);
+      options.append(summary,button('Remove measurement',async()=>{if(!confirm(`Remove ${m.name}?`))return;try{await api(`/api/measurements/${m.id}?version=${m.version}`,{method:'DELETE'});await reload();paint();}catch(e){notice(e.message,true);}},'remove'));
+      if(m.kind==='point')options.append(coverageInput({record:m,kind:'measurements',api,reload,notice,node,scaled}));
+      row.append(open,total,options);measured.append(row);
+    }
+    measurementCreation.paint();
     paintOverlay();
   }
   function paintOverlay(){
@@ -80,13 +89,12 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     function shape(points,area,color,dashed=false){const p=document.createElementNS(svgNS,area?'polygon':'polyline');p.setAttribute('points',points.map(p=>viewPoint(c.viewport,...p).join(',')).join(' '));p.setAttribute('stroke',color);p.setAttribute('stroke-width','2');p.setAttribute('fill',area?color+'22':'none');if(dashed)p.setAttribute('stroke-dasharray','6 4');svg.append(p);return p;}
     for(const m of c.state.measurements||[])if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber&&m.id!==measurementEditor.id){
       let element;if(m.kind==='point'){const [x,y]=viewPoint(c.viewport,...m.points[0]);element=document.createElementNS(svgNS,'circle');for(const [k,v]of Object.entries({cx:x,cy:y,r:5,fill:'#c06c23'}))element.setAttribute(k,v);svg.append(element);}else element=shape(m.points,m.kind==='area','#c06c23');
-      element.dataset.measureId=m.id;element.style.pointerEvents=mode==='measure'?'auto':'none';element.addEventListener('contextmenu',e=>{if(mode==='measure'){e.preventDefault();e.stopPropagation();measurementEditor.open(m);}});
+      element.dataset.measureId=m.id;element.style.pointerEvents=mode==='measure'?'auto':'none';element.addEventListener('contextmenu',e=>{if(mode==='measure'&&!measurementCreation.active){e.preventDefault();e.stopPropagation();measurementEditor.open(m);}});
     }
     for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item||hiddenMarkers.has(item.id))continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
     if(highlightedExample?.drawing_id===c.drawing.id&&highlightedExample.page===c.pageNumber){const r=exampleRectangle(c.viewport,highlightedExample.bounds),highlight=document.createElementNS(svgNS,'rect');for(const [key,value]of Object.entries({id:'example-highlight',x:r.left,y:r.top,width:r.width,height:r.height,fill:'none',stroke:'#243c90','stroke-width':3,'stroke-dasharray':'6 3'}))highlight.setAttribute(key,value);svg.append(highlight);}
     if(drag){const [a,b]=drag;shape([a,[b[0],a[1]],b,[a[0],b[1]]],true,'#168a90',true);}
-    if(draft.length)shape(draft,action==='area','#168a90',true);
-    $('page-surface').append(overlay);measurementEditor.paint();
+    $('page-surface').append(overlay);measurementEditor.paint();measurementCreation.paintOverlay();
   }
   async function openExample(record){
     const c=context(),d=c.state.drawings.find(d=>d.id===record.example.drawing_id);if(!d)return notice('Source drawing is no longer available',true);
@@ -158,19 +166,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   surface.addEventListener('click',async e=>{
     if(e.target.closest('button'))return;const p=point(e);if(!p)return;const c=context();
     if(mode==='count'&&action==='manual'&&selectedItem){try{await api(`/api/items/${selectedItem}/marks`,json('POST',{drawing_id:c.drawing.id,page:c.pageNumber,x:p[0],y:p[1]}));await reload();paint();}catch(error){notice(error.message,true);}return;}
-    if(measurementEditor.id)return;
-    if(mode!=='measure'||!['calibration','point','length','area'].includes(action))return;
-    if(action==='point'){try{await api(`/api/drawings/${c.drawing.id}/measurements`,json('POST',{page:c.pageNumber,kind:'point',points:[p],name:$('measure-name').value}));await reload();paint();}catch(error){notice(error.message,true);}return;}
-    if(draft.length&&Math.hypot(p[0]-draft.at(-1)[0],p[1]-draft.at(-1)[1])<.01)return;
-    draft.push(p);paint();
-    if(action==='calibration'&&draft.length===2){$('known-distance').value='';$('calibration-error').textContent='';$('calibration-dialog').showModal();}
   });
-  $('calibrate').onclick=()=>{measurementEditor.clear();action='calibration';draft=[];$('tool-help').textContent='Click both ends of a known distance';$('measure-instruction').textContent='Select two endpoints on the drawing, then enter their known length.';paint();};
-  for(const kind of ['point','length','area'])$('measure-'+kind).onclick=()=>{measurementEditor.clear();if(!$('measure-name').value.trim())return notice('Enter a measurement name first.',true);action=kind;draft=[];$('tool-help').textContent=kind==='point'?'Click each item to count it':'Click each corner, then Finish measurement';$('measure-instruction').textContent=kind==='area'?'Click at least three corners. Finish closes the polygon.':kind==='length'?'Click at least two endpoints. Add corners for a connected run.':'Each click adds one saved manual point.';paint();};
-  $('cancel-measure').onclick=()=>{action=null;draft=[];paint();};
-  $('finish-measure').onclick=async()=>{const c=context();try{await api(`/api/drawings/${c.drawing.id}/measurements`,json('POST',{page:c.pageNumber,kind:action,points:draft,name:$('measure-name').value}));draft=[];action=null;await reload();paint();notice('Measurement saved');}catch(e){notice(e.message,true);}};
-  $('cancel-calibration').onclick=()=>{$('calibration-dialog').close();draft=[];action=null;paint();};
-  $('calibration-form').onsubmit=async e=>{e.preventDefault();const c=context(),previous=c.state.calibrations.find(v=>v.drawing_id===c.drawing.id&&v.page===c.pageNumber);$('save-calibration').disabled=true;try{await api(`/api/drawings/${c.drawing.id}/calibration`,json('POST',{page:c.pageNumber,points:draft,distance:Number($('known-distance').value),unit:$('known-unit').value,version:previous?.version||0}));$('calibration-dialog').close();draft=[];action=null;await reload();paint();notice('Drawing scale saved');}catch(error){$('calibration-error').textContent=error.message;}finally{$('save-calibration').disabled=false;}};
   function cancelJob(){if(job){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
   $('cancel-match').onclick=cancelJob;
   $('recount-drawing').onclick=async()=>{
@@ -222,5 +218,5 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }
-  return {deactivate,paint,activate,isMarkerVisible:id=>!hiddenMarkers.has(id),reviewMark(id){const c=context(),m=marks().find(m=>m.id===id&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);if(m){activate('count');selectedItem=m.item_id;openReview(m);paint();}},editMeasure(id){const c=context(),m=c.state.measurements.find(m=>m.id===id&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);if(m)measurementEditor.open(m);},get mode(){return mode;},clearDraft(){measurementEditor.clear();draft=[];drag=null;action=null;reclassification=null;highlightedExample=null;}};
+  return {deactivate,paint,activate,isMarkerVisible:id=>!hiddenMarkers.has(id),reviewMark(id){const c=context(),m=marks().find(m=>m.id===id&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);if(m){activate('count');selectedItem=m.item_id;openReview(m);paint();}},editMeasure(id){const c=context(),m=c.state.measurements.find(m=>m.id===id&&m.drawing_id===c.drawing?.id&&m.page===c.pageNumber);if(m)measurementEditor.open(m);},get mode(){return mode;},clearDraft(){measurementEditor.clear();measurementCreation.clear();drag=null;action=null;reclassification=null;highlightedExample=null;}};
 }

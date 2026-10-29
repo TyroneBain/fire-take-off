@@ -239,3 +239,15 @@ test('saved example preview bounds follow cropped PDF rotation and scale without
   }
   assert.deepEqual(bounds,[90,80,110,120]);
 });
+
+test('draft completion tolerance stays seven CSS pixels through PDF zoom, rotation and CSS scaling',async t=>{
+  const {nearVertex}=await import('../apps/local/web/measurement-creation.mjs');
+  const {bytes}=await fixture(t),task=getDocument({data:new Uint8Array(bytes),isEvalSupported:false});t.after(()=>task.destroy());
+  const page=await(await task.promise).getPage(1);
+  for(const scale of [.1,1,4])for(const rotation of [0,90,180,270])for(const css of [.5,1,1.5]){
+    const v=page.getViewport({scale,rotation}),rect={left:35,top:-20,width:v.width*css,height:v.height*css},a=[100,100],p=clientPoint(v,rect,...a);
+    assert.equal(nearVertex(v,rect,a,pagePoint(v,rect,p[0]+6.9,p[1])),true);
+    assert.equal(nearVertex(v,rect,a,pagePoint(v,rect,p[0]+7.1,p[1])),false);
+    assert.equal(nearVertex(v,rect,a,pagePoint(v,rect,p[0]+5,p[1]+5)),false);
+  }
+});

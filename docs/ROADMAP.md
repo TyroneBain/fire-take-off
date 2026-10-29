@@ -118,3 +118,5 @@ Recount234390c delivered privately and passes125/125 hosted. Copy items modal/ca
 
 
 2026-10-29 ADR-0042: user rejects complexity and restores exact-reference objective. Count workspace simplification tested125/125 plus25 browser checks. Continue reference Measure/Zone and item-property flows; do not return to the right-inspector interpretation. Full save/source visibility/matching/output gates remain open.
+
+2026-10-29 ADR-0043: completed a tested partial direct Measure/Zone interaction increment;127 Node tests and50 browser workflow checks. Next: persistent measurement headings/repeated geometry and itemisation with versioned migration and zone/export reconciliation. Phase2/3 remain IN DEVELOPMENT, Phase0 remains complete; catalogue deferred. See latest CURRENT_STATE and measure-zone evidence.

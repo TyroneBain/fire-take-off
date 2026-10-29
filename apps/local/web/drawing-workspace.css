@@ -141,3 +141,30 @@ body.drawing-open{height:100vh;overflow:hidden}
 .drawing-open .viewer-tools svg{width:23px;height:23px;flex-shrink:0}
 .drawing-open #drawing-actions svg{width:24px;height:24px}
 .drawing-open #count-filter::placeholder{font-size:18px;text-align:center}
+
+/* Local creation controls stay beside the active tool; details disclose on demand. */
+.drawing-open .measure-scale{display:flex;align-items:center;gap:12px;padding:0 0 16px;border-bottom:1px solid #45516a;margin-bottom:20px}
+.drawing-open #calibration-status{flex:1;font-size:12px;line-height:1.5;color:#bcc7d6}
+.drawing-open .measure-scale button{white-space:nowrap}
+.drawing-open .measure-create-row{display:flex;gap:8px;align-items:stretch;margin:8px 0 20px}
+.drawing-open .measure-create-row select{flex:1;min-width:0;background:#202837;color:#edf1f6;border:1px solid #56637a;border-radius:5px;padding:9px;font:inherit}
+.drawing-open #measure-create h3,.drawing-open #measure-draft h3{font-size:15px;margin:0 0 8px}
+.drawing-open #measure-draft{padding:12px;border:1px solid #557397;border-radius:5px;margin-bottom:20px}
+.drawing-open #measure-draft-status{font-size:12px;color:#b8c8db;font-variant-numeric:tabular-nums;min-height:18px}
+.drawing-open #measure-draft-status.error{color:#ffb4a8}
+.drawing-open #measure-list:empty::after{content:'No measurements on this drawing.';font-size:12px;color:#b3bfd0}
+.drawing-open .zone-quantities{margin:20px 0;font-size:12px}
+.drawing-open .zone-quantities>summary,.drawing-open .zone-options>summary{cursor:pointer;padding:6px 0;color:#b3bfd0}
+.drawing-open .zone-options{margin:0 0 12px;font-size:12px}
+.drawing-open .zone-options .zone-factor-row{display:flex;gap:8px;align-items:end}
+.drawing-open .zone-options input{width:80px}
+.drawing-open select:focus-visible{outline:2px solid #8cb6ef;outline-offset:2px}
+.drawing-open #calibrate{width:auto;flex:0 0 auto;margin:0}
+.drawing-open #measure-list .compact-measure{display:grid;grid-template-columns:minmax(0,1fr) auto 24px;align-items:center;gap:8px;padding:8px;border:0;border-left:4px solid #c06c23;background:#181e29;margin:6px 0}
+.drawing-open .compact-measure .measure-open{border:0;background:transparent;padding:7px 0;margin:0;text-align:left;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawing-open .compact-measure .measure-quantity{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.drawing-open .measure-options{position:relative;grid-column:3;grid-row:1}
+.drawing-open .measure-options>summary{cursor:pointer;list-style:none;text-align:center;font-size:18px;min-height:24px}
+.drawing-open .measure-options[open]{grid-column:1/-1;grid-row:2}
+.drawing-open .measure-options[open]>summary{text-align:right}
+.drawing-open .measure-options button{margin-top:6px}

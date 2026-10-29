@@ -118,3 +118,7 @@ The current session successfully called binary_session with expected package 6.7
 ## Design-only checkpoint — 2026-10-29
 
 Current work is the user-requested research/design proposal; no REA installation/configuration or new owned-fixture analysis was performed in this phase. Prior live MCP evidence remains separately dated and is not replaced by design/browser observations. Product development is paused for design approval; see [ADR-0036](DECISIONS.md).
+
+## Production resumed — 2026-10-29
+
+The earlier design-only pause was superseded by explicit user instructions (ADR-0041 onward). Phase0 remains complete on separately dated owned-fixture evidence. ADR-0043 used normal visible Chrome/public workflow inspection; no new REA analysis, installation or configuration change occurred. Do not describe these browser checks as REA verification.
