@@ -177,6 +177,21 @@
     "No full parity, large-project performance, human usability or accessibility certification"
   ],
   "delivery": {
-    "state": "Pending expected-head private delivery"
+    "state": "Private remote main readback confirmed",
+    "commit": "8c283cb4061c9769650928074d52dd20c9ad2acc",
+    "tree": "5314d9c2edc9252f933c9760bfc337eb0ad72810",
+    "expectedParent": "439431cdb90592c2afca683ad4e9b81a95a2c4f2",
+    "verifiedBlobs": 19,
+    "preservedOtherRemoteFiles": 178,
+    "canonicalCommitMirroredLocally": true,
+    "localBranchAndIndexPreserved": true
+  },
+  "hosted": {
+    "run": 40854663276,
+    "job": 123382523961,
+    "conclusion": "success",
+    "passed": 125,
+    "failed": 0,
+    "duration_ms": 36067.685275
   }
 }
