@@ -425,3 +425,12 @@ Exact next task: present recommendation for final layout approval. If revisions 
 ### A Compact delivery receipt — 2026-10-29
 
 Published privately as3485df420af4b5024a0044d5f37aba81ce2859c5/tree063d714cfbd9b5392066dec4b2786bb60a128561, expected-parent75290982efc8314117a10f692b75554c68c224aa; fresh remote ref readback confirmed.25 artifact blobs match local content;160 other pre-existing remote files unchanged. Canonical commit object mirrored locally; current local main/index remain preserved, not fully reconciled to remote history. This receipt is a documentation-only follow-up. No new hosted production-test claim. Prototype Auto/initial state and normal browser viewport restored. Next step is final layout review, then separately authorised Countfire workflow work.
+
+
+## 2026-10-29 — Apple design rules saved; current layout not approved
+
+Tyrone rejected the distance between top-left Count/Measure/etc selectors and far-right working information, then explicitly instructed that the Apple study be saved, remembered and followed for design/UI/UX. Added `docs/design/APPLE_DESIGN_RULES.md`, linked as required reading in AGENTS.md, and ADR-0039. It records sourced principles, application-specific rules, the concrete unresolved layout defect and task-based review criteria. Prior A Compact recommendation is not approved or settled.
+
+No prototype or production source/data changed in this checkpoint. No new functional tests claimed; documentation links/whitespace checked. Apple Toolbars web re-open returned a JavaScript shell; Markdown link failed unsupported content-type. Consolidation relies on the existing dated source register, not invented new research. Local main81ebfd2 and unrelated index/worktree remain preserved. Private documentation-only delivery uses a freshly checked remote parent and expected-head protection.
+
+Exact next task: refine only the existing prototype so Count/Measure/Zone/Note selectors, primary actions and working controls have a coherent local relationship; inspect complete task paths at1280/1440/1920 before presenting. Preserve drawing focus, clear scope/status, the approved visual identity and verified Countfire workflow requirements. Do not ask for approval of the unchanged layout. Production UI/calculations/database/project data and catalogue remain gated.
