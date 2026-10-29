@@ -1,6 +1,6 @@
 # Testing strategy
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Production workflow development resumed by explicit user instruction on2026-10-29; catalogue remains deferred. Historical observations and test results retain their original dates.
 
 ## Foundation checks
 
@@ -142,3 +142,6 @@ A Compact validation (2026-10-29): `browser-scenario.js` now exercises all3 arra
 
 
 Coherent task-panel prototype2026-10-29: `browser-task-panel.js` adds13 checks for tool/control proximity, Count correction, measurement calibration, zone priority, keyboard focus, draft protection and panel recovery. Run at1280×800 on isolated4174. Existing35+14+13 browser checks and11 model tests pass.36 combinations of3 widths×3 arrangements×4 tools were inspected for local action visibility, appropriate count-tab hiding and overflow. Capture current Count/Measure/Zone states; old comparison is historical. Floating-point length assertion uses1e-8 tolerance, not exact JS decimal equality. Verify production state read-only and85 protected hashes. Evidence `docs/evidence/task-panel-2026-10-29.json`.
+
+
+2026-10-29 drawing-first production checkpoint (ADR-0041): F008/F010/F012 remain partial TESTED. Direct box selection, default discipline scope, optional naming, repeat examples and the coherent right task panel are implemented. Neutral Symbol N names are not Smart Select.125/125 regression tests and20 owned Chrome workflow checks pass; exact centres, scope isolation, corrections, cancellation, reopen and Excel reconciliation recorded in [drawing-first evidence](evidence/drawing-first-2026-10-29.json). Run `node scripts/prepare-drawing-first-acceptance.mjs <fresh-directory>`, start the app against that isolated store, open Ground.pdf, then evaluate `tests/browser/drawing-first.js` in Chrome. Never run this mutating acceptance scenario against saved user projects. Reference empty Count prompt was inspected read-only; no reference output or source copied. Full save/check-sheet, recognition and heading clash parity remain open.

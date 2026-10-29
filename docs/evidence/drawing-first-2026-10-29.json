@@ -1,0 +1,182 @@
+{
+  "date": "2026-10-29",
+  "decision": "ADR-0041",
+  "environment": "macOS / Node 24.22.0 / Chrome / owned vector PDFs",
+  "source": {
+    "live": "Authorised beta demo empty Count state inspected read-only; prompts box selection across drawings.",
+    "public": "https://www.countfire.com/blog/new-takeoff-experience",
+    "implementation": "Original code; no reference source/assets/account data copied"
+  },
+  "automated": {
+    "command": "npm test",
+    "passed": 125,
+    "failed": 0,
+    "duration_ms": 18387.963163,
+    "restrictedAttempt": {
+      "passed": 111,
+      "failed": 14,
+      "reason": "HTTP listen EPERM; approved retry passed"
+    }
+  },
+  "browser": {
+    "passed": 20,
+    "checks": [
+      "Direct unnamed selection counted twelve known symbols",
+      "Six per drawing and other discipline untouched",
+      "Ground.pdf independently declared centres",
+      "Level 1.pdf independently declared centres",
+      "Rename persists without recount",
+      "Additional example does not duplicate marks",
+      "Reviewed exclusion survives additional example",
+      "Both examples retained under one heading",
+      "Empty-symbol failure leaves saved state unchanged",
+      "Cancelled matching creates no heading or partial results",
+      "New symbol and drawing-only scope stay separate",
+      "Panel collapse returns space to the drawing",
+      "measure remains available in task panel",
+      "zone remains available in task panel",
+      "note remains available in task panel",
+      "layout remains available in task panel",
+      "page remains available in task panel",
+      "count remains available in task panel",
+      "Switching tools and panels leaves quantities unchanged",
+      "Space pan never starts counting"
+    ],
+    "headingNames": [
+      "Sprinkler heads",
+      "Symbol 1"
+    ],
+    "marks": 18
+  },
+  "geometry": [
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "canvas": {
+        "x": 0,
+        "y": 56,
+        "width": 960,
+        "height": 716
+      },
+      "panel": {
+        "x": 960,
+        "y": 56,
+        "width": 320,
+        "height": 716
+      },
+      "tools": {
+        "x": 961,
+        "y": 56,
+        "width": 319,
+        "height": 97
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "panelOverflow": false
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "canvas": {
+        "x": 0,
+        "y": 56,
+        "width": 1100,
+        "height": 816
+      },
+      "panel": {
+        "x": 1100,
+        "y": 56,
+        "width": 340,
+        "height": 816
+      },
+      "tools": {
+        "x": 1101,
+        "y": 56,
+        "width": 339,
+        "height": 97
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "panelOverflow": false
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": {
+        "x": 0,
+        "y": 56,
+        "width": 1580,
+        "height": 996
+      },
+      "panel": {
+        "x": 1580,
+        "y": 56,
+        "width": 340,
+        "height": 996
+      },
+      "tools": {
+        "x": 1581,
+        "y": 56,
+        "width": 339,
+        "height": 97
+      },
+      "headerFits": true,
+      "pageFits": true,
+      "panelOverflow": false
+    }
+  ],
+  "export": {
+    "beforeReview": 409,
+    "pending": 17,
+    "afterReview": 200,
+    "rows": [
+      [
+        "Sprinkler heads",
+        "Ground.pdf",
+        5
+      ],
+      [
+        "Sprinkler heads",
+        "Level 1.pdf",
+        6
+      ],
+      [
+        "Symbol 1",
+        "Ground.pdf",
+        6
+      ]
+    ],
+    "instances": 18,
+    "included": 17,
+    "excluded": 1,
+    "independentExcelJSAssertions": true,
+    "reopenPreserved": true
+  },
+  "finalRefinement": {
+    "newSymbolClearsOldContext": true,
+    "selectedHeadingShowsControls": true
+  },
+  "preservation": {
+    "userStateSha256": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc",
+    "userStoreUnchanged": true,
+    "schema": 16,
+    "matcherAndCalculationCodeUnchanged": true
+  },
+  "limitations": [
+    "Neutral Symbol N names, not Smart Select",
+    "Same size/orientation matcher; 20 pages and 4M pixels/page limit retained",
+    "No element clash ownership across different headings",
+    "Immediate persistence and existing explicit reviewed-match export gate differ from Countfire global save/check sheets",
+    "Production navigation uses existing drawing dropdown; full searchable A/Compact navigator and resizing not ported",
+    "No full parity, large-project performance, human usability or accessibility certification"
+  ],
+  "delivery": {
+    "state": "Pending expected-head private delivery"
+  }
+}

@@ -1,6 +1,6 @@
 # Feature parity inventory
 
-Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
+Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Production workflow development resumed by explicit user instruction on2026-10-29; catalogue remains deferred. Historical observations and test results retain their original dates.
 
 Baseline researched 2026-10-22. Project/PDF, counting, measurements, zones and exports have partial tested scopes; individual rows record current status. No full parity claim is made. This inventory is detailed but provisional, not an exhaustive parity certification.
 
@@ -194,3 +194,6 @@ A Compact refinement (2026-10-29): same independent prototype now offers a stabl
 
 
 Task-panel design refinement2026-10-29: prototype co-locates four tools/actions, hides unrelated tabs and preserves demo correction/calibration/allocation results.11 model tests and75 browser checks pass;36 layout/mode combinations fit. No product F/UX status promotion or full Countfire workflow assertion. See `design/TASK_PANEL_REVIEW.md`.
+
+
+2026-10-29 drawing-first production checkpoint (ADR-0041): F008/F010/F012 remain partial TESTED. Direct box selection, default discipline scope, optional naming, repeat examples and the coherent right task panel are implemented. Neutral Symbol N names are not Smart Select.125/125 regression tests and20 owned Chrome workflow checks pass; exact centres, scope isolation, corrections, cancellation, reopen and Excel reconciliation recorded in [drawing-first evidence](evidence/drawing-first-2026-10-29.json). Run `node scripts/prepare-drawing-first-acceptance.mjs <fresh-directory>`, start the app against that isolated store, open Ground.pdf, then evaluate `tests/browser/drawing-first.js` in Chrome. Never run this mutating acceptance scenario against saved user projects. Reference empty Count prompt was inspected read-only; no reference output or source copied. Full save/check-sheet, recognition and heading clash parity remain open.

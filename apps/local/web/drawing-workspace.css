@@ -67,3 +67,58 @@ body.drawing-open{height:100vh;overflow:hidden}
 #selection-dialog>header{background:transparent;color:inherit;padding:0;border:0;min-height:0;display:block}#selection-dialog .selection-editor-tools button.selected{background:#b56d22;color:#fff}
 #selection-delete-dialog{width:min(450px,90vw);background:#202633;color:#e7ebf3;border:1px solid #556174;border-radius:8px;padding:22px}#selection-delete-dialog h2{margin-top:0;font-size:18px}#selection-delete-dialog p{font-size:13px;line-height:1.6}#selection-delete-dialog .hint{color:#a9b7ca;font-size:11px}#selection-delete-error{color:#ffc58c}#selection-delete-dialog button{background:#30394a;color:#fff;border:1px solid #596579}#selection-delete-dialog .danger{background:#a33c43}.selection-table .selection-delete{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;margin-left:3px;border:0;background:transparent;color:#abb7cc;font-size:18px}.selection-table .selection-delete:hover{color:#ffc0c0;background:#61323b}
 #selection-move-dialog{width:min(450px,90vw);background:#202633;color:#e7ebf3;border:1px solid #556174;border-radius:8px;padding:22px}#selection-move-dialog h2{margin-top:0;font-size:18px}#selection-move-dialog p{font-size:13px;line-height:1.6}#selection-move-target{display:block;width:100%;margin-top:8px;padding:8px;background:#30394a;color:#fff;border:1px solid #596579}#selection-move-error{color:#ffc58c}#selection-move-dialog button{background:#30394a;color:#fff;border:1px solid #596579}#selection-move-dialog .primary{background:#b56d22}.selection-drop-target{outline:2px solid #d58b3c;outline-offset:2px}.selection-table .example-preview[draggable=true]{cursor:grab}
+
+/* ADR-0041: tools stay with their working controls; the document keeps the rest. */
+.drawing-open .viewer-toolbar{height:56px;min-height:56px;padding:6px 12px;gap:10px;background:#232529}
+.drawing-open .viewer-brand span{font-size:15px}
+.drawing-open .viewer-toolbar strong{display:none}
+.drawing-open .viewer-body{margin-left:0;height:calc(100vh - 84px);background:#282a2e}
+.drawing-open .viewer-body::before{display:none}
+.drawing-open #drawing-stage{order:0;background:#35373b;padding:24px;min-width:0}
+.drawing-open #task-panel{order:1;width:340px;min-width:300px;max-width:460px;height:100%;display:flex;flex-direction:column;background:#25272b;color:#eceef1;border-left:1px solid #414348;flex-shrink:0}
+.drawing-open #task-panel[hidden]{display:none}
+.drawing-open #task-panel .viewer-tools{position:static;width:auto;height:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:8px;gap:4px;background:#25272b;border-bottom:1px solid #414348;flex-shrink:0}
+.drawing-open #task-panel .viewer-tools>button:not(#pan-tool){width:auto;height:38px;min-height:38px;padding:6px;border-radius:5px;border:1px solid transparent;font-size:13px;display:block}
+.drawing-open #task-panel .viewer-tools>button::before{display:none}
+.drawing-open #task-panel .viewer-tools>button.tool-active{background:#3b3e43;border-color:#777f8c;color:#fff;box-shadow:inset 0 -2px #e9ad52}
+.drawing-open #task-panel #page-tool{margin:0;padding:6px!important;border-top:1px solid transparent!important}
+.drawing-open #task-panel #layout-tool,.drawing-open #task-panel #page-tool{grid-column:span 2;height:28px;min-height:28px;font-size:12px;color:#bfc4cc}
+.drawing-open #note-count{position:static;margin:0 0 0 3px;font-size:10px;background:transparent}
+.drawing-open .task-panel-content{overflow:auto;flex:1;min-height:0}
+.drawing-open #task-panel aside{width:auto;height:auto;padding:16px;background:transparent;border:0;overflow:visible}
+.drawing-open #pan-tool{position:static;transform:none;max-width:none;font-size:12px;padding:7px 9px;box-shadow:none}
+.drawing-open #pan-tool.tool-active{background:#41464e;border-color:#7d99bf}
+.drawing-open .viewer-footer{background:#232529;font-size:11px;gap:14px}
+.drawing-open .viewer-footer .checkbox-label{font-size:11px;white-space:nowrap;margin:0;color:#c4c9d0}
+.drawing-open .viewer-footer .checkbox-label input{width:auto;margin:0}
+.drawing-open .viewer-footer #tool-help{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawing-open #message{left:20px;right:360px}
+.drawing-open .takeoff-panel input,.drawing-open .takeoff-panel select{background:#1f2124;border-color:#50545b;font-size:13px}
+.drawing-open .takeoff-panel button{background:#303338;border-color:#50545b;font-size:12px}
+.drawing-open .takeoff-panel .primary{background:#e9ad52;border-color:#e9ad52;color:#22252a;font-weight:600}
+.drawing-open .takeoff-panel .primary:hover{background:#f2bd70}
+.drawing-open .hint{font-size:12px;line-height:1.5;color:#bac0c9}
+.drawing-open .count-entry{display:flex;gap:8px;margin-bottom:10px}
+.drawing-open .count-entry button{flex:1;min-height:34px}
+.drawing-open #count-instruction{min-height:36px;margin:6px 0 10px}
+.drawing-open #count-progress:empty{display:none}
+.drawing-open #count-progress{font-size:12px;line-height:1.5;padding-bottom:10px}
+.drawing-open #count-panel details{margin:10px 0;border-top:1px solid #42464d;padding-top:10px}
+.drawing-open #count-panel summary{cursor:pointer;font-size:12px;color:#d1d6df;padding:4px 0;min-height:26px}
+.drawing-open #count-panel details[open]>summary{margin-bottom:8px}
+.drawing-open #count-filter{margin:12px 0 8px;width:100%}
+.drawing-open .count-group-tools{display:flex;flex-wrap:wrap;gap:4px}
+.drawing-open .count-group-tools button{font-size:11px;padding:5px 7px;background:transparent}
+.drawing-open .count-list-heading{display:flex;justify-content:space-between;color:#adb4bf;font-size:11px;margin:14px 0 6px}
+.drawing-open .count-item.selected{background:#343b47;border-color:#78a8e5}
+.drawing-open .count-item-row .heading-group-action{font-size:10px;padding:4px}
+.drawing-open #active-count{margin-top:16px;padding-top:14px;border-top:1px solid #51565e}
+.drawing-open .active-count-title{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.drawing-open .active-count-title strong{font-size:14px;overflow-wrap:anywhere}
+.drawing-open .active-count-title button{background:transparent;border:0;flex-shrink:0}
+.drawing-open #active-count-quantity{font-variant-numeric:tabular-nums}
+.drawing-open .count-entry button[aria-pressed=true]{box-shadow:inset 0 -2px #8ab5ed}
+.drawing-open #example-list .selection-table{font-size:11px}
+.drawing-open .count-selecting{cursor:crosshair}
+.drawing-open button:focus-visible,.drawing-open summary:focus-visible,.drawing-open input:focus-visible,.drawing-open select:focus-visible{outline:2px solid #91bcf3;outline-offset:2px}
+@media(max-width:1400px){.drawing-open #task-panel{width:320px}.drawing-open .viewer-brand span{display:none}.drawing-open .viewer-toolbar{gap:6px}.drawing-open #drawing-select{max-width:210px}.drawing-open #message{right:340px}}

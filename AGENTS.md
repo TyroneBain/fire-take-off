@@ -1,11 +1,14 @@
 # Fire Take Off — permanent operating instructions
 
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+
+
 ## Start every session
 
 1. Read this file, docs/AUTHORIZATION.md, docs/PRODUCT_VISION.md, docs/ROADMAP.md and docs/CURRENT_STATE.md before development.
 2. Confirm repository root and origin (TyroneBain/fire-take-off), current branch, worktree changes and relevant existing code. Read applicable nested instructions.
 3. Recover verified progress from CURRENT_STATE.md and its evidence. Chat history is not permanent memory.
-4. Before any UI/UX work, read [docs/design/APPLE_DESIGN_RULES.md](docs/design/APPLE_DESIGN_RULES.md). Apply the retained Apple study to interaction hierarchy, grouping, proximity, consistency, document focus and accessibility. Aesthetic resemblance alone is insufficient. Tyrone rejected the separation between top-left tool selectors and right-side working controls; the current layout is not approved.
+4. Before any UI/UX work, read [docs/design/APPLE_DESIGN_RULES.md](docs/design/APPLE_DESIGN_RULES.md). Apply the retained Apple study to interaction hierarchy, grouping, proximity, consistency, document focus and accessibility. Aesthetic resemblance alone is insufficient. Tyrone rejected the separation between top-left tool selectors and right-side working controls; the revised coherent task panel is the basis for the newly authorised workflow work.
 5. Follow the roadmap. Phase 0 must pass its exit criteria before product development begins. Document any justified roadmap or architecture change before implementing it.
 
 ## Product objective

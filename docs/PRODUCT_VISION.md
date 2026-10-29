@@ -1,5 +1,8 @@
 # Product vision
 
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+
+
 **Current correction — 2026-10-29:** The layout is not approved. Tyrone requires the [permanent Apple design rules](design/APPLE_DESIGN_RULES.md) to govern future UI/UX work and rejects the separation of top-left tool selectors from right-side working controls. Refine that task relationship in the prototype; production remains gated.
 
 **Previous refinement — 2026-10-29 (returned for revision):** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.

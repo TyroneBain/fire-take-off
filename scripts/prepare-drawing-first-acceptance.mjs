@@ -1,0 +1,12 @@
+import {openStore} from '../apps/local/store.mjs';
+import {execFileSync} from 'node:child_process';
+import {readFile,writeFile} from 'node:fs/promises';
+const directory=process.argv[2]||'.local/drawing-first-acceptance';
+for(const variant of ['base','revision'])execFileSync(process.execPath,['scripts/generate-drawing-fixture.mjs',`${directory}/${variant}`,variant]);
+const store=await openStore(directory);
+if(store.snapshot().entities.length)throw Error('Acceptance store already seeded');
+const project=store.create('project',null,'Drawing-first acceptance'),takeoff=store.create('takeoff',project.id,'Owned fixture');
+const discipline=store.create('discipline',takeoff.id,'Sprinklers'),other=store.create('discipline',takeoff.id,'Isolation control');
+const base=await readFile(`${directory}/base/small-vector.pdf`),revision=await readFile(`${directory}/revision/small-vector.pdf`);
+const a=await store.importPdf(discipline.id,'Ground.pdf',base),b=await store.importPdf(discipline.id,'Level 1.pdf',revision),control=await store.importPdf(other.id,'Control.pdf',base);
+await writeFile(`${directory}/fixture-ids.json`,JSON.stringify({project,takeoff,discipline,other,a,b,control}));store.close();

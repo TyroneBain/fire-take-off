@@ -1,5 +1,8 @@
 # Roadmap
 
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+
+
 **Latest prototype — 2026-10-29:** [One coherent task panel](design/TASK_PANEL_REVIEW.md) addresses the tool-distance criticism. Await review of this changed layout; older toolbar comparison is archived. Next product stage remains verified Countfire count-heading/selection/check/save/output workflows after explicit production authorisation.
 
 **Current correction — 2026-10-29:** The layout is not approved. Tyrone requires the [permanent Apple design rules](design/APPLE_DESIGN_RULES.md) to govern future UI/UX work and rejects the separation of top-left tool selectors from right-side working controls. Refine that task relationship in the prototype; production remains gated.
@@ -106,3 +109,6 @@ ADR-0031 delivered as 8cae73aa and passes 98/98 hosted tests. Next executable fe
 2026-10-29: groups a1eea4b passes118/118 hosted. ADR-0035/schema16 implements explicit same-discipline revision recount, F033 partial TESTED,125/125 local and owned browser cancellation/replay/conflict/export acceptance. F076 copy-items and F077 replacement added from public documentation; neither implemented. Next: protected recount delivery/CI, then normal-beta copy-items/replacement research and bounded source-preserving implementation, followed by annotated PDF output/recognition corpus. Catalogue deferred; no full parity/phase gate waived.
 
 Recount234390c delivered privately and passes125/125 hosted. Copy items modal/categories/empty-destination constraint and Replace menu now confirmed in current beta without submitting mutations. Next F076 source-isolated copying acceptance/implementation; F077 replacement remains separate. Full parity remains incomplete, catalogue deferred.
+
+
+2026-10-29 ADR-0041: user lifted prototype gate; first drawing-first counting production increment passes125/125 regression and20 owned browser checks, with Excel reconciliation. Continue evidence-led selection/heading and checking/output workflows. Existing catalogue deferral and full parity gates remain.

@@ -327,3 +327,8 @@ for(const id of ['layout-overlay-tab','overlay-overlay-tab','floorplan-overlay-t
 for(const id of ['layout-floorplan-tab','overlay-floorplan-tab','floorplan-floorplan-tab'])$(id).onclick=()=>chooseLayout('floorplan');
 try { ({ token } = await api('/api/session')); await refresh(); }
 catch (error) { notice(`Workspace unavailable: ${error.message}`, true); }
+
+// Tools and their working information share one predictable, collapsible panel.
+$('toggle-task-panel').onclick=()=>{const panel=$('task-panel');panel.hidden=!panel.hidden;$('toggle-task-panel').setAttribute('aria-expanded',String(!panel.hidden));};
+
+document.querySelector('.viewer-tools').addEventListener('click',event=>{if(event.target.closest('button')){$('task-panel').hidden=false;$('toggle-task-panel').setAttribute('aria-expanded','true');}},true);

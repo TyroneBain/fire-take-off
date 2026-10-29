@@ -1,5 +1,8 @@
 # Permanent UI/UX rules from the Apple study
 
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+
+
 User instruction, 2026-10-29: “please stick to the apple info - save it remember it - for design and ui ux”. Read this file before every Fire Take Off design or interface change. Apply the findings to interaction structure, not merely colours, fonts and rounded corners.
 
 ## Source of truth
@@ -43,3 +46,6 @@ This consolidation uses the previously recorded Apple study. A2026-10-29 re-open
 ## Implementation response — prototype only
 
 The [task-panel revision](TASK_PANEL_REVIEW.md) now groups four tool selectors with their local controls, removes the distant strip/extra Select mode, hides unrelated tabs and reduces default explanation text. Tests and screenshots support those bounded observations. This addresses the recorded defect in the prototype; it does not replace user review or establish perfect UX, production approval or Countfire workflow parity.
+
+
+Production response after explicit resume (ADR-0041): selectors and active controls share the right task panel; New symbol clears old context, optional controls disclose locally, and the drawing receives reclaimed rail width. This is a tested initial port; full prototype navigation/resizing and complete accessibility acceptance remain future work.
