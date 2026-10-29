@@ -726,6 +726,14 @@
   ],
   "reference": "https://www.countfire.com/blog/new-takeoff-experience",
   "delivery": {
-    "state": "Pending observed private remote readback"
+    "state": "Published privately and ref readback confirmed",
+    "commit": "3485df420af4b5024a0044d5f37aba81ce2859c5",
+    "tree": "063d714cfbd9b5392066dec4b2786bb60a128561",
+    "parent": "75290982efc8314117a10f692b75554c68c224aa",
+    "blobsVerified": 25,
+    "otherRemoteFilesUnchanged": 160,
+    "canonicalCommitObjectMirroredLocally": true,
+    "localBranchIndexPreserved": true,
+    "fullLocalHistoryReconciliation": false
   }
 }

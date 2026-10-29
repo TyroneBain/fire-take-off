@@ -420,3 +420,8 @@ Reference: public Countfire new-takeoff guide rechecked; authorised demo read-on
 Delivery at authoring: main/localHEAD81ebfd2 and existing index/worktree preserved. Previous private remote receipt75290982efc8314117a10f692b75554c68c224aa; prepare only explicitly changed prototype/docs paths with fresh expected-head check. Do not reconcile/reset unrelated work. Server remains loopback4174; comparison URL `http://127.0.0.1:4174/comparison/index.html`.
 
 Exact next task: present recommendation for final layout approval. If revisions are requested, refine prototype only. Do not treat approval of layout as confirmation of all demonstration workflows; obtain explicit production authorisation before implementing the reference workflow in the actual application. REA unchanged; no new owned-fixture analysis claimed.
+
+
+### A Compact delivery receipt — 2026-10-29
+
+Published privately as3485df420af4b5024a0044d5f37aba81ce2859c5/tree063d714cfbd9b5392066dec4b2786bb60a128561, expected-parent75290982efc8314117a10f692b75554c68c224aa; fresh remote ref readback confirmed.25 artifact blobs match local content;160 other pre-existing remote files unchanged. Canonical commit object mirrored locally; current local main/index remain preserved, not fully reconciled to remote history. This receipt is a documentation-only follow-up. No new hosted production-test claim. Prototype Auto/initial state and normal browser viewport restored. Next step is final layout review, then separately authorised Countfire workflow work.
