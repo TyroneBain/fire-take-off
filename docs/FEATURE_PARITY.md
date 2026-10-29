@@ -191,3 +191,6 @@ The [standalone A/B prototype](design/INTERACTIVE_PROTOTYPE_REVIEW.md) exercises
 
 
 A Compact refinement (2026-10-29): same independent prototype now offers a stable right inspector, temporary searchable sheet chooser, compact symbol rows and progressive quantity disclosure.11 model and62 browser checks pass; no production F/UX status promotion. See `design/A_COMPACT_REVIEW.md` for the distinction between layout approval and unimplemented Countfire heading/selection/check/save/output workflow fidelity.
+
+
+Task-panel design refinement2026-10-29: prototype co-locates four tools/actions, hides unrelated tabs and preserves demo correction/calibration/allocation results.11 model tests and75 browser checks pass;36 layout/mode combinations fit. No product F/UX status promotion or full Countfire workflow assertion. See `design/TASK_PANEL_REVIEW.md`.

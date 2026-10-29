@@ -1,0 +1,1166 @@
+{
+  "date": "2026-10-29",
+  "scope": "Coherent task-panel prototype revision under ADR-0040; production untouched",
+  "environment": "macOS, Node24.22.0, Chrome desktop, deviceScaleFactor1",
+  "model": {
+    "pass": 11,
+    "fail": 0,
+    "durationMs": 115.146729
+  },
+  "workflows": {
+    "checks": [
+      {
+        "name": "a: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "a: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "a: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "a: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "a: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "a: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "a: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "a: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "b: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "b: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "b: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "b: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "b: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "b: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "b: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "b: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "compact: direct selection opens properties",
+        "passed": true
+      },
+      {
+        "name": "compact: dirty edit prevents context loss",
+        "passed": true
+      },
+      {
+        "name": "compact: simulated failure retains draft and quantities",
+        "passed": true
+      },
+      {
+        "name": "compact: retry commits demo correction",
+        "passed": true
+      },
+      {
+        "name": "compact: undo restores quantity",
+        "passed": true
+      },
+      {
+        "name": "compact: redo restores correction",
+        "passed": true
+      },
+      {
+        "name": "compact: exclusion changes allocation and pending",
+        "passed": true
+      },
+      {
+        "name": "compact: restore requires review",
+        "passed": true
+      },
+      {
+        "name": "drawing switch restores zoom",
+        "passed": true
+      },
+      {
+        "name": "maximise expands canvas",
+        "passed": true
+      },
+      {
+        "name": "restore preserves zoom",
+        "passed": true
+      },
+      {
+        "name": "zone factor contribution",
+        "passed": true
+      },
+      {
+        "name": "overlap priority contribution",
+        "passed": true
+      },
+      {
+        "name": "first drawing reviewed but project still blocked",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to next drawing review",
+        "passed": true
+      },
+      {
+        "name": "reconciliation routes to scale blocker",
+        "passed": true
+      },
+      {
+        "name": "all blockers resolved, advisories separate",
+        "passed": true
+      },
+      {
+        "name": "CSV contains fictional disclaimer and reconciled all-sheet quantities",
+        "passed": true
+      },
+      {
+        "name": "reset restores seed and clears edits",
+        "passed": true
+      }
+    ],
+    "passed": 35,
+    "csvDownload": "Blob contents checked; file download suppressed by test",
+    "final": {
+      "sheet": "01",
+      "layout": "compact",
+      "mode": "auto",
+      "tool": "count",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6192857142857143,
+        "ox": 19.999999999999943,
+        "oy": 44.321428571428555,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          907,
+          646
+        ]
+      },
+      "chooserOpen": false,
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "interactions": {
+    "checks": [
+      {
+        "name": "example opens explicit seeded scan preview",
+        "passed": true
+      },
+      {
+        "name": "cancelled demo scan preserves state",
+        "passed": true
+      },
+      {
+        "name": "completed demo scan opens seeded review without edits",
+        "passed": true
+      },
+      {
+        "name": "explicit tab navigation cancels pending scan transition",
+        "passed": true
+      },
+      {
+        "name": "canvas coordinate creates manual correction",
+        "passed": true
+      },
+      {
+        "name": "undo removes manual correction",
+        "passed": true
+      },
+      {
+        "name": "note applied at drawing location",
+        "passed": true
+      },
+      {
+        "name": "note undo restores drawing",
+        "passed": true
+      },
+      {
+        "name": "B collapse expands canvas",
+        "passed": true
+      },
+      {
+        "name": "B restore preserves drawing centre",
+        "passed": true
+      },
+      {
+        "name": "A both panels collapse",
+        "passed": true
+      },
+      {
+        "name": "A restore returns both panels",
+        "passed": true
+      },
+      {
+        "name": "auto layout defers panel relocation during edit",
+        "passed": true
+      },
+      {
+        "name": "auto layout applies after edit committed",
+        "passed": true
+      }
+    ],
+    "passed": 14,
+    "method": "DOM interaction scenario in Chrome at 1280x800; not a human usability test",
+    "final": {
+      "sheet": "01",
+      "layout": "compact",
+      "mode": "auto",
+      "tool": "count",
+      "tab": "items",
+      "selected": null,
+      "dirty": false,
+      "error": "",
+      "totals": {
+        "raw": 12,
+        "included": 10,
+        "includedItems": 18,
+        "allocated": 8,
+        "allocatedItems": 48,
+        "outside": 2,
+        "excluded": 2,
+        "pending": 3,
+        "pendingAll": 3,
+        "metres": 72
+      },
+      "readiness": {
+        "rows": [
+          {
+            "id": "01",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 3,
+            "pendingAll": 3,
+            "metres": 72
+          },
+          {
+            "id": "02",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 1,
+            "pendingAll": 1,
+            "metres": 72
+          },
+          {
+            "id": "RF",
+            "raw": 12,
+            "included": 10,
+            "includedItems": 18,
+            "allocated": 8,
+            "allocatedItems": 48,
+            "outside": 2,
+            "excluded": 2,
+            "pending": 0,
+            "pendingAll": 0,
+            "metres": null
+          }
+        ],
+        "pending": 4,
+        "unscaled": 1,
+        "unchecked": 3,
+        "eligible": false
+      },
+      "events": 0,
+      "view": {
+        "scale": 0.6192857142857143,
+        "ox": 19.999999999999943,
+        "oy": 44.321428571428555,
+        "fit": true
+      },
+      "dimensions": {
+        "frame": [
+          1280,
+          800
+        ],
+        "canvas": [
+          907,
+          646
+        ]
+      },
+      "chooserOpen": false,
+      "focus": false,
+      "navHidden": false,
+      "inspectorHidden": false,
+      "workHidden": false
+    }
+  },
+  "compact": {
+    "passed": 13,
+    "checks": [
+      {
+        "name": "Count is initial tool; primary action available",
+        "passed": true
+      },
+      {
+        "name": "drawing review distinct from project export blockers",
+        "passed": true
+      },
+      {
+        "name": "quantity breakdown starts collapsed",
+        "passed": true
+      },
+      {
+        "name": "quantity explanation remains available",
+        "passed": true
+      },
+      {
+        "name": "classification search filters without changing totals",
+        "passed": true
+      },
+      {
+        "name": "chooser overlays without moving canvas or right inspector",
+        "passed": true
+      },
+      {
+        "name": "search Enter switches sheet and preserves active tool",
+        "passed": true
+      },
+      {
+        "name": "previous drawing restores exact zoom",
+        "passed": true
+      },
+      {
+        "name": "Escape closes chooser and returns focus",
+        "passed": true
+      },
+      {
+        "name": "outside pointer dismisses chooser",
+        "passed": true
+      },
+      {
+        "name": "inspector collapse retains drawing launcher",
+        "passed": true
+      },
+      {
+        "name": "inspector restores on right",
+        "passed": true
+      },
+      {
+        "name": "right inspector resizes to upper limit",
+        "passed": true
+      }
+    ],
+    "method": "Automated DOM events; not an estimator usability study"
+  },
+  "taskPanel": {
+    "passed": 13,
+    "checks": [
+      {
+        "name": "four task families, no distant strip",
+        "passed": true
+      },
+      {
+        "name": "Count action and selector share visible work area",
+        "passed": true
+      },
+      {
+        "name": "selection state has one local cancel action",
+        "passed": true
+      },
+      {
+        "name": "direct selection remains visibly within Count",
+        "passed": true
+      },
+      {
+        "name": "correction is applied in same work area",
+        "passed": true
+      },
+      {
+        "name": "Measure removes unrelated count controls",
+        "passed": true
+      },
+      {
+        "name": "measurement calibration gives feedback",
+        "passed": true
+      },
+      {
+        "name": "Zone shows local allocation controls",
+        "passed": true
+      },
+      {
+        "name": "zone correction and priority reconcile",
+        "passed": true
+      },
+      {
+        "name": "keyboard moves tool and focus together",
+        "passed": true
+      },
+      {
+        "name": "dirty edit prevents tool change",
+        "passed": true
+      },
+      {
+        "name": "collapsed work panel has visible global restore",
+        "passed": true
+      },
+      {
+        "name": "restored panel keeps active tool",
+        "passed": true
+      }
+    ],
+    "viewport": [
+      1280,
+      800
+    ],
+    "canvas": [
+      907,
+      646
+    ],
+    "rerunAfterFinalVisualChanges": true
+  },
+  "matrix": [
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "a",
+      "tool": "count",
+      "canvas": [
+        718,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "a",
+      "tool": "measure",
+      "canvas": [
+        718,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "a",
+      "tool": "zone",
+      "canvas": [
+        718,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "a",
+      "tool": "note",
+      "canvas": [
+        718,
+        618
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "b",
+      "tool": "count",
+      "canvas": [
+        955,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "b",
+      "tool": "measure",
+      "canvas": [
+        955,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "b",
+      "tool": "zone",
+      "canvas": [
+        955,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "b",
+      "tool": "note",
+      "canvas": [
+        955,
+        618
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "compact",
+      "tool": "count",
+      "canvas": [
+        907,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "compact",
+      "tool": "measure",
+      "canvas": [
+        907,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "compact",
+      "tool": "zone",
+      "canvas": [
+        907,
+        646
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "layout": "compact",
+      "tool": "note",
+      "canvas": [
+        907,
+        618
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "a",
+      "tool": "count",
+      "canvas": [
+        878,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "a",
+      "tool": "measure",
+      "canvas": [
+        878,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "a",
+      "tool": "zone",
+      "canvas": [
+        878,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "a",
+      "tool": "note",
+      "canvas": [
+        878,
+        718
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "b",
+      "tool": "count",
+      "canvas": [
+        1115,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "b",
+      "tool": "measure",
+      "canvas": [
+        1115,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "b",
+      "tool": "zone",
+      "canvas": [
+        1115,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "b",
+      "tool": "note",
+      "canvas": [
+        1115,
+        718
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "compact",
+      "tool": "count",
+      "canvas": [
+        1067,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "compact",
+      "tool": "measure",
+      "canvas": [
+        1067,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "compact",
+      "tool": "zone",
+      "canvas": [
+        1067,
+        746
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "layout": "compact",
+      "tool": "note",
+      "canvas": [
+        1067,
+        718
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "a",
+      "tool": "count",
+      "canvas": [
+        1358,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "a",
+      "tool": "measure",
+      "canvas": [
+        1358,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "a",
+      "tool": "zone",
+      "canvas": [
+        1358,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "a",
+      "tool": "note",
+      "canvas": [
+        1358,
+        898
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "b",
+      "tool": "count",
+      "canvas": [
+        1595,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "b",
+      "tool": "measure",
+      "canvas": [
+        1595,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "b",
+      "tool": "zone",
+      "canvas": [
+        1595,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "b",
+      "tool": "note",
+      "canvas": [
+        1595,
+        898
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "compact",
+      "tool": "count",
+      "canvas": [
+        1547,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": false
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "compact",
+      "tool": "measure",
+      "canvas": [
+        1547,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "compact",
+      "tool": "zone",
+      "canvas": [
+        1547,
+        926
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    },
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "layout": "compact",
+      "tool": "note",
+      "canvas": [
+        1547,
+        898
+      ],
+      "selectorInPanel": true,
+      "actionInPanel": true,
+      "headerFits": true,
+      "noPageOverflow": true,
+      "countTabsHidden": true
+    }
+  ],
+  "actualKeyboard": {
+    "action": "Chrome ArrowRight with Count focused",
+    "tool": "measure",
+    "focus": "measure",
+    "countTabsHidden": true
+  },
+  "preservation": {
+    "protectedFiles": 85,
+    "stateSha256": "838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc",
+    "stateSha256VerifiedAfter": true,
+    "changedFiles": []
+  },
+  "failures": [
+    "Earlier browser page14 had been closed; existing prototype page20 used instead.",
+    "New test helper initially called HTMLElement.click on an SVG mark; changed to dispatched MouseEvent.",
+    "New test expected exact86.4 floating point; observed86.39999999999999; bounded numerical assertion passed.",
+    "Sandbox curl could not connect to4173; approved read-only retry succeeded and after-state hash matched exactly."
+  ],
+  "limits": [
+    "No perfect-UX claim or human task timing",
+    "3 drawings/2 classifications/12 seeded marks per sheet",
+    "SVG stand-in, seeded scan, fixed zones/measurement, memory-only state, fictional CSV",
+    "Global durable undo, full heading workflow and actual Countfire feature parity remain production work"
+  ],
+  "delivery": {
+    "state": "Pending private ref readback"
+  },
+  "walkthroughImagesLoaded": 3
+}

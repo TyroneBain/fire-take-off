@@ -22,7 +22,7 @@ async () => {
  click('#zoom-in');const previous=prototypeSnapshot().view.scale;click('#sheet-title');click('[data-action="sheet"][data-id="02"]');await pause();click('#sheet-title');click('[data-action="sheet"][data-id="01"]');await pause();check('drawing switch restores zoom',Math.abs(prototypeSnapshot().view.scale-previous)<1e-8);
  click('#focus-mode');await pause();check('maximise expands canvas',prototypeSnapshot().focus&&prototypeSnapshot().dimensions.canvas[0]===prototypeSnapshot().dimensions.frame[0]);click('#focus-mode');await pause();check('restore preserves zoom',Math.abs(prototypeSnapshot().view.scale-previous)<1e-8);
  click('[data-action="tool"][data-tool="zone"]');input('zone-east','2');submit('[data-form="zone-factor"][data-zone="east"]');check('zone factor contribution',prototypeSnapshot().totals.allocatedItems===44);click('[data-action="zone-order"]');check('overlap priority contribution',prototypeSnapshot().totals.allocatedItems===40);click('#undo');click('#undo');
- click('[data-action="tool"][data-tool="select"]');
+ click('[data-action="tool"][data-tool="count"]');
  for(const id of ['01-2','01-5','01-7']){click(`[data-mark="${id}"]`);click('[data-action="accept"]');}
  check('first drawing reviewed but project still blocked',prototypeSnapshot().totals.pending===0&&!prototypeSnapshot().readiness.eligible);
  click('#export-open');click('[data-action="resolve"]');await pause();check('reconciliation routes to next drawing review',prototypeSnapshot().sheet==='02'&&prototypeSnapshot().tab==='review');click('[data-action="accept"]');click('#export-open');click('[data-action="resolve"]');await pause();check('reconciliation routes to scale blocker',prototypeSnapshot().sheet==='RF'&&prototypeSnapshot().tool==='measure');

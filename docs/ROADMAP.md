@@ -1,5 +1,7 @@
 # Roadmap
 
+**Latest prototype — 2026-10-29:** [One coherent task panel](design/TASK_PANEL_REVIEW.md) addresses the tool-distance criticism. Await review of this changed layout; older toolbar comparison is archived. Next product stage remains verified Countfire count-heading/selection/check/save/output workflows after explicit production authorisation.
+
 **Current correction — 2026-10-29:** The layout is not approved. Tyrone requires the [permanent Apple design rules](design/APPLE_DESIGN_RULES.md) to govern future UI/UX work and rejects the separation of top-left tool selectors from right-side working controls. Refine that task relationship in the prototype; production remains gated.
 
 **Previous refinement — 2026-10-29 (returned for revision):** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.

@@ -39,3 +39,7 @@ Production code/calculations/saved data remain gated. Catalogue remains deferred
 ## Access note
 
 This consolidation uses the previously recorded Apple study. A2026-10-29 re-open of Toolbars through the web reader returned a JavaScript shell; its Markdown link failed with unsupported content-type. Neither failure is counted as new research evidence. The earlier source register retains its original access descriptions.
+
+## Implementation response — prototype only
+
+The [task-panel revision](TASK_PANEL_REVIEW.md) now groups four tool selectors with their local controls, removes the distant strip/extra Select mode, hides unrelated tabs and reduces default explanation text. Tests and screenshots support those bounded observations. This addresses the recorded defect in the prototype; it does not replace user review or establish perfect UX, production approval or Countfire workflow parity.

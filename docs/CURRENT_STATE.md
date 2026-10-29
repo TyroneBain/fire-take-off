@@ -436,3 +436,20 @@ No prototype or production source/data changed in this checkpoint. No new functi
 Exact next task: refine only the existing prototype so Count/Measure/Zone/Note selectors, primary actions and working controls have a coherent local relationship; inspect complete task paths at1280/1440/1920 before presenting. Preserve drawing focus, clear scope/status, the approved visual identity and verified Countfire workflow requirements. Do not ask for approval of the unchanged layout. Production UI/calculations/database/project data and catalogue remain gated.
 
 Apple design rules delivered privately asaa95e1d2195d2381308300ee56bacd3809b62cea; fresh ref readback confirmed. Seven documentation blobs verified against local hashes. No application/prototype paths in this commit. This receipt is a documentation-only follow-up. Local branch/index remain untouched; no complete history reconciliation claimed.
+
+
+## 2026-10-29 — Coherent task panel implemented in prototype
+
+Tyrone requests action on Apple-informed design and emphasises Countfire's clean/simple interface. ADR-0040: eliminate the separated top-left tool strip, group tools and controls, avoid additional estimating steps. No production implementation authorised by this checkpoint. Catalogue deferred.
+
+Finished prototype changes: Count/Measure/Zone/Note directly above local actions/list/details in the work panel; A/Compact remain right, B comparison left. Extra Select mode removed from primary navigation; clicking a mark stays visibly in Count. Global undo/view/panel controls moved to56px header,42px strip removed, canvas gains34px height. Removed repeated panel headings and duplicate collapse action. Count-only tabs hidden in other modes. Quantity/allocation/completeness explanations use disclosure. Keyboard arrows switch tools/focus together; dirty edits guard context. Skip links expose tools/drawing. Zone labels moved away from room text. Independent demo calculation model unchanged.
+
+Current walkthrough: `http://127.0.0.1:4174/review/index.html`; interactive prototype4174; report `docs/design/TASK_PANEL_REVIEW.md`. Three1440 actual screenshots show Count/Measure/Zone. Old A/B screenshot comparison clearly archived. Live authorised Countfire demo inspected visually read-only; no reference source/screenshot copied into Git.
+
+Tests:11/11 model tests115.146729ms;35 shared +14 interactions +13 Compact +13 task-panel browser checks pass (75). New13 rerun after final visual changes.36 viewport/arrangement/tool combinations have local selectors/actions, correct tab visibility, header fit and no page overflow. Real Chrome ArrowRight moves Count→Measure with focus. New helper failures: SVG element lacks.click; dispatched MouseEvent resolves;86.39999999999999 handled with1e-8 tolerance for expected86.4. Old browser page14 closed; switched to existing20. Console clean;3 walkthrough images loaded at1440px. No new production-suite claim.
+
+Preservation:85 protected production source/test/fixture/package/CI hashes unchanged. Before/after production `/api/state` SHA256838872749287677fb2e189f05a0241c522f4fad45fa24649cc6fa293754d77dc identical. Sandbox curl connection failed; approved read-only retry succeeded. No database/project writes. REA unchanged and no new analysis claimed. Evidence `docs/evidence/task-panel-2026-10-29.json`.
+
+Limits: fictional SVG/seeded scan, fixed measurement/zones, memory-only undo, original demo review/export policies, CSV;3 drawings/2 classifications/12 marks per sheet. No human usability or perfect-UX claim; no real recognition/heading/selection/save/output parity inferred. Explicit reference workflow remains the next product objective, without unnecessary invented steps.
+
+Delivery: localmain81ebfd2/index and unrelated work preserved. Private documentation/prototype delivery prepared against fresh expected remote head; only explicit paths included. Exact next task: review the changed coherent task-panel design; then implement the verified Countfire count-heading→selection→checking/correction→save/output sequence only once production work is explicitly authorised. Continue prototype refinement if feedback requires it.
