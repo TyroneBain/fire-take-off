@@ -3,7 +3,7 @@ export function migrateDrawingRecounts(db){
  if(db.prepare('SELECT version FROM schema_version').get().version!==15)return;
  db.exec(`BEGIN;CREATE TABLE IF NOT EXISTS count_drawing_recounts(id TEXT PRIMARY KEY,discipline_id TEXT NOT NULL REFERENCES entities(id) ON DELETE CASCADE,drawing_id TEXT NOT NULL,previous TEXT NOT NULL,current TEXT NOT NULL,created TEXT NOT NULL) STRICT;UPDATE schema_version SET version=16;COMMIT`);
 }
-export function drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,fail}){
+export function drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,assertAppearanceCorrections,fail}){
  return {
   recountDrawing(drawingId,{digest,selections,expected_marks}={}){
    const target=drawing(drawingId);if(target.digest!==digest)fail('Drawing changed. Reload before recounting.',409);if(target.pages.length>20)fail('Recount supports at most 20 pages');
@@ -18,6 +18,7 @@ export function drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insert
    const previous=db.prepare('SELECT * FROM count_marks WHERE drawing_id=? ORDER BY id').all(target.id),expected=new Map(expected_marks.map(m=>[m.id,m.version]));if(expected.size!==expected_marks.length||expected.size!==previous.length||previous.some(m=>expected.get(m.id)!==m.version))fail('Drawing matches changed. Reload before recounting.',409);
    const near=(a,b)=>a.page===b.page&&Math.abs(a.x-b.x)<.5&&Math.abs(a.y-b.y)<.5;
    const obsolete=previous.filter(m=>{const e=saved.find(e=>e.id===m.example_id);return e&&m.origin==='automatic'&&!m.reviewed&&m.included&&m.item_id===e.item_id&&!inputs.get(e.id).matches.some(n=>near(m,n));});
+   const removed=new Set(obsolete.map(m=>m.id));for(const e of saved)assertAppearanceCorrections(e.item_id,JSON.parse(e.example),inputs.get(e.id).matches,e.id,removed);
    const id=randomUUID(),added=[],results=[];db.exec('BEGIN');
    try{
     for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);

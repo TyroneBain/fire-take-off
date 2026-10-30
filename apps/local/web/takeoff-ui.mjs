@@ -17,6 +17,8 @@ import {setupMeasurementEditor} from './measurement-editor.mjs';
 import {exampleRectangle,setupExamplePreviews} from './example-preview.mjs';
 import { pagePoint,viewPoint } from './coordinates.mjs';
 import { inkImage,exampleImage,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,isVectorAlgorithm,includesRotations,includesScales } from './matcher.mjs';
+import {APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,isAppearanceAlgorithm} from './appearance-policy.mjs';
+import {appearanceTemplate} from './appearance-template.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
@@ -27,6 +29,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const hiddenMarkers=new Set(),collapsedItems=new Set();
   const countInk=setupCountInk({context,pdfjs,onReady:()=>paintOverlay()});
   $('count-vector').addEventListener('change',()=>{if(!$('count-vector').checked)$('count-scales').checked=false;$('count-scales').disabled=!!job||!$('count-vector').checked;});
+  $('count-appearance').addEventListener('change',()=>{if($('count-appearance').checked){$('count-vector').checked=false;$('count-scales').checked=false;}paint();});
   const grouping=setupCountGroups({context,api,reload,node,button,notice,paint,hiddenMarkers,onVisibilityChange});
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
   const measurementCreation=setupMeasurementCreation({context,api,reload,notice,onChange:()=>paint(),clearEditor:()=>measurementEditor.clear(),isActive:()=>mode==='measure'});
@@ -65,7 +68,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     $('add-current-example').setAttribute('aria-pressed',String(action==='select'&&!!selectionTarget));
     $('add-manual-match').setAttribute('aria-pressed',String(action==='manual'));
     $('count-scope').disabled=!!job;
-    $('count-vector').disabled=!!job;$('count-rotations').disabled=!!job;$('count-scales').disabled=!!job||!$('count-vector').checked;
+    $('count-appearance').disabled=!!job;$('count-vector').disabled=!!job||$('count-appearance').checked;$('count-rotations').disabled=!!job;$('count-scales').disabled=!!job||!$('count-vector').checked;
     if(mode==='count')$('page-surface').classList.toggle('count-selecting',action==='select'&&!job);
 
     $('review-page').disabled=!current.length||!!job;
@@ -202,7 +205,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const targets=edit||$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
     const total=targets.reduce((sum,d)=>sum+d.pages.length,0);if(total>20)throw new Error('Select a scope of at most 20 pages per matching run');
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;paint();
-    const vector=edit?(edit.vector??isVectorAlgorithm(edit.record.example.algorithm)):$('count-vector').checked,scales=vector&&(edit?(edit.scales??includesScales(edit.record.example.algorithm)):$('count-scales').checked),fallbacks=new Set();
+    const appearance=edit?isAppearanceAlgorithm(edit.record.example.algorithm):$('count-appearance').checked,vector=edit?(edit.vector??isVectorAlgorithm(edit.record.example.algorithm)):$('count-vector').checked,scales=vector&&(edit?(edit.scales??includesScales(edit.record.example.algorithm)):$('count-scales').checked),fallbacks=new Set();
     const opened=new Map(),vectors=new Map(),tileBudget=createTileBudget();
     async function renderPage(d,number,elements=null,sourceBounds=null){
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
@@ -217,10 +220,12 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
       const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
     }
     try{
+      if(appearance&&(vector||scales||edit?.elements!==undefined))throw Error('Colour and fine-detail matching requires an uncleaned selection at its original size');
       const original=await renderPage(source,sourcePage,null,bounds),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
       const baseTemplate=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
       let template=baseTemplate;if(edit?.elements){const filtered=await renderPage(source,sourcePage,edit.elements,bounds);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
-      template.matchRotations=rotations;template.matchScales=scales;template.matchThreshold=.95;
+      if(appearance)template=appearanceTemplate({data:original.image.data,width:original.width,height:original.height},baseTemplate);
+      template.matchAppearance=appearance;template.matchRotations=rotations;template.matchScales=scales;template.matchThreshold=.95;
       if(vector){const anchor=original.viewport.convertToPdfPoint(baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2);template.vector=createVectorTemplate(original.vectorPage,{bounds,ids:edit?.elements?.ids,excluded:edit?.elements?.excluded,anchor});if(!template.vector.supported)fallbacks.add(template.vector.reason||'unsupported source');}
       const searchRaster=rendered=>new Promise((resolve,reject)=>{
         const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;
@@ -242,11 +247,11 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
         for(const hit of found){const [x,y]=Number.isFinite(hit.x)&&Number.isFinite(hit.y)?[hit.x,hit.y]:rendered.viewport.convertToPdfPoint(hit.left+(hit.anchorX??template.anchorX??hit.width/2),hit.top+(hit.anchorY??template.anchorY??hit.height/2));matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
       }
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
-      const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:vector?(scales?(rotations?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotations?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):(rotations?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION)};
+      const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:appearance?(rotations?APPEARANCE_MATCHER_VERSION:APPEARANCE_FIXED_VERSION):vector?(scales?(rotations?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotations?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):(rotations?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION)};
       run.committing=true;$('cancel-match').hidden=true;$('count-progress').textContent='Saving count…';
-      const result=edit?await api(`/api/examples/${edit.record.id}/selection`,json('PATCH',{version:edit.record.version,elements:edit.elements,rotations:edit.rotations,vector,scales,matches,scope:targets.map(d=>({id:d.id,digest:d.digest})),expected_marks:c.state.countMarks.filter(m=>m.example_id===edit.record.id).map(m=>({id:m.id,version:m.version}))})):targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
+      const result=edit?await api(`/api/examples/${edit.record.id}/selection`,json('PATCH',{version:edit.record.version,elements:edit.elements,rotations:edit.rotations,vector,scales,appearance,matches,scope:targets.map(d=>({id:d.id,digest:d.digest})),expected_marks:c.state.countMarks.filter(m=>m.example_id===edit.record.id).map(m=>({id:m.id,version:m.version}))})):targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
       selectedItem=targetItem?.id||result.id;
-      await reload();if(mode==='count'){selectionTarget=items().find(i=>i.id===selectedItem)||null;action='select';}if(!targetItem&&!edit){$('count-name').value='';$('example-list').open=false;}const message=edit?`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Reviewed corrections kept.`:targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent='';notice(`${label}: ${message}${fallbacks.size?` Same-size pixel fallback: ${[...fallbacks].join("; ")}.`:vector?" Vector geometry preview.":""}`);
+      await reload();if(mode==='count'){selectionTarget=items().find(i=>i.id===selectedItem)||null;action='select';}if(!targetItem&&!edit){$('count-name').value='';$('example-list').open=false;}const message=edit?`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Reviewed corrections kept.`:targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent='';notice(`${label}: ${message}${fallbacks.size?` Same-size pixel fallback: ${[...fallbacks].join("; ")}.`:appearance?" Colour and fine-detail preview; some matches may use outline markers.":vector?" Vector geometry preview.":""}`);
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }

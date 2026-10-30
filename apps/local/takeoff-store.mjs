@@ -1,6 +1,7 @@
 import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './web/vector-recognition.mjs';
 import {isVectorAlgorithm,includesRotations,includesScales,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
 import {drawingRecounts} from './drawing-recounts.mjs';
+import {APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,isAppearanceAlgorithm} from './web/appearance-policy.mjs';
 import {validElementSelection} from './web/pdf-elements.mjs';
 import { randomUUID } from 'node:crypto';
 import {validMultiplier} from './quantity-multipliers.mjs';
@@ -60,9 +61,27 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(isAppearanceAlgorithm(example.algorithm)&&example.elements!==undefined)fail('Colour and fine-detail matching does not support cleaned selections');
     if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
     return JSON.stringify({drawing_id:d.id,page:example.page,bounds:example.bounds,digest:d.digest,algorithm:example.algorithm,...(example.elements?{elements:{renderer:example.elements.renderer,ids:example.elements.ids,excluded:example.elements.excluded}}:{})});
+  }
+  function assertAppearanceCorrections(itemId,source,matches,exampleId=null,removed=new Set()) {
+    if(!isAppearanceAlgorithm(source.algorithm)||!matches.length)return;
+    const dimension=definition=>{const b=definition?.bounds;return b?Math.max(b[2]-b[0],b[3]-b[1]):0;},radius=dimension(source),groups=new Map();
+    const rows=db.prepare('SELECT m.*,coalesce(e.example,i.example) AS source_definition FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id LEFT JOIN count_items i ON i.id=m.original_item_id WHERE m.item_id=? OR m.original_item_id=? OR m.example_id=?').all(itemId,itemId,exampleId);
+    for(const m of rows){if(removed.has(m.id))continue;const key=m.drawing_id+':'+m.page;if(!groups.has(key))groups.set(key,{exact:new Map(),protected:[],radius});const group=groups.get(key),cell=Math.floor(m.x)+':'+Math.floor(m.y);if(!group.exact.has(cell))group.exact.set(cell,[]);group.exact.get(cell).push(m);
+      if(m.reviewed||!m.included||m.origin==='manual'||m.item_id!==itemId){const r=Math.max(radius,m.source_definition?dimension(JSON.parse(m.source_definition)):0);group.protected.push({...m,radius:r});group.radius=Math.max(group.radius,r);}
+    }
+    for(const group of groups.values()){group.bins=new Map();for(const m of group.protected){const key=Math.floor(m.x/group.radius)+':'+Math.floor(m.y/group.radius);if(!group.bins.has(key))group.bins.set(key,[]);group.bins.get(key).push(m);}}
+    for(const m of matches){const group=groups.get(m.drawing_id+':'+m.page);if(!group?.protected.length)continue;let exists=false;
+      for(let y=Math.floor(m.y)-1;y<=Math.floor(m.y)+1;y++)for(let x=Math.floor(m.x)-1;x<=Math.floor(m.x)+1;x++)if((group.exact.get(x+':'+y)||[]).some(p=>Math.abs(p.x-m.x)<.5&&Math.abs(p.y-m.y)<.5))exists=true;
+      if(exists)continue;
+      // Bounds are deliberately conservative: an unknown trimmed anchor or a
+      // quarter turn must not let a shifted proposal bypass a manual decision.
+      // Dense genuine neighbours may require another selection; never merge them.
+      for(let y=Math.floor(m.y/group.radius)-1;y<=Math.floor(m.y/group.radius)+1;y++)for(let x=Math.floor(m.x/group.radius)-1;x<=Math.floor(m.x/group.radius)+1;x++)if((group.bins.get(x+':'+y)||[]).some(p=>Math.abs(p.x-m.x)<=p.radius&&Math.abs(p.y-m.y)<=p.radius))fail('Colour and fine-detail results overlap an existing correction. No results saved; review the nearby symbols or use another selection.',409);
+    }
   }
   function insertMark(itemId,disciplineId,m,origin,exampleId=null) {
     const d=validateMark(disciplineId,m,origin);
@@ -84,7 +103,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     } catch(error) {db.exec('ROLLBACK TO match_decision; RELEASE match_decision');throw error;}
   }
   return {
-    ...drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,fail}),
+    ...drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,assertAppearanceCorrections,fail}),
     snapshot(){
       const calibrations=db.prepare('SELECT * FROM calibrations ORDER BY drawing_id,page').all().map(c=>({...c,points:JSON.parse(c.points)}));
       return {countItems:db.prepare('SELECT * FROM count_items ORDER BY created,id').all().map(i=>({...i,example:i.example?JSON.parse(i.example):null})),
@@ -116,6 +135,8 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       if(!Array.isArray(matches)||matches.length>5000)fail('Invalid match results');
       let saved=db.prepare('SELECT * FROM count_examples WHERE item_id=? AND example=?').get(itemId,encoded);
       if(!saved&&db.prepare('SELECT count(*) AS n FROM count_examples WHERE item_id=?').get(itemId).n>=50)fail('Limit of 50 examples per heading reached');
+      for(const m of matches)validateMark(i.discipline_id,m,'automatic');
+      assertAppearanceCorrections(itemId,example,matches,saved?.id);
       let added=0,skipped=0,linked=0;const isNew=!saved;
       db.exec('BEGIN');
       try {
@@ -130,18 +151,22 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       }catch(error){db.exec('ROLLBACK');throw error;}
       return {item:item(itemId),example_id:saved.id,added,skipped,linked};
     },
-    editCountSelection(exampleId,{version,elements,matches,scope,expected_marks,rotations,vector,scales}={}) {
+    editCountSelection(exampleId,{version,elements,matches,scope,expected_marks,rotations,vector,scales,appearance}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
       if(e.version!==version)fail('Selection changed. Reload before editing.',409);
       const source=JSON.parse(e.example),i=item(e.item_id);
       if(vector!==undefined&&typeof vector!=='boolean')fail('Invalid vector setting');
       if(rotations!==undefined&&typeof rotations!=='boolean')fail('Invalid rotation setting');
       if(scales!==undefined&&typeof scales!=='boolean')fail('Invalid scale setting');
+      if(appearance!==undefined&&typeof appearance!=='boolean')fail('Invalid appearance setting');
+      const useAppearance=isAppearanceAlgorithm(source.algorithm);
+      if(appearance!==undefined&&appearance!==useAppearance)fail('Choose colour and fine-detail matching only when adding a new selection');
       if(elements===undefined){if(typeof rotations!=='boolean'&&typeof vector!=='boolean'&&typeof scales!=='boolean')fail('Invalid source element selection');elements=source.elements;}
       if(elements!==undefined&&!validElementSelection(elements))fail('Invalid source element selection');
-      const rotate=rotations??includesRotations(source.algorithm),useVector=vector??isVectorAlgorithm(source.algorithm),scale=scales??includesScales(source.algorithm);
+      const rotate=rotations??(useAppearance?source.algorithm===APPEARANCE_MATCHER_VERSION:includesRotations(source.algorithm)),useVector=vector??isVectorAlgorithm(source.algorithm),scale=scales??includesScales(source.algorithm);
+      if(useAppearance&&(elements!==undefined||useVector||scale))fail('Colour and fine-detail matching requires an uncleaned selection at its original size');
       if(scale&&!useVector)fail('Scaled symbols require vector geometry');
-      const algorithm=useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
+      const algorithm=useAppearance?(rotate?APPEARANCE_MATCHER_VERSION:APPEARANCE_FIXED_VERSION):useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
       const definition={...source,algorithm,...(elements?{elements}:{})},encodedDefinition=exampleJSON(i.discipline_id,definition);
       if(db.prepare('SELECT id FROM count_examples WHERE item_id=? AND example=? AND id<>?').get(i.id,encodedDefinition,exampleId))fail('Another saved selection already uses these matching settings',409);
       if(!Array.isArray(scope)||!scope.length||scope.length>20||scope.some(d=>!d||typeof d.id!=='string'||typeof d.digest!=='string')||new Set(scope.map(d=>d.id)).size!==scope.length)fail('Invalid matching scope');
@@ -155,6 +180,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       for(const m of matches){validateMark(i.discipline_id,m,'automatic');if(!ids.has(m.drawing_id))fail('Result outside matching scope');}
       const near=(a,b)=>a.drawing_id===b.drawing_id&&a.page===b.page&&Math.abs(a.x-b.x)<.5&&Math.abs(a.y-b.y)<.5;
       const obsolete=previous.filter(m=>!m.reviewed&&m.included&&m.item_id===e.item_id&&!matches.some(n=>near(m,n)));
+      assertAppearanceCorrections(i.id,definition,matches,exampleId,new Set(obsolete.map(m=>m.id)));
       let added=0,skipped=0;db.exec('BEGIN');
       try{
         for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);

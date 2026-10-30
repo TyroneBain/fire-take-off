@@ -1,4 +1,5 @@
 import {isVectorAlgorithm,includesScales} from './matcher.mjs';
+import {isAppearanceAlgorithm} from './appearance-policy.mjs';
 import {inspectPdfElements,ELEMENT_RENDERER,elementAt} from './pdf-elements.mjs';
 const $=id=>document.getElementById(id);
 export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching}){
@@ -28,6 +29,8 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching}
  return {async open(next){
   if(saving)return;close();const generation=++epoch;record=next;$('selection-vector').checked=isVectorAlgorithm(next.example.algorithm);$('selection-vector').disabled=true;$('selection-scales').checked=includesScales(next.example.algorithm);$('selection-scales').disabled=true;excluded=new Set(next.example.elements?.excluded||[]);mode='erase';shift=false;drag=null;$('selection-error').textContent='Loading selection…';$('selection-elements').textContent='…';$('selection-done').disabled=true;$('selection-erase-all').disabled=true;canvas.width=canvas.height=1;dialog.showModal();
   const state=context().state,marks=state.countMarks.filter(m=>m.example_id===next.id&&m.item_id===next.item_id&&m.drawing_id===context().drawing?.id&&m.included);$('selection-matches').textContent=String(marks.length);$('selection-factor').textContent=String(next.multiplier||1);$('selection-total').textContent=String(marks.reduce((sum,m)=>sum+(m.quantity??1),0));
+  const appearance=isAppearanceAlgorithm(next.example.algorithm);$('selection-erase').disabled=appearance;$('selection-restore').disabled=appearance;
+  if(appearance){$('selection-elements').textContent='—';$('selection-error').textContent='Colour and fine-detail selections do not support element cleaning. Use Matching options to change quarter-turn rotations, or add a new selection.';return;}
   const loading=pdfjs.getDocument({url:`/api/drawings/${next.example.drawing_id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});task=loading;
   try{const pdf=await loading.promise,page=await pdf.getPage(next.example.page),result=await inspectPdfElements({page,OPS:pdfjs.OPS,bounds:next.example.bounds,createCanvas:(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;},cancelled:()=>generation!==epoch});if(generation!==epoch)return;
    if(next.example.elements&&(next.example.elements.renderer!==ELEMENT_RENDERER||JSON.stringify(next.example.elements.ids)!==JSON.stringify(result.elements.map(e=>e.id))))throw new Error('Selection element identity changed; this source needs review');
