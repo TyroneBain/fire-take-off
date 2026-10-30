@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-30T07:44:41.675818+00:00",
+  "scope": "Normal authorised browser-visible observation and normal Excel export of owner-uploaded original synthetic PDF; no competitor code, private API or asset reuse.",
+  "fixture": {
+    "generator": "scripts/vector-qa-fixture.mjs",
+    "localFile": ".local/test.pdf",
+    "sha256": "2736c874917f78d11f03a5143873ea74b4104d3224b1a7a9c71b83c537556a41",
+    "upload": "Owner manually uploaded; four visible imported sheets match declared fixture. Server-side input hash not inspected.",
+    "oracle": "Original independent QA labels plus separately proved mirrored=270-degree equivalence; shifted-detail remains a strict-geometry negative."
+  },
+  "observedActions": [
+    "Owner uploaded owned4-pagePDF into isolated test project/Rev0",
+    "Dragged approximate PDF[38,38,62,62] box around seed crossed by pipe using normal pointer events",
+    "Manage selection showed3 defining elements; crossingpipe was automatically absent without manual cleanup",
+    "Advanced editor exposed reference-assignment controls; no algorithm/source inspection",
+    "Saved changes and visited all4 drawings",
+    "Changed heading colour blue\u2192red; matchingglyphstrokes changed while crossingpipes stayedblack andpagequantity stayed10; restoredblue andsaved",
+    "Export and download produced quantities workbook; read only ownfixture quantity values",
+    "Deleted project test through dashboard rowDelete andconfirmation at explicitownerrequest; filtered list reports no matching projects andActivecount returned852\u2192851"
+  ],
+  "observedPageCounts": [
+    10,
+    2,
+    1,
+    0
+  ],
+  "observedPage1Sites": [
+    [
+      50,
+      50
+    ],
+    [
+      150,
+      50
+    ],
+    [
+      250,
+      50
+    ],
+    [
+      350,
+      50
+    ],
+    [
+      50,
+      150
+    ],
+    [
+      150.25,
+      150.25
+    ],
+    [
+      250.125,
+      150.375
+    ],
+    [
+      350,
+      150
+    ],
+    [
+      350,
+      250
+    ],
+    [
+      50,
+      350
+    ]
+  ],
+  "strictFixtureScore": {
+    "tp": 12,
+    "fp": 1,
+    "fn": 3,
+    "precision": 0.9230769230769231,
+    "recall": 0.8,
+    "missed": [
+      "scaled-positive",
+      "oblique-positive",
+      "raster-only"
+    ],
+    "extra": [
+      "shifted-detail"
+    ]
+  },
+  "interpretation": "Strict geometric fixture scoring only. Countfire documents automatic floating references; its acceptance of shifted detail may be intentional under a different matching contract. This narrow synthetic result establishes neither real-drawing parity nor superiority.",
+  "export": {
+    "localWorkbook": ".local/countfire-owned-quantities.xlsx",
+    "sha256": "edea22a57fc0fe4723e03423558b3c2bf9ff6cdf4cd85af55322b06bd57eed03",
+    "sheet": "Owned synthetic symbols",
+    "quantityCells": {
+      "D11": 10,
+      "E11": 2,
+      "F11": 1,
+      "G11": 0
+    },
+    "totalFormula": "SUM(D11:G11)",
+    "cachedTotalValue": 0,
+    "independentVerification": "QA independently read ExcelJS values and underlying worksheet XML. Numeric cells sum to13; Excel recalculation was not observed and cached H11 value is0.",
+    "evaluatedBySummingObservedNumericInputs": 13,
+    "matchesVisiblePerPageCounts": true,
+    "customerContent": false,
+    "committedWorkbook": false
+  },
+  "documentedVsObserved": {
+    "publicSource": "https://feedback.countfire.com/changelog",
+    "documented": "Selections2.0 automatically handles rotations/floating references; image-only drawings require manual counting.",
+    "observed": "Quarterturns, crossingpipeexclusion, per-pagecounts, glyphcolours andexport above.",
+    "unknown": [
+      "Internalalgorithm",
+      "Individualfalse-positive removal/reclassification in this session",
+      "Correctionretention after editedsignature",
+      "Automatic arbitraryscale configuration",
+      "Human correction/task timing",
+      "Representative real-drawing performance"
+    ]
+  },
+  "deletion": {
+    "requestedByOwner": true,
+    "projectName": "test",
+    "projectId": "09306000-d430-11f1-90ea-032662f37c1b",
+    "confirmedInUi": true,
+    "otherProjectsModified": false
+  }
+}

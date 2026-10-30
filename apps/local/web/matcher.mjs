@@ -1,4 +1,4 @@
-import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION} from './vector-recognition.mjs';
+import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './vector-recognition.mjs';
 export const MATCHER_VERSION='binary-overlap-1';
 export function inkImage(rgba,width,height) {
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>4000000||rgba.length!==width*height*4)throw new Error('Page exceeds matching image budget');
@@ -23,7 +23,8 @@ export const EXACT_MATCHER_VERSION='binary-overlap-2';
 export const ROTATION_MATCHER_VERSION='binary-overlap-rotations-1';
 export const ROTATION_ELEMENTS_VERSION='binary-elements-rotations-1';
 export function matchingThreshold(algorithm){return (algorithm===EXACT_MATCHER_VERSION||includesRotations(algorithm)||algorithm.startsWith('binary-elements-')||isVectorAlgorithm(algorithm)) ? .95 : .85;}
-export function includesRotations(algorithm){return algorithm===ROTATION_MATCHER_VERSION||algorithm===ROTATION_ELEMENTS_VERSION||algorithm===VECTOR_MATCHER_VERSION;}
+export function includesRotations(algorithm){return algorithm===ROTATION_MATCHER_VERSION||algorithm===ROTATION_ELEMENTS_VERSION||algorithm===VECTOR_MATCHER_VERSION||algorithm===VECTOR_SCALE_VERSION;}
+export function includesScales(algorithm){return algorithm===VECTOR_SCALE_VERSION||algorithm===VECTOR_SCALE_FIXED_VERSION;}
 function integralImage(image){
   const {data,width,height}=image;
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>4000000||data.length!==width*height)throw new Error('Invalid matcher input');
@@ -88,4 +89,4 @@ export function findSymbolMatches(image,template,{rotations=false,...options}={}
   return matches.sort((a,b)=>a.top+a.anchorY-b.top-b.anchorY||a.left+a.anchorX-b.left-b.anchorX);
 }
 
-export function isVectorAlgorithm(algorithm){return algorithm===VECTOR_MATCHER_VERSION||algorithm===VECTOR_FIXED_VERSION;}
+export function isVectorAlgorithm(algorithm){return algorithm===VECTOR_MATCHER_VERSION||algorithm===VECTOR_FIXED_VERSION||includesScales(algorithm);}

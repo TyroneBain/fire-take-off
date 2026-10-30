@@ -1,5 +1,5 @@
 import {createVectorTemplate} from './vector-recognition.mjs';
-import {inkImage,exampleImage,isVectorAlgorithm,includesRotations,matchingThreshold} from './matcher.mjs';
+import {inkImage,exampleImage,isVectorAlgorithm,includesRotations,includesScales,matchingThreshold} from './matcher.mjs';
 import {editedTemplate} from './pdf-elements.mjs';
 // Rendering and worker execution are injected, so the same orchestration is tested against actual PDFs in Node.
 export async function recognizeDrawing({state,target,render,search,cancelled=()=>false,progress=()=>{}}){
@@ -12,7 +12,7 @@ export async function recognizeDrawing({state,target,render,search,cancelled=()=
   let template=exampleImage(inkImage(original.data,original.width,original.height),box);
   const baseTemplate=template;
   if(def.elements){const filtered=await render(source,def.page,def.elements);check();template=editedTemplate(inkImage(original.data,original.width,original.height),inkImage(filtered.data,filtered.width,filtered.height),box);}
-  template.matchRotations=includesRotations(def.algorithm);template.matchThreshold=matchingThreshold(def.algorithm);
+  template.matchRotations=includesRotations(def.algorithm);template.matchScales=includesScales(def.algorithm);template.matchThreshold=matchingThreshold(def.algorithm);
   if(isVectorAlgorithm(def.algorithm)){const anchor=original.viewport.convertToPdfPoint(baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2);template.vector=createVectorTemplate(original.vectorPage,{bounds:def.bounds,ids:def.elements?.ids,excluded:def.elements?.excluded,anchor});}
   const matches=[];
   for(let page=1;page<=target.pages.length;page++){check();progress(`Searching ${headings.get(e.item_id).name} · page ${page}/${target.pages.length} · selection ${results.length+1}/${examples.length}`);const raster=await render(target,page);check();const hits=await search(raster,template);check();

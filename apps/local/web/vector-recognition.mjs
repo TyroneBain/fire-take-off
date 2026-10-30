@@ -2,6 +2,9 @@
 // Extract BEFORE rendering: PDF.js replaces these numeric arrays with Path2D.
 export const VECTOR_MATCHER_VERSION='vector-elements-1';
 export const VECTOR_FIXED_VERSION='vector-elements-fixed-1';
+export const VECTOR_SCALE_VERSION='vector-elements-scale-1';
+export const VECTOR_SCALE_FIXED_VERSION='vector-elements-scale-fixed-1';
+export const VECTOR_SCALE_RANGE=Object.freeze([.75,1.5]);
 const unsupported=reason=>({supported:false,reason,elements:[]});
 const identity=()=>[1,0,0,1,0,0];
 const point=(m,x,y)=>[m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]];
@@ -12,20 +15,21 @@ const inside=(a,b,t=0)=>a[0]>=b[0]-t&&a[1]>=b[1]-t&&a[2]<=b[2]+t&&a[3]<=b[3]+t;
 const intersects=(a,b)=>a[2]>=b[0]&&a[0]<=b[2]&&a[3]>=b[1]&&a[1]<=b[3];
 function segmentsFrom(data,m,close){
  if(!Array.isArray(data)&&!ArrayBuffer.isView(data))throw new Error('PDF paths were already rendered; extract vectors before rendering');
- const segments=[];let current=null,start=null,subpaths=0;
+ if(data.length>16384)throw new Error('PDF path exceeds vector command budget');
+ const segments=[],pathCommands=[];let current=null,start=null,subpaths=0,commandCount=0;
  const finish=()=>{if(close&&current&&start&&(current[0]!==start[0]||current[1]!==start[1]))segments.push([1,...current,...start]);};
- for(let i=0;i<data.length;){const op=data[i++],n=({0:2,1:2,2:6,3:4,4:0})[op];if(n===undefined||i+n>data.length)throw new Error('Unsupported PDF path command');
+ for(let i=0;i<data.length;){if(++commandCount>4096)throw new Error('PDF path exceeds vector command budget');const op=data[i++],n=({0:2,1:2,2:6,3:4,4:0})[op];if(n===undefined||i+n>data.length)throw new Error('Unsupported PDF path command');
   const coords=Array.from(data.slice(i,i+n));i+=n;if(!finite(coords))throw new Error('Invalid PDF path coordinates');
-  const p=[];for(let j=0;j<n;j+=2)p.push(...point(m,coords[j],coords[j+1]));
+  const p=[];for(let j=0;j<n;j+=2)p.push(...point(m,coords[j],coords[j+1]));pathCommands.push(op,...p);
   if(op===0){finish();current=p;start=p;subpaths++;}else if(op===4){if(!current||!start)throw new Error('Invalid closed PDF path');if(current[0]!==start[0]||current[1]!==start[1])segments.push([1,...current,...start]);current=start;}else{if(!current)throw new Error('PDF path has no start');segments.push([op,...current,...p]);current=p.slice(-2);}
   if(segments.length>2048)throw new Error('PDF path exceeds vector segment budget');
  }
- finish();return {segments,subpaths};
+ finish();return {segments,subpaths,pathCommands};
 }
 export function extractVectorPage({operatorList,OPS,maxElements=50000}){
  const list=operatorList;if(!list||!Array.isArray(list.fnArray)||!Array.isArray(list.argsArray)||list.fnArray.length!==list.argsArray.length)return unsupported('Invalid PDF operator list');
  if(list.fnArray.length>1000000)return unsupported('PDF exceeds vector operator budget');
- let state={matrix:identity(),width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000',textMode:0};const stack=[],elements=[],textOperationIds=[];let totalSegments=0;
+ let state={matrix:identity(),width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000',textMode:0};const stack=[],elements=[],textOperationIds=[];let totalSegments=0,totalPathValues=0;
  const fills=new Set([OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]),strokes=new Set([OPS.stroke,OPS.closeStroke,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]);
  const unsafe=new Set(['clip','eoClip','beginGroup','beginSMaskGroup','paintFormXObjectBegin','shadingFill','rawFillPath','setFillColorN','setStrokeColorN','setFillTransparent','setStrokeTransparent','beginMarkedContentProps','paintImageXObject','paintInlineImageXObject','paintImageMaskXObject','paintImageXObjectRepeat','paintImageMaskXObjectRepeat','paintImageMaskXObjectGroup','paintInlineImageXObjectGroup'].map(n=>OPS[n]).filter(Number.isInteger));
  try{for(let id=0;id<list.fnArray.length;id++){
@@ -46,13 +50,16 @@ export function extractVectorPage({operatorList,OPS,maxElements=50000}){
   if(!Number.isFinite(sx)||!Number.isFinite(sy)||sx<1e-9||sy<1e-9)return unsupported('Degenerate PDF transform');
   if(stroke&&(Math.abs(sx-sy)>1e-6*Math.max(sx,sy)||Math.abs(m[0]*m[2]+m[1]*m[3])>1e-6*sx*sy))return unsupported('Nonuniform stroke transforms require raster fallback');
   if(stroke&&(state.dash.length||state.width<=0))return unsupported('Dashed or hairline paths require raster fallback');
-  const {segments,subpaths}=segmentsFrom(wrapped?.[0],m,fill||[OPS.closeStroke,OPS.closeFillStroke,OPS.closeEOFillStroke].includes(paint));
+  const paintClosesPath=[OPS.closeStroke,OPS.closeFillStroke,OPS.closeEOFillStroke].includes(paint);
+  const {segments,subpaths,pathCommands}=segmentsFrom(wrapped?.[0],m,fill||paintClosesPath);
+  totalPathValues+=pathCommands.length;if(totalPathValues>2000000)return unsupported('PDF exceeds vector path storage budget');
+  if(paintClosesPath&&subpaths>1)return unsupported('Compound close-and-stroke paths require raster fallback');
   totalSegments+=segments.length;if(totalSegments>250000)return unsupported('PDF exceeds vector segment budget');
   if(!segments.length)continue;if(fill&&subpaths>1)return unsupported('Compound filled paths require raster fallback');
   if(fill&&state.fill==='#ffffff'||stroke&&state.stroke==='#ffffff')return unsupported('White overpainting requires raster fallback');
   const bounds=boundsOf(segments);if(!finite(bounds))return unsupported('Invalid PDF geometry');
   const style={fill:fill?state.fill:null,stroke:stroke?state.stroke:null,width:stroke?state.width*sx:0,cap:stroke?state.cap:0,join:stroke?state.join:0,miter:stroke?state.miter:0,rule:[OPS.eoFill,OPS.eoFillStroke,OPS.closeEOFillStroke].includes(paint)?'evenodd':'nonzero'};
-  elements.push({id,segments,bounds,style});if(elements.length>maxElements)return unsupported('PDF exceeds vector element budget');
+  elements.push({id,segments,bounds,style,pathCommands,paintClosesPath});if(elements.length>maxElements)return unsupported('PDF exceeds vector element budget');
  }}catch(error){return unsupported(error.message);}
  if(stack.length)return unsupported('Unbalanced PDF graphics state');
  if(elements.length&&textOperationIds.length)return {supported:false,pendingTextBounds:true,reason:'Text visibility needs recorded rendering bounds',elements,textOperationIds};
@@ -107,7 +114,7 @@ export function createVectorTemplate(page,{bounds,ids,excluded=[],anchor}={}){
  return {supported:true,elements:structuredClone(elements),bounds:[...bounds],anchor:[...anchor],excludedElements:page.elements.filter(e=>erased.has(e.id)).map(e=>structuredClone(e))};
 }
 const rotate=(x,y,angle)=>angle===0?[x,y]:angle===90?[-y,x]:angle===180?[-x,-y]:[y,-x];
-function transformElement(e,angle,origin=[0,0],offset=[0,0]){const segments=e.segments.map(s=>{const r=[s[0]];for(let i=1;i<s.length;i+=2){const p=rotate(s[i]-origin[0],s[i+1]-origin[1],angle);r.push(p[0]+offset[0],p[1]+offset[1]);}return r;});return {...e,segments,bounds:boundsOf(segments)};}
+function transformElement(e,angle,origin=[0,0],offset=[0,0],scale=1){const segments=e.segments.map(s=>{const r=[s[0]];for(let i=1;i<s.length;i+=2){const p=rotate(s[i]-origin[0],s[i+1]-origin[1],angle);r.push(p[0]*scale+offset[0],p[1]*scale+offset[1]);}return r;});return {...e,style:{...e.style,width:e.style.width*scale},segments,bounds:boundsOf(segments)};}
 const styleKey=e=>JSON.stringify({...e.style,width:undefined});
 const shapeKey=e=>styleKey(e)+'|'+e.segments.map(s=>s[0]).sort().join(',');
 const centre=e=>[(e.bounds[0]+e.bounds[2])/2,(e.bounds[1]+e.bounds[3])/2];
@@ -117,9 +124,10 @@ function equalElements(a,b,tolerance,budget){
  const ac=centre(a),bc=centre(b);if(Math.abs(ac[0]-bc[0])>tolerance||Math.abs(ac[1]-bc[1])>tolerance)return false;
  const used=new Set();for(const s of a.segments){let found=false;for(let i=0;i<b.segments.length;i++){if(used.has(i))continue;if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const q=b.segments[i];if(q[0]!==s[0])continue;const r=reversed(q);if(s.every((v,j)=>Math.abs(v-q[j])<=tolerance)||s.every((v,j)=>Math.abs(v-r[j])<=tolerance)){used.add(i);found=true;break;}}if(!found)return false;}return true;
 }
-export function findVectorMatches(page,template,{rotations=true,tolerance=.05,maxComparisons=2000000,cancelled=()=>false}={}){
+export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false}={}){
  if(!page?.supported||!template?.supported)throw new Error('Vector matching requires supported source and target');
  if(!Number.isFinite(tolerance)||tolerance<=0||tolerance>.25||!Number.isSafeInteger(maxComparisons)||maxComparisons<1)throw new Error('Invalid vector matching tolerance or budget');
+ if(scaleRange!==null&&(!finite(scaleRange)||scaleRange.length!==2||scaleRange[0]<.5||scaleRange[0]>1||scaleRange[1]<1||scaleRange[1]>2))throw new Error('Invalid vector scale range');
  const budget={comparisons:0,max:maxComparisons},byShape=new Map(),spatial=new Map(),cell=16;
  const key=(x,y)=>Math.floor(x/cell)+','+Math.floor(y/cell);
  const check=()=>{if(cancelled())throw new Error('Vector matching cancelled');};
@@ -129,20 +137,32 @@ export function findVectorMatches(page,template,{rotations=true,tolerance=.05,ma
  for(const angle of rotations?[0,90,180,270]:[0]){
   const parts=template.elements.map(e=>transformElement(e,angle,template.anchor));
   parts.sort((a,b)=>(byShape.get(shapeKey(a))?.length??0)-(byShape.get(shapeKey(b))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
-  const pivot=parts[0],pc=centre(pivot);
-  for(const candidate of byShape.get(shapeKey(pivot))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const cc=centre(candidate),offset=[cc[0]-pc[0],cc[1]-pc[1]],used=new Set();let valid=true;
-   for(const p of parts){const expected=transformElement(p,0,[0,0],offset),match=nearby(expected).find(e=>!used.has(e.id)&&equalElements(expected,e,tolerance,budget));if(!match){valid=false;break;}used.add(match.id);}
+  const extent=e=>Math.max(e.bounds[2]-e.bounds[0],e.bounds[3]-e.bounds[1]);
+  const pivot=scaleRange?parts.find(e=>extent(e)>tolerance*2):parts[0];
+  if(!pivot)throw new Error('Vector selection is too small to infer a reliable scale');
+  const pc=centre(pivot),axis=pivot.bounds[2]-pivot.bounds[0]>=pivot.bounds[3]-pivot.bounds[1]?0:1,sourceExtent=pivot.bounds[axis+2]-pivot.bounds[axis];
+  for(const candidate of byShape.get(shapeKey(pivot))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');
+   let scale=1;
+   if(scaleRange){
+    scale=(candidate.bounds[axis+2]-candidate.bounds[axis])/sourceExtent;
+    // Float32 PDF coordinates can perturb a boundary by a few ulps; keep the
+    // range inclusive without admitting meaningful out-of-policy sizes.
+    if(!Number.isFinite(scale)||scale<scaleRange[0]-1e-6||scale>scaleRange[1]+1e-6)continue;
+    scale=Math.max(scaleRange[0],Math.min(scaleRange[1],scale));
+   }
+   const cc=centre(candidate),offset=[cc[0]-pc[0]*scale,cc[1]-pc[1]*scale],used=new Set(),placed=[];let valid=true;
+   for(const p of parts){const expected=transformElement(p,0,[0,0],offset,scale),match=nearby(expected).find(e=>!used.has(e.id)&&equalElements(expected,e,tolerance,budget));if(!match){valid=false;break;}used.add(match.id);placed.push(expected);}
    if(!valid)continue;
    // Reject additional whole paths within the symbol envelope. Long crossing pipes
    // remain allowed; explicitly erased source paths are ignored at equivalent sites.
-   const envelope=boundsOf(parts.flatMap(p=>transformElement(p,0,[0,0],offset).segments));
-   const strokePad=Math.max(0,...parts.map(p=>p.style.width*Math.max(1,p.style.miter)/2));
+   const envelope=boundsOf(placed.flatMap(p=>p.segments));
+   const strokePad=Math.max(0,...placed.map(p=>p.style.width*Math.max(1,p.style.miter)/2));
    const visibleEnvelope=[envelope[0]-strokePad,envelope[1]-strokePad,envelope[2]+strokePad,envelope[3]+strokePad];
    if(page.textRegions?.some(region=>{if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');return intersects(region,visibleEnvelope);})){const error=new Error('A geometric candidate overlaps text; use raster matching for this page');error.code='VECTOR_TEXT_OVERLAP';throw error;}
-   const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset));
+   const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset,scale));
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
    for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget))){valid=false;break;}}
-   if(valid&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){hits.push({x:offset[0],y:offset[1],rotation:angle,score:1,elementIds:[...used].sort((a,b)=>a-b)});if(hits.length>5000)throw new Error('Too many vector matches');}
+   if(valid&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),score:1,elementIds:[...used].sort((a,b)=>a-b)});if(hits.length>5000)throw new Error('Too many vector matches');}
   }
  }
  check();return hits.sort((a,b)=>a.y-b.y||a.x-b.x);

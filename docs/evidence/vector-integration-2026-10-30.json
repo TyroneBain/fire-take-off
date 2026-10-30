@@ -363,5 +363,311 @@
       "log": ".local/integrity-vector-review.log",
       "knownLimitation": "Existing strict <0.5 native PDF point identity tolerance remains; not changed in this increment."
     }
+  },
+  "uniformScaleContinuation": {
+    "date": "2026-10-30",
+    "policy": "Opt-in vector uniform scaling75\u2013150%, optional quarter-turns. Default same-size matching unchanged. Raster fallback remains same-size.",
+    "independentScaleFixture": {
+      "generator": "scripts/vector-scale-qa-fixture.mjs",
+      "sha256": "c8d633aba24d75361f74b96d1a5c8a7e833c8166098ce6d8b38ddd26c930dd31",
+      "positives": 16,
+      "negatives": 6,
+      "baseline": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 12
+      },
+      "scaled": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 0
+      },
+      "inclusiveBoundaryCases": {
+        "tp": 18,
+        "fp": 0,
+        "fn": 0
+      },
+      "outsideRangeCases": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 2,
+        "missedScales": [
+          0.74,
+          1.51
+        ]
+      }
+    },
+    "originalFourPageReplay": {
+      "candidate": {
+        "tp": 12,
+        "fp": 1,
+        "fn": 2,
+        "precision": 0.9230769230769231,
+        "recall": 0.8571428571428571,
+        "duplicates": 0,
+        "matched": [
+          "seed-crossing",
+          "translated-clean",
+          "quarter-turn-crossing",
+          "half-turn",
+          "three-quarter-turn",
+          "two-pipe-crossing",
+          "fractional-crossing",
+          "fractional-rotated",
+          "scaled-positive",
+          "nested-form",
+          "nested-form-quarter-turn",
+          "clipped-visible"
+        ],
+        "missed": [
+          "oblique-positive",
+          "raster-only"
+        ],
+        "falsePositives": [
+          {
+            "page": 1,
+            "x": 350,
+            "y": 250
+          }
+        ],
+        "perPage": [
+          {
+            "page": 1,
+            "tp": 9,
+            "fp": 1,
+            "fn": 1,
+            "precision": 0.9,
+            "recall": 0.9,
+            "duplicates": 0,
+            "matched": [
+              "seed-crossing",
+              "translated-clean",
+              "quarter-turn-crossing",
+              "half-turn",
+              "three-quarter-turn",
+              "two-pipe-crossing",
+              "fractional-crossing",
+              "fractional-rotated",
+              "scaled-positive"
+            ],
+            "missed": [
+              "oblique-positive"
+            ],
+            "falsePositives": [
+              {
+                "page": 1,
+                "x": 350,
+                "y": 250
+              }
+            ]
+          },
+          {
+            "page": 2,
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1,
+            "recall": 1,
+            "duplicates": 0,
+            "matched": [
+              "nested-form",
+              "nested-form-quarter-turn"
+            ],
+            "missed": [],
+            "falsePositives": []
+          },
+          {
+            "page": 3,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1,
+            "recall": 1,
+            "duplicates": 0,
+            "matched": [
+              "clipped-visible"
+            ],
+            "missed": [],
+            "falsePositives": []
+          },
+          {
+            "page": 4,
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "precision": null,
+            "recall": 0,
+            "duplicates": 0,
+            "matched": [],
+            "missed": [
+              "raster-only"
+            ],
+            "falsePositives": []
+          }
+        ],
+        "hits": [
+          {
+            "page": 1,
+            "x": 50,
+            "y": 50
+          },
+          {
+            "page": 1,
+            "x": 150,
+            "y": 50
+          },
+          {
+            "page": 1,
+            "x": 250,
+            "y": 50
+          },
+          {
+            "page": 1,
+            "x": 350,
+            "y": 50
+          },
+          {
+            "page": 1,
+            "x": 50,
+            "y": 150
+          },
+          {
+            "page": 1,
+            "x": 350,
+            "y": 150
+          },
+          {
+            "page": 1,
+            "x": 150.25,
+            "y": 150.25
+          },
+          {
+            "page": 1,
+            "x": 250.125,
+            "y": 150.375
+          },
+          {
+            "page": 1,
+            "x": 350,
+            "y": 250
+          },
+          {
+            "page": 1,
+            "x": 50,
+            "y": 250.00000000000003
+          },
+          {
+            "page": 2,
+            "x": 50,
+            "y": 50
+          },
+          {
+            "page": 2,
+            "x": 150,
+            "y": 50
+          },
+          {
+            "page": 3,
+            "x": 50,
+            "y": 50
+          }
+        ],
+        "timings": [
+          {
+            "page": 1,
+            "matchingMs": 5.755137999999988,
+            "engine": "vector",
+            "fallback": null
+          },
+          {
+            "page": 2,
+            "matchingMs": 46.06850400000002,
+            "engine": "raster",
+            "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+          },
+          {
+            "page": 3,
+            "matchingMs": 41.462849000000006,
+            "engine": "raster",
+            "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+          },
+          {
+            "page": 4,
+            "matchingMs": 25.12748099999999,
+            "engine": "raster",
+            "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+          }
+        ]
+      },
+      "adjudicated": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1,
+        "recall": 0.8666666666666667,
+        "duplicates": 0,
+        "matched": [
+          "seed-crossing",
+          "translated-clean",
+          "quarter-turn-crossing",
+          "half-turn",
+          "three-quarter-turn",
+          "two-pipe-crossing",
+          "fractional-crossing",
+          "fractional-rotated",
+          "mirrored-equivalent-270",
+          "scaled-positive",
+          "nested-form",
+          "nested-form-quarter-turn",
+          "clipped-visible"
+        ],
+        "missed": [
+          "oblique-positive",
+          "raster-only"
+        ],
+        "falsePositives": []
+      },
+      "fixture": "2736c874917f78d11f03a5143873ea74b4104d3224b1a7a9c71b83c537556a41"
+    },
+    "integrity": "Independent data_integrity12/12 focused tests passed; strict booleans, absent-policy preservation, saved anchors, correction/zone/export/reopen checks. Integration fixture17marks16included and workbook16.",
+    "limitations": [
+      "Synthetic examples only; no representative real-drawing accuracy claim.",
+      "45-degree and raster-only original positives remain missed.",
+      "Countfire same total13 has different individual detections; equal totals do not establish parity.",
+      "Explicit scale option changes selected saved algorithm version only; no data migration."
+    ],
+    "glyphColourAcceptance": {
+      "implementation": "Read-only target geometry is reverified in worker using saved scale/rotation policy; unique native-anchor hit supplies original target path commands. Intersect rendered retained paths with actual drawing ink; unsupported/ambiguous inputs use existing raster/outline fallback.",
+      "independentQa": {
+        "symbols": 16,
+        "displayViews": 2,
+        "expectedPixels": 10246,
+        "colouredPixels": 10246,
+        "extraneousPixels": 0,
+        "missedPixels": 0,
+        "pipeOnlyPixelsUncoloured": 1495,
+        "oracle": "Full-page filtered PDF.js render with independently assigned paint-operation identities from fixture command order",
+        "testFile": "tests/vector-ink-independent.test.mjs",
+        "testsPassed": 2
+      },
+      "regressions": {
+        "command": "npm test",
+        "passed": 173,
+        "failed": 0,
+        "durationMs": 26438.825153
+      },
+      "browser": {
+        "scale": 17,
+        "raster": 27,
+        "text": 8,
+        "vector": 9,
+        "total": 61,
+        "reloadUnchanged": true,
+        "exceptions": []
+      },
+      "integrityReview": "No blocking issue; read-only mark gating, worker provenance, unique anchors, fallback, cache/page scoping independently reviewed.",
+      "bounds": "4M raster pixels;3pages/100templates/4hitindexes/5000masks;20s worker timeout;16384pathvalues/4096commands perpath and2Mvaluespage. Large-density latency/peak memory not measured.",
+      "testHarnessFix": "Text browser worker instrumentation now excludes vectorOnly colour queries; waits for count save completion. Initial instrumentation incorrectly expected exactly2 messages including new overlay queries and timed out; rerun8/8 passed."
+    }
   }
 }

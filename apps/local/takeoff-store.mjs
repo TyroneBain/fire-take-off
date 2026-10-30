@@ -1,5 +1,5 @@
-import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION} from './web/vector-recognition.mjs';
-import {isVectorAlgorithm,includesRotations,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
+import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './web/vector-recognition.mjs';
+import {isVectorAlgorithm,includesRotations,includesScales,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
 import {drawingRecounts} from './drawing-recounts.mjs';
 import {validElementSelection} from './web/pdf-elements.mjs';
 import { randomUUID } from 'node:crypto';
@@ -60,7 +60,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION].includes(example.algorithm))fail('Invalid matching example');
     if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
     return JSON.stringify({drawing_id:d.id,page:example.page,bounds:example.bounds,digest:d.digest,algorithm:example.algorithm,...(example.elements?{elements:{renderer:example.elements.renderer,ids:example.elements.ids,excluded:example.elements.excluded}}:{})});
   }
@@ -130,15 +130,18 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       }catch(error){db.exec('ROLLBACK');throw error;}
       return {item:item(itemId),example_id:saved.id,added,skipped,linked};
     },
-    editCountSelection(exampleId,{version,elements,matches,scope,expected_marks,rotations,vector}={}) {
+    editCountSelection(exampleId,{version,elements,matches,scope,expected_marks,rotations,vector,scales}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
       if(e.version!==version)fail('Selection changed. Reload before editing.',409);
       const source=JSON.parse(e.example),i=item(e.item_id);
       if(vector!==undefined&&typeof vector!=='boolean')fail('Invalid vector setting');
       if(rotations!==undefined&&typeof rotations!=='boolean')fail('Invalid rotation setting');
-      if(elements===undefined){if(typeof rotations!=='boolean'&&typeof vector!=='boolean')fail('Invalid source element selection');elements=source.elements;}
+      if(scales!==undefined&&typeof scales!=='boolean')fail('Invalid scale setting');
+      if(elements===undefined){if(typeof rotations!=='boolean'&&typeof vector!=='boolean'&&typeof scales!=='boolean')fail('Invalid source element selection');elements=source.elements;}
       if(elements!==undefined&&!validElementSelection(elements))fail('Invalid source element selection');
-      const rotate=rotations??includesRotations(source.algorithm),algorithm=(vector??isVectorAlgorithm(source.algorithm))?(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
+      const rotate=rotations??includesRotations(source.algorithm),useVector=vector??isVectorAlgorithm(source.algorithm),scale=scales??includesScales(source.algorithm);
+      if(scale&&!useVector)fail('Scaled symbols require vector geometry');
+      const algorithm=useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
       const definition={...source,algorithm,...(elements?{elements}:{})},encodedDefinition=exampleJSON(i.discipline_id,definition);
       if(db.prepare('SELECT id FROM count_examples WHERE item_id=? AND example=? AND id<>?').get(i.id,encodedDefinition,exampleId))fail('Another saved selection already uses these matching settings',409);
       if(!Array.isArray(scope)||!scope.length||scope.length>20||scope.some(d=>!d||typeof d.id!=='string'||typeof d.digest!=='string')||new Set(scope.map(d=>d.id)).size!==scope.length)fail('Invalid matching scope');
