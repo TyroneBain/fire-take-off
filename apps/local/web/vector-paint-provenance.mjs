@@ -4,11 +4,29 @@
 import {extractVectorPage} from './vector-recognition.mjs';
 export const RAW_PATH_PROVENANCE_VERSION='pdfjs-raw-path-provenance-1';
 export const RAW_PATH_CLIP_REASON='Clipped or clip-defining paint requires original clip-fill provenance';
+export const RAW_REDUNDANT_CLIP_VERSION='pdfjs-redundant-rectangle-clip-1';
 const identity=()=>[1,0,0,1,0,0];
 const multiply=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
 const finite=a=>Array.isArray(a)&&a.every(v=>Number.isFinite(v)&&Math.abs(v)<=1e8);
 const colour=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 const copy=s=>({...s,matrix:[...s.matrix],dash:[...s.dash],clips:[...s.clips]});
+function viewportGeometry(matrix){
+ if(!finite(matrix)||matrix.length!==6)return null;const sx=Math.hypot(matrix[0],matrix[1]),sy=Math.hypot(matrix[2],matrix[3]),det=Math.abs(matrix[0]*matrix[3]-matrix[1]*matrix[2]);
+ if(sx<1e-8||Math.abs(sx-sy)>1e-8*Math.max(sx,sy)||Math.abs(matrix[0]*matrix[2]+matrix[1]*matrix[3])>1e-8*sx*sy||!Number.isFinite(det)||det<1e-12)return null;
+ // Pull back a +/-1 device-pixel square, conservatively covering rotated AA.
+ return {scale:sx,nativePixelGuard:Math.max(Math.abs(matrix[3])+Math.abs(matrix[2]),Math.abs(matrix[1])+Math.abs(matrix[0]))/det};
+}
+function rectangularClip(raw,matrix){
+ const no=reason=>({rectangle:false,reason});
+ if((!Array.isArray(raw)&&!ArrayBuffer.isView(raw))||raw instanceof DataView||!raw.length||raw.length>32)return no('Clip is not a bounded original rectangle');
+ const vertices=[];let started=false,closed=false;
+ for(let i=0;i<raw.length;){const op=raw[i++];if(op===4){if(!started||closed||i!==raw.length)return no('Malformed rectangle close');closed=true;continue;}if(op!==0&&op!==1||closed||op===0&&started||op===1&&!started||i+2>raw.length)return no('Clip needs one straight rectangle subpath');const x=raw[i++],y=raw[i++];if(!Number.isFinite(x)||!Number.isFinite(y))return no('Invalid clip coordinates');vertices.push([matrix[0]*x+matrix[2]*y+matrix[4],matrix[1]*x+matrix[3]*y+matrix[5]]);started=true;}
+ const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];if(vertices.length>1&&same(vertices[0],vertices.at(-1))){closed=true;vertices.pop();}
+ if(!closed||vertices.length!==4||vertices.some(p=>!finite(p)))return no('Clip needs four corners and explicit geometric closure');
+ const xs=vertices.map(p=>p[0]),ys=vertices.map(p=>p[1]),bounds=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];
+ if(bounds[0]===bounds[2]||bounds[1]===bounds[3]||new Set(vertices.map(p=>p.join(','))).size!==4||vertices.some(([x,y])=>![bounds[0],bounds[2]].includes(x)||![bounds[1],bounds[3]].includes(y))||vertices.some((a,i)=>{const b=vertices[(i+1)%4];return a[0]!==b[0]&&a[1]!==b[1];}))return no('Clip is not a simple native axis-aligned rectangle');
+ return {rectangle:true,bounds,sourceCommands:Array.from(raw),matrix:[...matrix]};
+}
 function optionalDescriptor(value){
  const invalid=()=>{throw new Error('Malformed or unsupported optional-content descriptor');},id=v=>typeof v==='string'&&v.length>0&&v.length<=256;let nodes=0;
  const expression=(a,depth=0)=>{if(++nodes>1024||depth>32||!Array.isArray(a)||a.length>1024||!['And','Or','Not'].includes(a[0])||a[0]==='Not'&&a.length!==2||a[0]!=='Not'&&a.length<3)invalid();return Object.freeze(a.map((v,i)=>{if(i===0)return v;if(Array.isArray(v))return expression(v,depth+1);if(!id(v)||++nodes>1024)invalid();return v;}));};
@@ -34,10 +52,11 @@ export function createOptionalContentVisibilityResolver(config){
  };
 }
 /** ids are ORIGINAL operator-list indices; extract before PDF.js rendering. */
-export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=2000000,cancelled=()=>false,optionalContentVisible}={}){
+export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=2000000,cancelled=()=>false,optionalContentVisible,viewportTransform}={}){
  const requested=Array.isArray(ids)?ids:[],empty=reason=>({version:RAW_PATH_PROVENANCE_VERSION,records:[],failures:requested.map(id=>({id,reason})),complete:false,requestedComplete:false,reason,requiresRenderVerification:true});
  if(!list||!Array.isArray(list.fnArray)||!Array.isArray(list.argsArray)||list.fnArray.length!==list.argsArray.length||list.fnArray.length>1000000||list.fnArray.some(op=>!Number.isInteger(op))||!OPS||!Array.isArray(ids)||!ids.length||ids.length>128||ids.some(id=>!Number.isSafeInteger(id)||id<0||id>=list.fnArray.length)||new Set(ids).size!==ids.length)return empty('Invalid original paint request or operator list');
  if(!Number.isSafeInteger(maxValues)||maxValues<1||maxValues>2000000||typeof cancelled!=='function'||optionalContentVisible!==undefined&&typeof optionalContentVisible!=='function')return empty('Invalid raw path budget or context callback');
+ const viewport=viewportTransform===undefined?null:viewportGeometry(viewportTransform);if(viewportTransform!==undefined&&!viewport)return empty('Redundant clipping requires a finite similarity viewport transform');
  const required=['save','restore','transform','constructPath','stroke','fill','eoFill','endPath','setLineWidth','setLineCap','setLineJoin','setMiterLimit','setDash','setStrokeRGBColor','setFillRGBColor','setGState'];if(required.some(k=>!Number.isInteger(OPS[k])))return empty('Incomplete PDF.js operator mapping');
  const wanted=new Set(ids),seen=new Set(),records=[],failures=[],stack=[],marked=[];
  const fills=new Set(['fill','eoFill','fillStroke','eoFillStroke','closeFillStroke','closeEOFillStroke'].map(k=>OPS[k]).filter(Number.isInteger)),strokes=new Set(['stroke','closeStroke','fillStroke','eoFillStroke','closeFillStroke','closeEOFillStroke'].map(k=>OPS[k]).filter(Number.isInteger));
@@ -56,7 +75,9 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
   if(!Number.isFinite(state.width)||state.width<0||state.width>100000||stroke&&(state.width===0||![0,1,2].includes(state.cap)||![0,1,2].includes(state.join)||!Number.isFinite(state.miter)||state.miter<1||state.miter>1000))return reject('Invalid original stroke state');
   // Hidden/unsafe clipped paths must NOT reach the clip-fill adapter through
   // this specific refusal. Rendering visibility and paint state come first.
-  if(pending||state.clips.length)return reject(RAW_PATH_CLIP_REASON,{contextComplete:true,opaque:true,optionalContentVisible:true});
+  const clippedFailure=reason=>reject(RAW_PATH_CLIP_REASON,{contextComplete:true,opaque:true,optionalContentVisible:true,...reason?{clipRedundancyReason:reason}:{}});
+  if(pending)return clippedFailure('Clip-defining paints remain unsupported');
+  if(state.clips.length&&(!viewport||state.clips.some(c=>!c.rectangle)))return clippedFailure(viewport?'An active clip is not a proven simple native rectangle':'No viewport-bound clip proof requested');
   const raw=a[1]?.[0];if((!Array.isArray(raw)&&!ArrayBuffer.isView(raw))||raw instanceof DataView||!raw.length||raw.length>16384)return reject('Original raw path unavailable; extract before rendering');
   if(Array.from(raw).some(v=>!Number.isFinite(v)||Math.abs(v)>1e8))return reject('Invalid original raw path values');
   storedValues+=raw.length;if(storedValues>maxValues)abort('Raw path storage budget exceeded');
@@ -67,7 +88,13 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
   const fnArray=[OPS.transform,OPS.setLineWidth,OPS.setLineCap,OPS.setLineJoin,OPS.setMiterLimit,OPS.setDash,OPS.setStrokeRGBColor,OPS.setFillRGBColor,OPS.constructPath],argsArray=[[...state.matrix],[state.width],[state.cap],[state.join],[state.miter],[[...state.dash],state.phase],[state.stroke??'#000000'],[state.fill??'#000000'],a];
   check();const validated=extractVectorPage({operatorList:{fnArray,argsArray},OPS});if(!validated.supported||validated.elements.length!==1)return reject(validated.reason||'Selected path validation failed');
   const e=validated.elements[0];storedValues+=e.pathCommands.length;if(storedValues>maxValues)abort('Raw path storage budget exceeded');
-  records.push({id,paintOperator:paint,sourceCommands:Array.from(raw),matrix:[...state.matrix],sourceLineWidth:state.width,pathCommands:[...e.pathCommands],bounds:[...e.bounds],paintClosesPath:e.paintClosesPath,style:{...e.style},clipDepth:0,clipPathIds:[],optionalContentScopes:marked.filter(m=>m.descriptor).map(m=>({operatorId:m.id,descriptor:m.descriptor,visible:m.visible})),wholeOperation:true,opaque:true,contextComplete:true,requiresRenderVerification:true});
+  let clipRedundancyProof;
+  if(state.clips.length){
+   const nativeStrokeWidth=e.style.stroke?Math.max(e.style.width,1/viewport.scale):0,pad=nativeStrokeWidth/2*Math.max(Math.SQRT2,e.style.miter)+viewport.nativePixelGuard,b=e.bounds,guardedBounds=[b[0]-pad,b[1]-pad,b[2]+pad,b[3]+pad];
+   if(state.clips.some(c=>guardedBounds[0]<=c.bounds[0]+1e-7||guardedBounds[1]<=c.bounds[1]+1e-7||guardedBounds[2]>=c.bounds[2]-1e-7||guardedBounds[3]>=c.bounds[3]-1e-7))return clippedFailure('Complete paint footprint and pixel guard are not strictly inside every clip');
+   clipRedundancyProof={version:RAW_REDUNDANT_CLIP_VERSION,viewportTransform:[...viewportTransform],nativePixelGuard:viewport.nativePixelGuard,nativeStrokeWidth,guardedBounds,clips:state.clips.map(c=>({operatorId:c.operatorId,pathId:c.pathId,rule:c.rule,bounds:[...c.bounds],sourceCommands:[...c.sourceCommands],matrix:[...c.matrix]}))};
+  }
+  records.push({id,paintOperator:paint,sourceCommands:Array.from(raw),matrix:[...state.matrix],sourceLineWidth:state.width,pathCommands:[...e.pathCommands],bounds:[...e.bounds],paintClosesPath:e.paintClosesPath,style:{...e.style},clipDepth:state.clips.length,clipPathIds:state.clips.map(c=>c.pathId),...clipRedundancyProof?{effectiveClipDepth:0,clipRedundancyProof}:{},optionalContentScopes:marked.filter(m=>m.descriptor).map(m=>({operatorId:m.id,descriptor:m.descriptor,visible:m.visible})),wholeOperation:true,opaque:true,contextComplete:true,requiresRenderVerification:true});
  };
  try{
   check();for(let id=0;id<list.fnArray.length;id++){if((id&255)===0)check();const op=list.fnArray[id],a=list.argsArray[id]??[];
@@ -96,7 +123,7 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
    }continue;}
    if(op===OPS.setTextRenderingMode){if(![0,3].includes(a[0]))abort('Stroked or clipping text requires explicit graphics-state fallback');continue;}
    if(op===OPS.clip||op===OPS.eoClip){if(pending)abort('Multiple pending clips are unsupported');pending={operatorId:id,rule:op===OPS.clip?'nonzero':'evenodd'};continue;}
-   if(op===OPS.constructPath){if(!Array.isArray(a)||!fills.has(a[0])&&!strokes.has(a[0])&&a[0]!==OPS.endPath)abort('Unknown original path painting operation');if(wanted.has(id))snapshot(id,a);if(pending){if(state.clips.length>=64)abort('Raw paint clip stack budget exceeded');state.clips.push({...pending,pathId:id});pending=null;}continue;}
+   if(op===OPS.constructPath){if(!Array.isArray(a)||!fills.has(a[0])&&!strokes.has(a[0])&&a[0]!==OPS.endPath)abort('Unknown original path painting operation');if(wanted.has(id))snapshot(id,a);if(pending){if(state.clips.length>=64)abort('Raw paint clip stack budget exceeded');const shape=viewport?rectangularClip(a[1]?.[0],state.matrix):{};storedValues+=shape.sourceCommands?.length??0;if(storedValues>maxValues)abort('Raw clip storage budget exceeded');state.clips.push({...pending,pathId:id,...shape});pending=null;}continue;}
    if(neutral.has(op))continue;
    // Forms, groups, annotations, optional-content and unknown operators can
    // alter transforms/visibility; never blanket-skip them to recover records.

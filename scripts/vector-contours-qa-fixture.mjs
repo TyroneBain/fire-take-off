@@ -95,3 +95,22 @@ export function contourWindingQaFixture(){
  const draw=(p,loop)=>`q 1 0 0 1 ${p.x} ${p.y} cm 0 g ${path([...prefix,...loop,...suffix])} f Q`,bytes=literalPdf([draw(source,same)+'\n'+draw(negative,opposite)]);
  return {bytes,manifest:{id:'independent-overlapping-winding-v1',sha256:createHash('sha256').update(bytes).digest('hex'),provenance:'Original literal nonzero-fill winding counterexample; no external assets',selection:[32,42,48,58],anchor:[40,50],source,negative,policy:'Equal boundary segments do not establish equal filled interior. Left+right same winding fills the overlap; opposite winding cancels it. Both source selections must fail closed until fill topology is independently supported.',limitations:['Deliberately nonsimple fill safety control, not a representative construction benchmark']}};
 }
+
+export function rectangleClipQaFixture(){
+ const lineClosed='10 10 m 90 10 l 90 90 l 10 90 l 10 10 l W n',implicit='10 10 m 90 10 l 90 90 l 10 90 l W n',symbol='0 G 1 w 40 40 m 60 40 l 60 60 l 40 60 l h S';
+ const cases=[
+  {id:'line-return-rectangle',content:`q ${lineClosed} ${symbol} Q`,admit:true,physicallyRedundant:true},
+  {id:'explicit-close-rectangle',content:`q 10 10 80 80 re W n ${symbol} Q`,admit:true,physicallyRedundant:true},
+  {id:'nested-rectangles',content:`q 0 0 100 100 re W n q 20 20 60 60 re W n ${symbol} Q Q`,admit:true,physicallyRedundant:true},
+  {id:'quarter-turn-rectangle',content:`q 0 1 -1 0 100 0 cm ${lineClosed} ${symbol} Q`,admit:true,physicallyRedundant:true},
+  {id:'nonuniform-clip-CTM-native-rectangle',content:`q 2 0 0 1 0 0 cm 5 10 40 80 re W n .5 0 0 1 0 0 cm ${symbol} Q`,admit:true,physicallyRedundant:true},
+  {id:'round-cap-crosses-clip',content:'q 40 40 20 20 re W n 0 G 2 w 1 J 40 50 m 60 50 l S Q',admit:false,physicallyRedundant:false},
+  {id:'whole-operation-remote-tail',content:'q 10 10 80 80 re W n 0 G 1 w 40 40 m 60 40 l 95 95 m 110 95 l S Q',admit:false,physicallyRedundant:false},
+  {id:'miter-crosses-clip',content:'q 10 10 80 80 re W n 0 G 4 w 0 j 10 M 11 20 m 11 11 l 20 11 l S Q',admit:false,physicallyRedundant:false},
+  {id:'rotated-nonrectangular-native-clip',content:`q 1 1 -1 1 50 50 cm -30 -30 60 60 re W n .5 -.5 .5 .5 -50 0 cm ${symbol} Q`,admit:false,physicallyRedundant:true,refusalPolicy:'Non-axis-aligned native clip intentionally unsupported'},
+  {id:'implicit-close-rectangle',content:`q ${implicit} ${symbol} Q`,admit:false,physicallyRedundant:true,refusalPolicy:'Implicit PDF clip closure intentionally unsupported by first policy'},
+  {id:'hairline-device-pixel-guard',content:'q 10 10 80 80 re W n 0 G .02 w 1 M 1 J 1 j 11.5 40 m 11.5 60 l S Q',admit:true,physicallyRedundant:true,scaleQuarterAdmit:false},
+ ].map((p,i)=>({...p,page:i+1}));
+ const bytes=literalPdf(cases.map(p=>p.content)),unclippedBytes=literalPdf(cases.map(p=>p.content.replaceAll('W n','n')));
+ return {bytes,unclippedBytes,manifest:{id:'independent-redundant-rectangle-clips-v1',sha256:createHash('sha256').update(bytes).digest('hex'),unclippedSha256:createHash('sha256').update(unclippedBytes).digest('hex'),provenance:'Original literal PDFs; unclipped paired oracle independently generated from same blueprint, no customer content',cases,defaultViewportScale:2,policy:'Whole-operation geometry, stroke footprint and device-pixel safety margin must fit every active native rectangle. Clip admission is viewport-bound. Unsupported but physically redundant clips remain explicit admission challenges, not wrong-symbol controls.',limitations:['Synthetic source admission/paint equivalence only; no matching accuracy or real-project approval']}};
+}

@@ -56,6 +56,16 @@ test('wrong renderer version fails explicitly and releases its crop',async t=>{
  assert.equal(result.verified,false);assert.match(result.reason,/version|renderer|PDF.js/i);assert.ok(allocated.every(c=>c.width===0&&c.height===0));
 });
 
+test('preparation cancellation stops waiting for a stalled shared PDF and safely observes late rejection',{timeout:2000},async()=>{
+ let cancelled=false,rejectOperators,rendered=false;
+ const page={getOperatorList:()=>new Promise((resolve,reject)=>{rejectOperators=reject;}),getViewport:()=>{},render:()=>{rendered=true;}};
+ const waiting=preparePdfContourPaints({page,OPS,elementIds:[1],cancelled:()=>cancelled});
+ await new Promise(resolve=>setTimeout(resolve,0));cancelled=true;
+ const result=await waiting;assert.equal(result.supported,false);assert.match(result.reason,/cancelled/);assert.equal(rendered,false);
+ rejectOperators(new Error('Late parser rejection after cancellation'));
+ await new Promise(resolve=>setTimeout(resolve,0));
+});
+
 test('original optional layers need actual visibility; prepared handles invalidate after a layer toggle',async t=>{
  const f=await original(t,'/OC /Layer BDC 0 g 30 30 20 20 re f EMC',{layers:true});
  assert.equal((await prepare(f)).supported,false,'missing optional-content context must not become visible by default');
@@ -66,4 +76,22 @@ test('original optional layers need actual visibility; prepared handles invalida
  // Obtain a fresh page/operator list because the previous replay cached Path2D.
  const hidden=await original(t,'/OC /Layer BDC 0 g 30 30 20 20 re f EMC',{layers:true}),hiddenConfig=await hidden.doc.getOptionalContentConfig({intent:'display'});hiddenConfig.setVisibility([...hiddenConfig][0][0],false);
  const rejected=await prepare(hidden,{optionalContentConfig:hiddenConfig});assert.equal(rejected.supported,false);assert.match(rejected.reason,/hidden|visible|visibility/i);
+});
+
+test('a page rectangle that cannot touch the whole symbol admits original paint with viewport-bound proof',async t=>{
+ const f=await original(t,'q 10 10 100 100 re W n 0 G .1 w 30 30 m 50 30 l S 0 g 35 35 5 5 re f Q'),prepared=await prepare(f);
+ assert.equal(prepared.supported,true,prepared.reason);const proof=await verify(prepared);assert.equal(proof.verified,true,proof.reason);assert.deepEqual(proof.redundantClipOperations,f.ids);assert.equal('score'in proof,false);
+});
+
+test('partial and pixel-adjacent clips are never treated as irrelevant to a thin stroke',async t=>{
+ for(const content of ['q 30 29 20 2 re W n 0 G .1 w 29 30 m 51 30 l S Q','q 20 29.9 40 .2 re W n 0 G .1 w 30 30 m 50 30 l S Q']){
+  const f=await original(t,content),prepared=await prepare(f);assert.equal(prepared.supported,false);assert.match(prepared.reason,/clip/i);
+ }
+});
+
+test('a redundant-clip proof cannot be reused with a changed page viewport',async t=>{
+ const f=await original(t,'q 10 10 100 100 re W n 0 G .1 w 30 30 m 50 30 l S Q'),getViewport=f.page.getViewport.bind(f.page);let changed=false;
+ f.page.getViewport=options=>getViewport(changed?{...options,scale:3}:options);
+ const prepared=await prepare(f);assert.equal(prepared.supported,true,prepared.reason);changed=true;let allocations=0;
+ const proof=await verify(prepared,{createCanvas:(w,h)=>{allocations++;return createCanvas(w,h);}});assert.equal(proof.verified,false);assert.match(proof.reason,/viewport changed/);assert.equal(allocations,0);
 });

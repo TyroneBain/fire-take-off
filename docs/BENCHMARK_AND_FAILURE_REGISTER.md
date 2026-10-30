@@ -1,6 +1,12 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+### 2026-10-31 redundant rectangular clips and explicit source cleanup
+
+Raw extraction now proves full-footprint containment inside every original rectangle clip using the exact viewport and device-pixel guard, retaining all original clip provenance. Original-render verification remains mandatory because geometrically redundant fractional clips can alter antialiasing. Eleven original fixture cases yield six raw admissions but five Chrome pixel proofs; a thin-stroke/no-opaque-detail case remains unverified. Two exact Chrome repeats, no exceptions.
+
+Fresh source 1: four raw operations now admit; the original combined selection remains over crop budget. QA's separately recorded source-only visual cleanup removes two actual pipe operations, retains two head operations, and verifies the one source symbol twice in Chrome with zero mismatched pixels. No target labels changed or target-count score inferred. Fresh source 2 remains over the element budget. Full regression 297/297 after rerunning sandbox-blocked HTTP tests with authorised local socket access. Stalled preparation cancellation is now bounded. Live count score remains 21/29; next is an independently scored frozen fullpage proposal run.
+
 ### 2026-10-31 shared original-paint verification checkpoint
 
 - Browser backend mismatch: original display-canvas oracle failed 0/8; explicit readback contract and shared original-PDF adapter independently yield 7/8 visibility proofs, repeated exactly in Chrome. The text-overlaid candidate remains refused. These are pixel-presence checks, not accepted counts or source/target class equivalence.
