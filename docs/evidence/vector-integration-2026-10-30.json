@@ -668,6 +668,34 @@
       "integrityReview": "No blocking issue; read-only mark gating, worker provenance, unique anchors, fallback, cache/page scoping independently reviewed.",
       "bounds": "4M raster pixels;3pages/100templates/4hitindexes/5000masks;20s worker timeout;16384pathvalues/4096commands perpath and2Mvaluespage. Large-density latency/peak memory not measured.",
       "testHarnessFix": "Text browser worker instrumentation now excludes vectorOnly colour queries; waits for count save completion. Initial instrumentation incorrectly expected exactly2 messages including new overlay queries and timed out; rerun8/8 passed."
+    },
+    "delivery": {
+      "sourceCommit": "6b45e2a2055e2d9974aa335ed59522023921f963",
+      "tree": "4e306b67b7bcdb0f105a1271b84384581e3e0fcd",
+      "parent": "a141421e879b17902de3ac1bd6da164d476b7fbb",
+      "branch": "codex/vector-recognition-preview-2026-10-30",
+      "remotePrivate": true,
+      "verifiedSourceBlobs": 24,
+      "unrelatedBlobsPreserved": 231,
+      "remoteMainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+      "localBranchIndexPreserved": true,
+      "canonicalCommitMirrored": true,
+      "localTests": {
+        "passed": 173,
+        "failed": 0,
+        "durationMs": 26438.825153
+      },
+      "browserChecks": 61,
+      "productionStateSha256": "edf81515d8112d0d33a7fc2cb4d6b4e99690f44720d26b63b5ee90f04c88da1d",
+      "productionStateByteIdentical": true,
+      "hostedRun": 41023055450,
+      "hostedJob": 123954641416,
+      "hostedStatus": "success",
+      "hostedTests": {
+        "passed": 173,
+        "failed": 0,
+        "durationMs": 65192.077221
+      }
     }
   }
 }
