@@ -10,8 +10,9 @@ import {vectorScaleQaFixture} from './vector-scale-qa-fixture.mjs';
 // A separate headless Chrome profile: never attaches to the user's browser/account.
 const directory=await mkdtemp(join(tmpdir(),'fire-count-browser-'));let app,chrome,socket;const checks=[],errors=[];
 try{
- const scale=process.argv.includes('--vector-scale'),text=process.argv.includes('--vector-text'),vector=scale||text||process.argv.includes('--vector'),store=await openStore(join(directory,'data')),p=store.create('project',null,vector?'Vector acceptance':'Rotation acceptance'),t=store.create('takeoff',p.id,'Original revisions'),d=store.create('discipline',t.id,'Sprinklers');
- if(scale)await store.importPdf(d.id,'vector.pdf',vectorScaleQaFixture().bytes);
+ const large=process.argv.includes('--large'),scale=process.argv.includes('--vector-scale'),text=process.argv.includes('--vector-text'),vector=scale||text||process.argv.includes('--vector'),store=await openStore(join(directory,'data')),p=store.create('project',null,vector?'Vector acceptance':'Rotation acceptance'),t=store.create('takeoff',p.id,'Original revisions'),d=store.create('discipline',t.id,'Sprinklers');
+ if(large)await store.importPdf(d.id,'large.pdf',rotationFixture({large:true}).bytes);
+ else if(scale)await store.importPdf(d.id,'vector.pdf',vectorScaleQaFixture().bytes);
  else if(text){execFileSync(process.execPath,['scripts/generate-drawing-fixture.mjs',join(directory,'fixture')]);await store.importPdf(d.id,'vector.pdf',await readFile(join(directory,'fixture','small-vector.pdf')));}
  else if(vector)await store.importPdf(d.id,'vector.pdf',(await vectorQaFixture()).bytes);else for(const revision of [false,true])await store.importPdf(d.id,revision?'revision.pdf':'base.pdf',rotationFixture({revision}).bytes);store.close();
  app=await startApp({directory:join(directory,'data'),port:0});
@@ -23,10 +24,10 @@ try{
  const target=await send('Target.createTarget',{url:app.origin}),{sessionId}=await send('Target.attachToTarget',{targetId:target.targetId,flatten:true});await send('Runtime.enable',{},sessionId);
  const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},sessionId);if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false},sessionId);
- const source=await readFile(scale?'tests/browser/vector-scale.js':text?'tests/browser/vector-text.js':vector?'tests/browser/vector-preview.js':'tests/browser/count-rotations.js','utf8');checks.push(await evaluate(`(${source})()`));
+ const source=await readFile(large?'tests/browser/large-count.js':scale?'tests/browser/vector-scale.js':text?'tests/browser/vector-text.js':vector?'tests/browser/vector-preview.js':'tests/browser/count-rotations.js','utf8');checks.push(await evaluate(`(${source})()`));
  const before=await evaluate("(async()=>JSON.stringify(await(await fetch('/api/state')).json()))()");
  await send('Page.reload',{},sessionId);await new Promise(r=>setTimeout(r,700));const after=await evaluate("(async()=>JSON.stringify(await(await fetch('/api/state')).json()))()");if(before!==after)throw Error('Reload changed saved state');
- const report={date:new Date().toISOString(),browser:await send('Browser.getVersion'),checks,reloadUnchanged:true,errors};if(errors.length)throw Error('Browser exceptions: '+errors.join(', '));await mkdir('.local',{recursive:true});await writeFile(scale?'.local/vector-scale-browser.json':text?'.local/vector-text-browser.json':vector?'.local/vector-preview-browser.json':'.local/count-rotation-browser.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
+ const report={date:new Date().toISOString(),browser:await send('Browser.getVersion'),checks,reloadUnchanged:true,errors};if(errors.length)throw Error('Browser exceptions: '+errors.join(', '));await mkdir('.local',{recursive:true});await writeFile(large?'.local/large-count-browser.json':scale?'.local/vector-scale-browser.json':text?'.local/vector-text-browser.json':vector?'.local/vector-preview-browser.json':'.local/count-rotation-browser.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
  await send('Browser.close').catch(()=>{});
 }finally{
  socket?.close();if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await new Promise(r=>{chrome.once('exit',r);setTimeout(r,3000);});}await app?.close();await rm(directory,{recursive:true,force:true});

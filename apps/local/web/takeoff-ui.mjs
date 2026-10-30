@@ -1,4 +1,5 @@
 import {extractVectorPage,resolveVectorTextBounds,createVectorTemplate,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './vector-recognition.mjs';
+import {MATCH_IMAGE_PIXELS,createTileBudget,renderMatchSelection,tiledMatchPage,searchMatchTiles} from './pdf-match-tiles.mjs';
 import {setupCountInk,inkTransform} from './count-ink.mjs';
 import {colourControl} from './count-colour.mjs';
 import {setupMeasurementCreation} from './measurement-creation.mjs';
@@ -202,12 +203,13 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const total=targets.reduce((sum,d)=>sum+d.pages.length,0);if(total>20)throw new Error('Select a scope of at most 20 pages per matching run');
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;paint();
     const vector=edit?(edit.vector??isVectorAlgorithm(edit.record.example.algorithm)):$('count-vector').checked,scales=vector&&(edit?(edit.scales??includesScales(edit.record.example.algorithm)):$('count-scales').checked),fallbacks=new Set();
-    const opened=new Map(),vectors=new Map();
-    async function renderPage(d,number,elements=null){
+    const opened=new Map(),vectors=new Map(),tileBudget=createTileBudget();
+    async function renderPage(d,number,elements=null,sourceBounds=null){
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
       let doc=opened.get(d.id);if(!doc){run.task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});doc=await run.task.promise;opened.set(d.id,{doc,task:run.task});}else doc=doc.doc;
       const page=await doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0});
-      const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);if(width*height>4000000)throw new Error('Drawing exceeds the current matching resolution budget');
+      const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);
+      if(width*height>MATCH_IMAGE_PIXELS){const options={page,viewport,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},operationsFilter:elements?selectionFilter(elements):undefined,cancelled:()=>run.cancelled,onRender:task=>{run.cancel=()=>task.cancel();}};return sourceBounds?renderMatchSelection({...options,bounds:sourceBounds}):tiledMatchPage(options);}
       const vectorKey=d.id+':'+number;if(vector&&!vectors.has(vectorKey))vectors.set(vectorKey,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
       const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true}),recordText=!elements&&vectors.get(vectorKey)?.pendingTextBounds===true;
       await page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter:elements?selectionFilter(elements):undefined}).promise;
@@ -215,26 +217,27 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
       const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
     }
     try{
-      const original=await renderPage(source,sourcePage),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
+      const original=await renderPage(source,sourcePage,null,bounds),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
       const baseTemplate=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
-      let template=baseTemplate;if(edit?.elements){const filtered=await renderPage(source,sourcePage,edit.elements);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
+      let template=baseTemplate;if(edit?.elements){const filtered=await renderPage(source,sourcePage,edit.elements,bounds);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
       template.matchRotations=rotations;template.matchScales=scales;template.matchThreshold=.95;
       if(vector){const anchor=original.viewport.convertToPdfPoint(baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2);template.vector=createVectorTemplate(original.vectorPage,{bounds,ids:edit?.elements?.ids,excluded:edit?.elements?.excluded,anchor});if(!template.vector.supported)fallbacks.add(template.vector.reason||'unsupported source');}
+      const searchRaster=rendered=>new Promise((resolve,reject)=>{
+        const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;
+        const timer=setTimeout(()=>{worker.terminate();reject(new Error('Page matching timed out'));},20000);
+        run.cancel=()=>{clearTimeout(timer);worker.terminate();reject(new Error('Matching cancelled; no count saved'));};
+        worker.onmessage=event=>{clearTimeout(timer);worker.terminate();run.worker=null;if(event.data.fallbackReason)fallbacks.add(event.data.fallbackReason);event.data.error?reject(new Error(event.data.error)):resolve(event.data.matches);};
+        worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(new Error(event.message||'Matching failed'));};
+        worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template,vectorPage:rendered.vectorPage},[rendered.image.data.buffer]);
+      });
       const matches=[];let completed=0;
       for(const d of targets)for(let number=1;number<=d.pages.length;number++){
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');
         $('count-progress').textContent=`Searching page ${++completed} of ${total}…`;
-        const rendered=d.id===source.id&&number===sourcePage?original:await renderPage(d,number);
+        const rendered=d.id===source.id&&number===sourcePage&&!original.cropped?original:await renderPage(d,number);
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');
         if(vector&&!rendered.vectorPage?.supported)fallbacks.add(rendered.vectorPage?.reason||'unsupported page');
-        const found=await new Promise((resolve,reject)=>{
-          const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;
-          const timer=setTimeout(()=>{worker.terminate();reject(new Error('Page matching timed out'));},20000);
-          run.cancel=()=>{clearTimeout(timer);worker.terminate();reject(new Error('Matching cancelled; no count saved'));};
-          worker.onmessage=event=>{clearTimeout(timer);worker.terminate();run.worker=null;if(event.data.fallbackReason)fallbacks.add(event.data.fallbackReason);event.data.error?reject(new Error(event.data.error)):resolve(event.data.matches);};
-          worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(new Error(event.message||'Matching failed'));};
-          worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template,vectorPage:rendered.vectorPage},[rendered.image.data.buffer]);
-        });
+        const found=rendered.tiled?await searchMatchTiles({raster:rendered,template,search:searchRaster,cancelled:()=>run.cancelled,budget:tileBudget,progress:(tile,count)=>{$('count-progress').textContent=`Searching page ${completed} of ${total} · tile ${tile}/${count}…`;}}):await searchRaster(rendered);
         if(matches.length+found.length>5000)throw new Error('Counting exceeds 5000 results; choose a smaller scope');
         for(const hit of found){const [x,y]=Number.isFinite(hit.x)&&Number.isFinite(hit.y)?[hit.x,hit.y]:rendered.viewport.convertToPdfPoint(hit.left+(hit.anchorX??template.anchorX??hit.width/2),hit.top+(hit.anchorY??template.anchorY??hit.height/2));matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
       }

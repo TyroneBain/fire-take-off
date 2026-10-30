@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-30",
+  "scope": "Two owner-authorised real A1 sprinkler PDFs retrieved from connected quoting storage. Original files, identifiers, labels, crops and workbooks remain ignored/local; this record contains anonymised measurements only.",
+  "permission": "Owner explicitly instructed use of relevant Dropbox quoting drawings for local benchmark. No customer drawing uploaded to GitHub or Countfire.",
+  "implemented": {
+    "feature": "Bounded fixed-resolution tiled raster counting and saved recount for pages exceeding the existing4Mpixel canvas limit.",
+    "originalPagePixelsAt2x": 16058624,
+    "tileMaxPixels": 4000000,
+    "corePixels": 1488,
+    "overlapPixels": 256,
+    "pageTileCount": 12,
+    "budgets": {
+      "pagePixels": 64000000,
+      "tilesPerPage": 64,
+      "tilesPerRun": 128,
+      "processedPixelsPerRun": 256000000,
+      "cooperativeRunMs": 120000,
+      "operationTimeoutMs": 20000
+    },
+    "compatibility": "Same2x native pixel grid and saved algorithm/data formats; existing smallpage path unchanged. Source crop uses integer pixel offsets; deterministic half-open tile ownership, cancellation atomic.",
+    "canvasLifecycle": "Scratch backing is explicitly released after copying ImageData or on failure."
+  },
+  "baseline": "Whole-page renderer rejects16.06Mpixels against4Mlimit before matching. Baseline accuracy undefined, not0%.",
+  "groundTruth": {
+    "reviewer": "Independent QA agent manual visual inspection before seeing matcher output; provisional AI review, not human estimator verification",
+    "expectedByDrawing": [
+      10,
+      9
+    ],
+    "scope": "Two declared main-plan ROIs, red-filled circular geometry family with black outer border and central diamond. Other red/architectural symbols excluded by geometry.",
+    "semanticLimits": "Sameproject legend independently inspected: round family is new pendant sprinkler, quartered disk is concealed-space sprinkler, triangle is side-wall sprinkler. Lift-top special subtype still needs separate classification."
+  },
+  "nodeRuns": [
+    {
+      "source": 1,
+      "target": 1,
+      "tp": 4,
+      "fp": 0,
+      "fn": 6,
+      "recall": 0.4
+    },
+    {
+      "source": 1,
+      "target": 2,
+      "tp": 1,
+      "fp": 0,
+      "fn": 8,
+      "recall": 0.1111111111111111
+    },
+    {
+      "source": 2,
+      "target": 2,
+      "tp": 1,
+      "fp": 0,
+      "fn": 8,
+      "recall": 0.1111111111111111
+    }
+  ],
+  "applicationChrome": {
+    "browser": "Chrome156",
+    "source": 1,
+    "perDrawing": [
+      {
+        "tp": 4,
+        "fp": 0,
+        "fn": 6
+      },
+      {
+        "tp": 0,
+        "fp": 0,
+        "fn": 9
+      }
+    ],
+    "aggregate": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 15,
+      "precision": 1,
+      "recall": 0.21052631578947367
+    },
+    "duplicates": 0,
+    "outsideRoiUnscoredHits": 0,
+    "workflowChecksPassed": 5,
+    "reloadUnchanged": true,
+    "exceptions": [],
+    "divergence": "Firstsheet anchors/scores identical to Node; second-sheet Node hit absent in Chrome. Cause not established; do not present Node5/19 as application accuracy."
+  },
+  "performance": {
+    "nodeInitialRenderAndMatchMs": [
+      7342.684207,
+      6398.497754,
+      6439.056826
+    ],
+    "nodeInitialMatchMs": [
+      1460.908141,
+      1154.848282,
+      1169.524347
+    ],
+    "nodePeakRSSBeforeCanvasCleanup": 1880043520,
+    "nodePeakRSSAfterCanvasCleanup": 1771491328,
+    "nodePostCleanupRenderAndMatchSeconds": [
+      7.51,
+      10.75,
+      9.46
+    ],
+    "interpretation": "Single runs, host load varies. RSS spans PDF.js/canvas caches and three serial in-process searches, not isolated per-run or browser memory.4Mtile limit does not prove acceptable total memory. No p50/p95/task-time claim."
+  },
+  "independentIntegrity": {
+    "input": "Two original PDFs and5 actual Node detections in isolated private store",
+    "manualCorrections": "One deliberate reviewed exclusion plus14 manually added misses (test decisions, not measured estimator actions)",
+    "marks": 19,
+    "includedQuantity": 18,
+    "zoneQuantities": [
+      11,
+      7
+    ],
+    "drawingQuantities": [
+      9,
+      9
+    ],
+    "verified": [
+      "Original PDF byte digests unchanged",
+      "Unreviewed export blocked",
+      "Rerun preserves IDs, exclusions, manual additions, reviews, colours and zones",
+      "Reopen snapshot identical",
+      "Independent ZIP/XML workbook reconciliation"
+    ]
+  },
+  "rejectedExperiment": {
+    "policy": "Symmetric one-device-pixel distance",
+    "results": [
+      {
+        "coverage": 0.98,
+        "tp": 18,
+        "fp": 3,
+        "fn": 1
+      },
+      {
+        "coverage": 1,
+        "tp": 12,
+        "fp": 0,
+        "fn": 7
+      },
+      {
+        "policy": "Union with existing strict detections",
+        "tp": 13,
+        "fp": 0,
+        "fn": 6
+      }
+    ],
+    "blockingNegativeControl": "Small internal dot shifted by one pixel is incorrectly accepted while strict matcher rejects it. Quartered-symbol false positives independently inspected.",
+    "status": "Not shipped; scratch only. Exploratory tuned corpus results, not holdout validation."
+  },
+  "validation": {
+    "automated": {
+      "passed": 178,
+      "failed": 0,
+      "durationMs": 23811.021723
+    },
+    "browserOwned": {
+      "largeA1": 17,
+      "existingRaster": 27,
+      "existingScaleGlyph": 17,
+      "total": 61
+    },
+    "browserPrivateReal": 5,
+    "integrityReview": "No blocking data-integrity issue found",
+    "productionStateSha256": "edf81515d8112d0d33a7fc2cb4d6b4e99690f44720d26b63b5ee90f04c88da1d",
+    "productionStateByteIdentical": true
+  },
+  "remaining": [
+    "Application recall21.1% on this provisional19-symbol benchmark is inadequate",
+    "Whole-page clipped/form/image content still falls back to raster; do not ignore clipping",
+    "Large-page element editing and retained glyph colouring retain their separate4Mlimits; outline count colours remain",
+    "High observed Node RSS needs controlled browser/renderer profiling",
+    "Investigate grayscale/global-subpixel registration preserving internal detail, not unconstrained per-pixel drift",
+    "Representative held-out sets and human estimator ground truth remain required"
+  ],
+  "historicalReconciliation": {
+    "status": "Independently checked private legend and archived quantity workbook",
+    "sameGeometryByDrawing": [
+      10,
+      9
+    ],
+    "historicalBelowCeiling": [
+      9,
+      9
+    ],
+    "historicalLift": [
+      1,
+      0
+    ],
+    "sidewallFirstDrawing": 4,
+    "interpretation": "Archived relevant quantity cells agree with frozen round-family totals when lift subtype is included. Historical corrections/automatic contribution unknown; no vendor automatic-accuracy claim. Frozen instance labels unchanged. Concealed-space historical quantities9/11 differ from observed ROI marks and are outside this benchmark; do not claim overall workbook completeness."
+  }
+}
