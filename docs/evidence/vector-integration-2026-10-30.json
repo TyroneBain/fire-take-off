@@ -130,5 +130,23 @@
     "scripts/vector-qa-fixture.mjs": "75e52d155a62418bbc412796e9051134f89b508f33875f6b67e232e72a4d4cca",
     "scripts/run-vector-preview-benchmark.mjs": "216a342e23a0606d613ecc7d4cfad47dfd7010a2e64317190a993d36d832895a",
     "tests/vector-preview.test.mjs": "0427e0c3f638b9179146184cc1a229882b249b4f4d7a64422c15e4aac6d77495"
+  },
+  "delivery": {
+    "branch": "codex/vector-recognition-preview-2026-10-30",
+    "sourceCommit": "a87c7aee54ce00c4727785f8a20cf3b8a30a6dce",
+    "tree": "5dc62937ea44f24f3a9990d6ee8836b056cacc50",
+    "mainPreserved": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+    "verifiedBlobs": 30,
+    "preservedRemoteBlobs": 211,
+    "canonicalCommitMirrored": true,
+    "localBranchIndexPreserved": true,
+    "ci": {
+      "run": 41016349653,
+      "job": 123933450639,
+      "conclusion": "success",
+      "passed": 137,
+      "failed": 0,
+      "durationMs": 42225.990776
+    }
   }
 }
