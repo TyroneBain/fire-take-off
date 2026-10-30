@@ -143,5 +143,23 @@
       "realSourceHelperAssertions": 108
     },
     "productionStateByteIdentical": true
+  },
+  "white_cleanup_investigation": {
+    "status": "Private experiment rejected; not implemented in app",
+    "original_pdf_controls": 8,
+    "baseline": {
+      "TP": 1,
+      "FP": 1,
+      "FN": 0
+    },
+    "explicit_white_ignore_candidate": {
+      "TP": 1,
+      "FP": 4,
+      "FN": 0
+    },
+    "new_false_positives": 3,
+    "scope": "Independent constructed actual-PDF negatives, not customer accuracy",
+    "legacy_ids_and_render_bytes_unchanged": true,
+    "next_requirement": "Retained constituent geometry and versioned explicit-white selection; transparent preview is not proof of recognition"
   }
 }
