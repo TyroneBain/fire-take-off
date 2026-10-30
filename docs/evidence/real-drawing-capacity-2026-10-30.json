@@ -191,6 +191,37 @@
       0
     ],
     "sidewallFirstDrawing": 4,
-    "interpretation": "Archived relevant quantity cells agree with frozen round-family totals when lift subtype is included. Historical corrections/automatic contribution unknown; no vendor automatic-accuracy claim. Frozen instance labels unchanged. Concealed-space historical quantities9/11 differ from observed ROI marks and are outside this benchmark; do not claim overall workbook completeness."
+    "interpretation": "Archived relevant quantity cells agree with frozen round-family totals when lift subtype is included. Historical corrections/automatic contribution unknown; no vendor automatic-accuracy claim. Frozen instance labels unchanged. Concealed-space historical quantities9/11 differ from observed ROI marks and are outside this benchmark; do not claim overall workbook completeness.",
+    "limitations": "Comparisons use literal per-drawing quantity cells. Workbook SUM cells have cached zero values; no recalculation observed. Source filenames/revisions correspond, but archived source PDF byte identity and historical automatic/manual contributions are unverified."
+  },
+  "delivery": {
+    "sourceCommit": "fb63f416d4b6ce104d3318892026d18b5c00d5b8",
+    "tree": "938b7df3e25c625a509cf3663e33ae1c4fd943ef",
+    "parent": "d6a08c5621e9011261b89cebf021c7cdcf3d490c",
+    "branch": "codex/vector-recognition-preview-2026-10-30",
+    "private": true,
+    "verifiedBlobs": 11,
+    "unrelatedBlobsPreserved": 248,
+    "mainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+    "localBranchIndexPreserved": true,
+    "canonicalCommitMirrored": true,
+    "localTests": {
+      "passed": 178,
+      "failed": 0,
+      "durationMs": 23811.021723
+    },
+    "browserChecks": {
+      "owned": 61,
+      "privateReal": 5
+    },
+    "hostedRun": 41029675918,
+    "hostedJob": 123976095021,
+    "hostedStatus": "success",
+    "productionStateByteIdentical": true,
+    "hostedTests": {
+      "passed": 178,
+      "failed": 0,
+      "durationMs": 70209.361903
+    }
   }
 }
