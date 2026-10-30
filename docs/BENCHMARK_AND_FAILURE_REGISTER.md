@@ -1,6 +1,14 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+### 2026-10-31 shared original-paint verification checkpoint
+
+- Browser backend mismatch: original display-canvas oracle failed 0/8; explicit readback contract and shared original-PDF adapter independently yield 7/8 visibility proofs, repeated exactly in Chrome. The text-overlaid candidate remains refused. These are pixel-presence checks, not accepted counts or source/target class equivalence.
+- Actual application recognition remains 21 TP / 0 FP / 8 FN over 29 development labels. Fresh projects remain admission-blocked (unsupported clipping; excessive selection elements), with no fresh accuracy claim.
+- Optional-content support uses actual PDF.js group visibility, validates known groups, bounds membership expressions and invalidates changed configurations. Hidden clipped paint cannot use clip fallback.
+- Regression: 287/287, zero failures. Original layered, translucent, white-overpaint, stale-handle and cancellation controls pass. Production state/116 marks and eight protected module hashes unchanged.
+- Next bounded blocker: generic complete-footprint rectangle-clip proof; preserve unknown/nonrectangular/partial clipping fallback. No speculative threshold relaxation. Original render timeout exists; operator-list preparation cancellation still waits for extraction to settle.
+
 ### 2026-10-31 constituent proposal gate
 
 Original independently labelled PDF: whole-operation baseline 4/13 versus constituent proposals 10/13, zero main-class false positives. Both actual Chrome passes agree. Separate physical cap/join negative is proposed despite 64 missing black pixels; automatic acceptance blocked. Quantized close-segment self-match failure was fixed with nearest-error assignment and independent original regression; default tolerance unchanged. Real development bridge remains 1/29; 26/29 fills have different tessellation lengths, grid quantization and overlapping closed walks. A private contour diagnostic reaches only 3/29 unverified proposals. No real-app accuracy gain or release approval. Reproduce with `scripts/benchmark-vector-constituents.mjs`, `tests/vector-constituents*.test.mjs`; detailed private evidence is `integration-constituent-*`, `engine-constituent-contour-probe.json`, and `qa-constituent-browser-results.json` under `.local/real-benchmark/`. Preserve all previous drawing labels and failures.
