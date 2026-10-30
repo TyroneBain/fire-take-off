@@ -223,5 +223,28 @@
       "failed": 0,
       "durationMs": 70209.361903
     }
+  },
+  "tileMemoryFollowup": {
+    "implementation": "Yield to a zero-delay timer after each completed tile, then check cancellation and deadline before allocating the next tile. No matcher/data-format change.",
+    "controlledNode": {
+      "drawings": 1,
+      "sequentialSearchesPerProcess": 3,
+      "baselinePeakRSSBytes": 2641084416,
+      "modifiedHelperPeakRSSBytes": 578342912,
+      "reductionFraction": 0.7810206638999001,
+      "exactHitsAndScoresUnchanged": true,
+      "forcedGCDuringSearch": false
+    },
+    "limitations": "Single Node fixture; browser memory and long-duration leak behavior unmeasured. Browser workers already yield. Exact native allocator attribution unproven. Diagnostic GC was performed only after searches.",
+    "validation": {
+      "localTestsPassed": 180,
+      "localTestsFailed": 0,
+      "durationMs": 21938.513159,
+      "timerCancellation": "New test confirms cancellation delivered by a real timer prevents next-tile allocation.",
+      "ownedChromeLargeA1Checks": 17,
+      "reloadUnchanged": true,
+      "browserExceptions": []
+    },
+    "recognitionGuard": "Original hard-pixel fixture: strict matcher finds two true symbols and rejects shifted internal dots and missing detail. New appearance candidate remains unintegrated pending independent controls and browser evidence."
   }
 }

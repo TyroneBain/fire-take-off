@@ -62,3 +62,9 @@ test('scratch canvas backing is released after the independent pixel copy and af
  const cancelled=()=>true;await assert.rejects(renderMatchSelection({...options,bounds,createCanvas:factory,cancelled}),/cancelled/);assert.equal(canvases.length,1,'pre-cancelled work allocates no canvas');
  let wasCancelled=false;await assert.rejects(renderMatchSelection({...options,bounds,createCanvas:factory,cancelled:()=>wasCancelled,onRender:task=>{wasCancelled=true;task.cancel();}}));assert.ok(canvases.every(c=>c.width<=1&&c.height<=1));
 });
+
+test('timer-driven cancellation interrupts between completed tiles even when rendering and searching resolve immediately',async()=>{
+ let cancelled=false,searches=0,renders=0;const tile={left:0,top:0,width:10,height:10,core:[0,0,10,10]},raster={tiled:true,tiles:[tile,{...tile,left:10,core:[10,0,20,10]}],viewport:{convertToPdfPoint:(x,y)=>[x/2,y/2]},renderTile:async()=>{renders++;return {};}};
+ await assert.rejects(searchMatchTiles({raster,template:{width:8,height:8},cancelled:()=>cancelled,search:async()=>{searches++;setTimeout(()=>{cancelled=true;},0);return [{left:1,top:1,width:8,height:8,score:1}];}}),/cancelled/);
+ assert.equal(searches,1);assert.equal(renders,1,'the second tile must not allocate after cancellation arrives');
+});

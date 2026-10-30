@@ -58,6 +58,11 @@ export async function searchMatchTiles({raster,template,search,cancelled=()=>fal
    if(duplicate)continue;const key=Math.floor(x)+':'+Math.floor(y);if(!bins.has(key))bins.set(key,[]);bins.get(key).push([x,y]);
    const [nativeX,nativeY]=raster.viewport.convertToPdfPoint(x,y);hits.push({...hit,x:nativeX,y:nativeY});if(hits.length>5000)throw Error('Counting exceeds 5000 results; reduce the drawing scope');
   }
+  // A resolved injected search can otherwise chain every tile as microtasks.
+  // Yield for cancellation/input and native canvas finalizers before allocating
+  // the next tile. Browser worker callbacks already yield, but inline adapters
+  // need the same opportunity; neither forced GC nor cache clearing is used.
+  await new Promise(resolve=>setTimeout(resolve,0));check();
  }
  check();return hits.sort((a,b)=>a.y-b.y||a.x-b.x);
 }

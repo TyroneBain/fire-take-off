@@ -615,3 +615,12 @@ Published source `fb63f416d4b6ce104d3318892026d18b5c00d5b8`, tree `938b7df3e25c6
 Hosted [run 41029675918](https://github.com/TyroneBain/fire-take-off/actions/runs/41029675918), job 123976095021, succeeded: **178 passed, 0 failed**, 70209.361903 ms from actual logs. Source code is unchanged since acceptance. This follow-up changes documentation and evidence only.
 
 The archived quantity comparison uses literal per-drawing inputs; formula totals have cached zero values and Excel recalculation was not observed. Exact archived PDF bytes and historical automatic/manual contributions are unverified. Current application recognition remains **4/19**, with 15 missed pendant-family symbols and no false positives in the declared regions. The current source fixes A1 admission, not recognition quality. Next work is detail-preserving raster registration or safely scoped vector visibility, plus controlled renderer memory profiling; keep the unsafe independent-pixel tolerance experiment out of production.
+
+
+### Controlled tile-memory and cancellation fix
+
+The tile helper now yields to a zero-delay timer between completed tiles and rechecks cancellation/deadline before allocating the next. A controlled fresh-process Node comparison (one authorised drawing, three sequential searches) reduced peak RSS from 2,641,084,416 to 578,342,912 bytes (78.1%), with exactly identical detections and scores. No forced GC or cache clearing is used by the application. This does not establish Chrome memory use or long-duration leak freedom; browser worker messages already yield. Exact native allocator attribution remains unproven. Private detailed evidence: `.local/real-benchmark/memory-summary.json`.
+
+Local regression: **180 passed, 0 failed**, 21938.513159 ms. New timer-driven cancellation test prevents next-tile allocation; an original hard-pixel detail guard verifies strict rejection of shifted/missing internal details. The appearance-registration candidate is still isolated from production while independent negative controls, a withheld drawing and actual Chrome behavior are assessed. Saved policies, quantities, corrections, zones and export calculations are unchanged. No Countfire parity claim.
+
+Owned Chrome A1 acceptance also passes **17 checks**, including all 12 native anchors, reviewed exclusion preservation, saved recount and atomic cancellation; reload unchanged and no exceptions.
