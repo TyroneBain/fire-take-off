@@ -244,6 +244,53 @@
         ],
         "reloadUnchanged": true,
         "errors": []
+      },
+      "rotationColour": {
+        "date": "2026-10-30T07:18:47.194Z",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/156.0.8078.48",
+          "revision": "@d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+          "jsVersion": "15.6.75.19"
+        },
+        "checks": [
+          {
+            "passed": 27,
+            "checks": [
+              "One selection finds all 24 known quarter-turn symbols across two actual PDFs",
+              "New selection persists rotation matching policy",
+              "Rotated symbol has the correct native PDF anchor",
+              "Saved selection exposes matching options beside its preview",
+              "Orientation-only update removes 17 unchecked rotated matches",
+              "Excluded rotated symbol and manual count survive policy change",
+              "Saved selection exposes matching options beside its preview",
+              "Rotation update restores omitted matches without duplicating corrections",
+              "Saved selection exposes matching options beside its preview",
+              "Repeated matching update preserves every match identity",
+              "Shift selection finds only six same-orientation instances",
+              "Shift persists orientation-only policy",
+              "Automatic matches colour retained glyph masks instead of opaque check badges",
+              "Changing item colour preserves all quantities, review decisions and match identities",
+              "Colour change updates all current-drawing matches in the heading",
+              "Excluded detections retain original drawing ink without counted colour",
+              "Failed colour save leaves saved colour unchanged",
+              "Hide markers also hides counted symbol colours",
+              "Restoring markers restores symbol colours",
+              "Cancellation saves no partial counts",
+              "measure remains accessible",
+              "zone remains accessible",
+              "note remains accessible",
+              "layout remains accessible",
+              "page remains accessible",
+              "count remains accessible",
+              "Other tool workflows leave saved counts untouched"
+            ],
+            "totalMarks": 31
+          }
+        ],
+        "reloadUnchanged": true,
+        "errors": []
       }
     },
     "productionState": {
@@ -271,7 +318,8 @@
     "failuresFixed": [
       "Independent Node tests initially assumed browser font behavior; default Node fonts yield fullpage bounds and correctly retain fallback",
       "Browser initially used raster because enclosing frame contaminated source selection; conservative segment-hull selection fix verified in browser",
-      "Initial near-stroke padding test exposed premature aggregate-bounds filter; removed for stroke-only paths"
+      "Initial near-stroke padding test exposed premature aggregate-bounds filter; removed for stroke-only paths",
+      "Additional rotation/colour browser harness initially treated hidden Cancel as save completion; test now waits for the new-count control to be re-enabled. All27 checks then passed; no production code change."
     ],
     "limitations": [
       "Vector mode remains opt-in preview",
@@ -288,7 +336,32 @@
       "tests/vector-text-visibility.test.mjs": "770c7127e6e62184c8b6daab6f77c461f7f4bdd7cf879ea3c87a8c11612a02c9",
       "tests/vector-selection-bounds.test.mjs": "77efa7b0d7899d8faac88931e86f5e31c3b2d5e2b63db988bafb340a429df91c",
       "tests/browser/vector-text.js": "94111a881055a872df651cbc57cab2fb335b07e0da3021cff5793ea3dc6815e2",
-      "scripts/run-count-browser-acceptance.mjs": "469805db3477aa9e5f4657adbcb1dc0ee085ae69842f148db05b15cdad97e3aa"
+      "scripts/run-count-browser-acceptance.mjs": "469805db3477aa9e5f4657adbcb1dc0ee085ae69842f148db05b15cdad97e3aa",
+      "tests/browser/count-rotations.js": "a2ac3c5443c889431d18870b602d728e62367d17e5a55d629735e785093831a1"
+    },
+    "delivery": {
+      "sourceCommit": "a3c4faeae67052f339e94b67243b4e3906e2d226",
+      "tree": "e95e05c4705e8e052c42a08559ed91f2038d6211",
+      "branch": "codex/vector-recognition-preview-2026-10-30",
+      "mainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+      "verifiedSourceBlobs": 12,
+      "preservedOtherBlobs": 233,
+      "localCommitObjectMirrored": true,
+      "localBranchAndIndexPreserved": true,
+      "hostedRun": 41019208262,
+      "hostedResult": "success",
+      "hostedJob": 123942425048,
+      "hostedTestsPassed": 151,
+      "hostedTestsFailed": 0,
+      "hostedDurationMs": 58706.142586
+    },
+    "independentIntegrityReview": {
+      "agent": "data_integrity",
+      "result": "No new blocking issue found",
+      "focusedPassed": 17,
+      "focusedFailed": 0,
+      "log": ".local/integrity-vector-review.log",
+      "knownLimitation": "Existing strict <0.5 native PDF point identity tolerance remains; not changed in this increment."
     }
   }
 }
