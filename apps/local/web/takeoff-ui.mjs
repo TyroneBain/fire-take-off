@@ -1,3 +1,6 @@
+import {extractVectorPage,createVectorTemplate,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION} from './vector-recognition.mjs';
+import {setupCountInk,inkTransform} from './count-ink.mjs';
+import {colourControl} from './count-colour.mjs';
 import {setupMeasurementCreation} from './measurement-creation.mjs';
 import {nextSymbolName} from './count-entry.mjs';
 import {runDrawingRecount} from './drawing-recount.mjs';
@@ -12,7 +15,7 @@ import {coverageInput} from './coverage-input.mjs';
 import {setupMeasurementEditor} from './measurement-editor.mjs';
 import {exampleRectangle,setupExamplePreviews} from './example-preview.mjs';
 import { pagePoint,viewPoint } from './coordinates.mjs';
-import { inkImage,exampleImage,MATCHER_VERSION } from './matcher.mjs';
+import { inkImage,exampleImage,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,isVectorAlgorithm,includesRotations } from './matcher.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
@@ -21,14 +24,15 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const items=()=>visibleCountHeadings(context().state||{},context().drawing?.discipline_id);
   const marks=()=>context().state?.countMarks||[];
   const hiddenMarkers=new Set(),collapsedItems=new Set();
+  const countInk=setupCountInk({context,pdfjs,onReady:()=>paintOverlay()});
   const grouping=setupCountGroups({context,api,reload,node,button,notice,paint,hiddenMarkers,onVisibilityChange});
   const measurementEditor=setupMeasurementEditor({context,api,reload,activate:()=>activate('measure'),onChange:()=>paint(),notice});
   const measurementCreation=setupMeasurementCreation({context,api,reload,notice,onChange:()=>paint(),clearEditor:()=>measurementEditor.clear(),isActive:()=>mode==='measure'});
   const movement=setupSelectionMovement({context,api,reload,notice,onMoved:id=>{selectedItem=id;highlightedExample=null;paint();}});
   const deletion=setupSelectionDeletion({context,api,reload,notice});
   const removeSelection=async(record,options)=>{const result=await deletion.request(record,options);if(result){highlightedExample=null;paint();}return result;};
-  const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements}),cancelMatching:()=>cancelJob()});
-  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,editExample:record=>selectionEditor.open(record),removeSelection,movement,api,reload,notice});
+  const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements,options)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements,...options}),cancelMatching:()=>cancelJob()});
+  const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,updateMatching:(record,rotations)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements:record.example.elements,rotations}),editExample:record=>selectionEditor.open(record),removeSelection,movement,api,reload,notice});
   $('example-list').addEventListener('toggle',()=>{if($('example-list').open)previews.load();});
   function deactivate(){$('page-surface').classList.remove('count-selecting');$('count-drawing-actions').hidden=true;measurementEditor.clear();reclassification=null;mode=null;action=null;measurementCreation.clear();drag=null;cancelJob();$('count-panel').hidden=true;$('measure-panel').hidden=true;$('reclassify-panel').hidden=true;for(const id of ['count-tool','measure-tool']){$(id).classList.remove('tool-active');$(id).setAttribute('aria-pressed','false');}paintOverlay();}
   function activate(next){setBaseMode();mode=next;if(next==='count'){action='select';selectionTarget=items().find(i=>i.id===selectedItem)||null;}$(next+'-panel').hidden=false;$(next+'-tool').classList.add('tool-active');$(next+'-tool').setAttribute('aria-pressed','true');$('pan-tool').classList.remove('tool-active');$('pan-tool').setAttribute('aria-pressed','false');$('tool-help').textContent=next==='count'?'Select, count and review symbols':'Calibrate, then draw your measurements';paint();}
@@ -37,7 +41,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const c=context();if(!c.state)return;
     const available=items();if(selectionTarget)selectionTarget=available.find(i=>i.id===selectionTarget.id)||null;if(!available.some(i=>i.id===selectedItem))selectedItem=null;
     const list=$('count-items');$('count-panel').append($('active-count'));list.replaceChildren();previews.paint(selectedItem);const filter=$('count-filter').value.toLowerCase();
-    grouping.render(list,available,filter,item=>{const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{if(job)return;selectedItem=item.id;selectionTarget=item;action='select';reclassification=null;paint();},'count-item');b.disabled=!!job;b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));b.title=`${included.length} included matches across the discipline; ${pending.length} unchecked`;const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));const fold=button(collapsedItems.has(item.id)?'›':'⌄',()=>{collapsedItems.has(item.id)?collapsedItems.delete(item.id):collapsedItems.add(item.id);paint();},'item-fold');fold.setAttribute('aria-label',`${collapsedItems.has(item.id)?'Expand':'Collapse'} ${item.name}`);fold.setAttribute('aria-expanded',String(!collapsedItems.has(item.id)));row.style.setProperty('--item-color',item.color);row.dataset.itemId=item.id;row.append(fold,b,visibility);movement.attach(row,item);grouping.attach(row,item);const actions=row.querySelector('.heading-group-action');if(actions){const menu=node('details',null,'item-menu'),summary=node('summary','⋯');summary.setAttribute('aria-label',`Options for ${item.name}`);menu.append(summary,actions,button('Rename / colour',()=>{selectedItem=item.id;paint();$('edit-count-item').click();}));row.append(menu);}if(!collapsedItems.has(item.id)){const cards=node('div',null,'item-selections');previews.cards(item.id,cards);row.append(cards);}return row;});
+    grouping.render(list,available,filter,item=>{const all=marks().filter(m=>m.item_id===item.id),included=all.filter(m=>m.included),pending=included.filter(m=>!m.reviewed);const b=button('',()=>{if(job)return;selectedItem=item.id;selectionTarget=item;action='select';reclassification=null;paint();},'count-item');b.disabled=!!job;b.classList.toggle('selected',item.id===selectedItem);const color=node('span',null,'item-colour');color.style.background=item.color;b.append(color,node('span',item.name),node('strong',String(included.reduce((sum,m)=>sum+(m.quantity??1),0))));b.title=`${included.length} included matches across the discipline; ${pending.length} unchecked`;const row=node('div',null,'count-item-row'),visibility=button(hiddenMarkers.has(item.id)?'○':'◉',()=>{if(hiddenMarkers.has(item.id))hiddenMarkers.delete(item.id);else hiddenMarkers.add(item.id);paint();onVisibilityChange();},'marker-visibility');visibility.setAttribute('aria-label',`${hiddenMarkers.has(item.id)?'Show':'Hide'} ${item.name} markers`);visibility.setAttribute('aria-pressed',String(hiddenMarkers.has(item.id)));const fold=button(collapsedItems.has(item.id)?'›':'⌄',()=>{collapsedItems.has(item.id)?collapsedItems.delete(item.id):collapsedItems.add(item.id);paint();},'item-fold');fold.setAttribute('aria-label',`${collapsedItems.has(item.id)?'Expand':'Collapse'} ${item.name}`);fold.setAttribute('aria-expanded',String(!collapsedItems.has(item.id)));row.style.setProperty('--item-color',item.color);row.dataset.itemId=item.id;row.append(fold,colourControl(item,{node,button,api,reload,notice}),b,visibility);movement.attach(row,item);grouping.attach(row,item);const actions=row.querySelector('.heading-group-action');if(actions){const menu=node('details',null,'item-menu'),summary=node('summary','⋯');summary.setAttribute('aria-label',`Options for ${item.name}`);menu.append(summary,actions,button('Rename / colour',()=>{selectedItem=item.id;paint();$('edit-count-item').click();}));row.append(menu);}if(!collapsedItems.has(item.id)){const cards=node('div',null,'item-selections');previews.cards(item.id,cards);row.append(cards);}return row;});
     const allHidden=available.length>0&&available.every(i=>hiddenMarkers.has(i.id));$('toggle-count-markers').textContent=allHidden?'Show markers':'Hide markers';$('toggle-count-markers').setAttribute('aria-pressed',String(allHidden));previews.load();
     const coverage=$('count-coverage');coverage.replaceChildren();const selected=available.find(i=>i.id===selectedItem),scaled=!!c.state.calibrations?.find(v=>v.drawing_id===c.drawing?.id&&v.page===c.pageNumber);if(selected)coverage.append(coverageInput({record:selected,kind:'items',api,reload,notice,node,scaled}));
     $('recount-drawing').disabled=!!job||!available.some(i=>(c.state.countExamples||[]).some(e=>e.item_id===i.id));
@@ -91,7 +95,18 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
       let element;if(m.kind==='point'){const [x,y]=viewPoint(c.viewport,...m.points[0]);element=document.createElementNS(svgNS,'circle');for(const [k,v]of Object.entries({cx:x,cy:y,r:5,fill:'#c06c23'}))element.setAttribute(k,v);svg.append(element);}else element=shape(m.points,m.kind==='area','#c06c23');
       element.dataset.measureId=m.id;element.style.pointerEvents=mode==='measure'?'auto':'none';element.addEventListener('contextmenu',e=>{if(mode==='measure'&&!measurementCreation.active){e.preventDefault();e.stopPropagation();measurementEditor.open(m);}});
     }
-    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item||hiddenMarkers.has(item.id))continue;const b=button(m.included?'✓':'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');b.style.background=m.included?item.color:'#a5adb0';b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match`);b.dataset.markId=m.id;const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';overlay.append(b);}
+    for(const m of marks())if(m.drawing_id===c.drawing.id&&m.page===c.pageNumber){
+      const item=c.state.countItems.find(i=>i.id===m.item_id);if(!item||hiddenMarkers.has(item.id))continue;
+      const mask=m.included&&m.origin==='automatic'?countInk.get(m):null;
+      const b=button(m.included?(m.origin==='manual'?'+':''):'×',e=>{e.stopPropagation();openReview(m);},'takeoff-marker');
+      b.style.setProperty('--mark-colour',item.color);b.style.pointerEvents=mode==='count'?'auto':'none';b.classList.toggle('symbol-hit',!!mask);b.classList.toggle('manual-count',m.origin==='manual');b.classList.toggle('unreviewed',!m.reviewed);b.classList.toggle('excluded',!m.included);b.classList.toggle('reclassification-focus',m.id===reclassification?.ids[reclassification.index]);
+      b.setAttribute('aria-label',`${item.name}: ${m.included?'included':'excluded'} match, ${m.reviewed?'reviewed':'needs review'}${!mask&&m.origin==='automatic'&&m.included?', symbol colour unavailable':''}`);b.title=b.getAttribute('aria-label');b.dataset.markId=m.id;
+      const [x,y]=viewPoint(c.viewport,m.x,m.y);b.style.left=x+'px';b.style.top=y+'px';
+      if(mask){const ink=node('div',null,'count-symbol-ink'),transform=inkTransform(mask.viewport,c.viewport,mask);ink.dataset.inkMarkId=m.id;ink.setAttribute('aria-hidden','true');Object.assign(ink.style,{width:mask.width+'px',height:mask.height+'px',backgroundColor:item.color,maskImage:`url("${mask.url}")`,transform:`matrix(${transform.join(',')})`});overlay.append(ink);
+        const width=Math.abs(transform[0])*mask.width+Math.abs(transform[2])*mask.height,height=Math.abs(transform[1])*mask.width+Math.abs(transform[3])*mask.height;b.style.width=Math.max(14,width)+'px';b.style.height=Math.max(14,height)+'px';
+      }overlay.append(b);
+    }
+    countInk.prepare();
     if(highlightedExample?.drawing_id===c.drawing.id&&highlightedExample.page===c.pageNumber){const r=exampleRectangle(c.viewport,highlightedExample.bounds),highlight=document.createElementNS(svgNS,'rect');for(const [key,value]of Object.entries({id:'example-highlight',x:r.left,y:r.top,width:r.width,height:r.height,fill:'none',stroke:'#243c90','stroke-width':3,'stroke-dasharray':'6 3'}))highlight.setAttribute(key,value);svg.append(highlight);}
     if(drag){const [a,b]=drag;shape([a,[b[0],a[1]],b,[a[0],b[1]]],true,'#168a90',true);}
     $('page-surface').append(overlay);measurementEditor.paint();measurementCreation.paintOverlay();
@@ -162,12 +177,12 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   surface.addEventListener('pointerdown',e=>{if(mode!=='count'||action!=='select'||job||e.button!==0||e.target.closest('button'))return;const p=point(e);if(!p)return;e.preventDefault();drag=[p,p];try{surface.setPointerCapture(e.pointerId);}catch{}paintOverlay();});
   surface.addEventListener('pointercancel',()=>{drag=null;paintOverlay();});
   surface.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);if(p){drag[1]=p;paintOverlay();}});
-  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);runMatching(bounds,selectionTarget).catch(e=>notice(e.message,true));});
+  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);runMatching(bounds,selectionTarget,null,!e.shiftKey&&$('count-rotations').checked).catch(e=>notice(e.message,true));});
   surface.addEventListener('click',async e=>{
     if(e.target.closest('button'))return;const p=point(e);if(!p)return;const c=context();
     if(mode==='count'&&action==='manual'&&selectedItem){try{await api(`/api/items/${selectedItem}/marks`,json('POST',{drawing_id:c.drawing.id,page:c.pageNumber,x:p[0],y:p[1]}));await reload();paint();}catch(error){notice(error.message,true);}return;}
   });
-  function cancelJob(){if(job){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
+  function cancelJob(){if(job&&!job.committing){job.cancelled=true;job.cancel?.();job.task?.destroy();job.worker?.terminate();}}
   $('cancel-match').onclick=cancelJob;
   $('recount-drawing').onclick=async()=>{
     if(job)return;const c=context();if(!c.drawing)return;
@@ -177,44 +192,53 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     catch(e){const message=run.cancelled?'Recount cancelled; no results saved':e.message;$('count-progress').textContent=message;notice(message,!run.cancelled);}
     finally{if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=$('manual-item').disabled=false;paint();}
   };
-  async function runMatching(bounds,targetItem,edit=null){
+  async function runMatching(bounds,targetItem,edit=null,rotations=true){
+    if(job)throw new Error('Wait for the current count to finish');
+    if(edit)rotations=edit.rotations??includesRotations(edit.record.example.algorithm);
     const c=context(),source=edit?c.state.drawings.find(d=>d.id===edit.record.example.drawing_id):c.drawing,sourcePage=edit?edit.record.example.page:c.pageNumber,label=targetItem?.name||$('count-name').value.trim()||nextSymbolName(items());
     const targets=edit||$('count-scope').value==='discipline'?c.state.drawings.filter(d=>d.discipline_id===source.discipline_id):[source];
     const total=targets.reduce((sum,d)=>sum+d.pages.length,0);if(total>20)throw new Error('Select a scope of at most 20 pages per matching run');
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=true;$('manual-item').disabled=true;paint();
-    const opened=new Map();
+    const vector=edit?(edit.vector??isVectorAlgorithm(edit.record.example.algorithm)):$('count-vector').checked,fallbacks=new Set();
+    const opened=new Map(),vectors=new Map();
     async function renderPage(d,number,elements=null){
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
       let doc=opened.get(d.id);if(!doc){run.task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});doc=await run.task.promise;opened.set(d.id,{doc,task:run.task});}else doc=doc.doc;
       const page=await doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0});
       const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);if(width*height>4000000)throw new Error('Drawing exceeds the current matching resolution budget');
-      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport,operationsFilter:elements?selectionFilter(elements):undefined}).promise;const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height};
+      const vectorKey=d.id+':'+number;if(vector&&!vectors.has(vectorKey))vectors.set(vectorKey,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
+      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport,operationsFilter:elements?selectionFilter(elements):undefined}).promise;const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
     }
     try{
       const original=await renderPage(source,sourcePage),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
       const baseTemplate=exampleImage(inkImage(original.image.data,original.width,original.height),[a[0],a[1],b[0],b[1]]);
-      let template=baseTemplate;if(edit){const filtered=await renderPage(source,sourcePage,edit.elements);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
+      let template=baseTemplate;if(edit?.elements){const filtered=await renderPage(source,sourcePage,edit.elements);template=editedTemplate(inkImage(original.image.data,original.width,original.height),inkImage(filtered.image.data,filtered.width,filtered.height),[a[0],a[1],b[0],b[1]]);}
+      template.matchRotations=rotations;template.matchThreshold=.95;
+      if(vector){const anchor=original.viewport.convertToPdfPoint(baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2);template.vector=createVectorTemplate(original.vectorPage,{bounds,ids:edit?.elements?.ids,excluded:edit?.elements?.excluded,anchor});if(!template.vector.supported)fallbacks.add(template.vector.reason||'unsupported source');}
       const matches=[];let completed=0;
       for(const d of targets)for(let number=1;number<=d.pages.length;number++){
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');
         $('count-progress').textContent=`Searching page ${++completed} of ${total}…`;
         const rendered=d.id===source.id&&number===sourcePage?original:await renderPage(d,number);
         if(run.cancelled)throw new Error('Matching cancelled; no count saved');
+        if(vector&&!rendered.vectorPage?.supported)fallbacks.add(rendered.vectorPage?.reason||'unsupported page');
         const found=await new Promise((resolve,reject)=>{
           const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;
           const timer=setTimeout(()=>{worker.terminate();reject(new Error('Page matching timed out'));},20000);
           run.cancel=()=>{clearTimeout(timer);worker.terminate();reject(new Error('Matching cancelled; no count saved'));};
           worker.onmessage=event=>{clearTimeout(timer);worker.terminate();run.worker=null;event.data.error?reject(new Error(event.data.error)):resolve(event.data.matches);};
           worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(new Error(event.message||'Matching failed'));};
-          worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template},[rendered.image.data.buffer]);
+          worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template,vectorPage:rendered.vectorPage},[rendered.image.data.buffer]);
         });
-        for(const hit of found){const [x,y]=rendered.viewport.convertToPdfPoint(hit.left+(template.anchorX??hit.width/2),hit.top+(template.anchorY??hit.height/2));matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
+        if(matches.length+found.length>5000)throw new Error('Counting exceeds 5000 results; choose a smaller scope');
+        for(const hit of found){const [x,y]=Number.isFinite(hit.x)&&Number.isFinite(hit.y)?[hit.x,hit.y]:rendered.viewport.convertToPdfPoint(hit.left+(hit.anchorX??template.anchorX??hit.width/2),hit.top+(hit.anchorY??template.anchorY??hit.height/2));matches.push({drawing_id:d.id,page:number,x,y,score:hit.score,digest:d.digest});}
       }
       if(run.cancelled)throw new Error('Matching cancelled; no count saved');
-      const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:MATCHER_VERSION};
-      const result=edit?await api(`/api/examples/${edit.record.id}/selection`,json('PATCH',{version:edit.record.version,elements:edit.elements,matches,scope:targets.map(d=>({id:d.id,digest:d.digest})),expected_marks:c.state.countMarks.filter(m=>m.example_id===edit.record.id).map(m=>({id:m.id,version:m.version}))})):targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
+      const example={drawing_id:source.id,page:sourcePage,bounds,digest:source.digest,algorithm:vector?(rotations?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION):(rotations?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION)};
+      run.committing=true;$('cancel-match').hidden=true;$('count-progress').textContent='Saving count…';
+      const result=edit?await api(`/api/examples/${edit.record.id}/selection`,json('PATCH',{version:edit.record.version,elements:edit.elements,rotations:edit.rotations,vector,matches,scope:targets.map(d=>({id:d.id,digest:d.digest})),expected_marks:c.state.countMarks.filter(m=>m.example_id===edit.record.id).map(m=>({id:m.id,version:m.version}))})):targetItem?await api(`/api/items/${targetItem.id}/examples`,json('POST',{version:targetItem.version,example,matches})):await api(`/api/disciplines/${source.discipline_id}/counts`,json('POST',{name:label,color:'#168a90',example,matches}));
       selectedItem=targetItem?.id||result.id;
-      await reload();if(mode==='count'){selectionTarget=items().find(i=>i.id===selectedItem)||null;action='select';}if(!targetItem&&!edit){$('count-name').value='';$('example-list').open=false;}const message=edit?`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Reviewed corrections kept.`:targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent='';notice(`${label}: ${message}`);
+      await reload();if(mode==='count'){selectionTarget=items().find(i=>i.id===selectedItem)||null;action='select';}if(!targetItem&&!edit){$('count-name').value='';$('example-list').open=false;}const message=edit?`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Reviewed corrections kept.`:targetItem?`${result.added} new matches; ${result.skipped} already saved.${result.linked?` ${result.linked} legacy matches linked to this selection.`:''} Previous decisions kept.`:`${matches.length} matches found. Review the marked instances.`;$('count-progress').textContent='';notice(`${label}: ${message}${fallbacks.size?` Pixel fallback: ${[...fallbacks].join("; ")}.`:vector?" Vector geometry preview.":""}`);
     } catch(error){const message=run.cancelled?'Matching cancelled; no count saved':error.message;$('count-progress').textContent=message;throw new Error(message);}
     finally {for(const entry of opened.values())await entry.task.destroy().catch(()=>{});run.worker?.terminate();if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=false;$('manual-item').disabled=false;paint();}
   }

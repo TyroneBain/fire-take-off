@@ -122,3 +122,5 @@ Current work is the user-requested research/design proposal; no REA installation
 ## Production resumed — 2026-10-29
 
 The earlier design-only pause was superseded by explicit user instructions (ADR-0041 onward). Phase0 remains complete on separately dated owned-fixture evidence. ADR-0043 used normal visible Chrome/public workflow inspection; no new REA analysis, installation or configuration change occurred. Do not describe these browser checks as REA verification.
+
+2026-10-30: live REA used only on our counting/selection/store/recount/zone/export modules. After daemon restart, fresh analysis parsed9 selected modules,0 parse failures;44 files unselected and4610 semantic unknowns. Summary ev_1cf83ce71ee537b56c31be2dd7ca78d0f39841b3599cbce1706fb2f5d65aa20b; full local evidence `.local/rea-counting-2026-10-30.json`. Static partial analysis is not runtime or recognition accuracy proof. No setup/configuration change.

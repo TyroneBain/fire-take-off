@@ -1,3 +1,4 @@
+import {includesRotations} from './matcher.mjs';
 import {selectionFilter} from './pdf-elements.mjs';
 import {selectionList} from './selection-list.mjs';
 // Normalize native bounds across crop offsets and page rotation.
@@ -8,7 +9,7 @@ export function exampleRectangle(viewport,bounds) {
   return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
 }
 
-export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,removeSelection,movement,api,reload,notice}) {
+export function setupExamplePreviews({pdfjs,context,node,button,openExample,editExample,updateMatching,removeSelection,movement,api,reload,notice}) {
   const cache=new Map();let queue=[],busy=false;
   async function drain(){
     if(busy)return;busy=true;
@@ -61,6 +62,8 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,edit
         if(drawing){details.append(node('small',`${drawing.name} · page ${record.example.page}`));const open=button('Go to selection',()=>openExample(record),'example-open');details.append(button('Edit',()=>editExample(record),'example-open'),open);if(cache.has(record.id+':'+record.version))show(preview,cache.get(record.id+':'+record.version));else{preview.append(node('span','Loading preview…'));queue.push({record,drawing,container:preview});}}
         else{preview.append(node('span','Source removed'));details.append(node('small','The saved source drawing is no longer in this takeoff.'));}
         const save=button('Save multiplier',async()=>{if(!input.reportValidity())return;save.disabled=true;input.disabled=true;try{await api(`/api/examples/${record.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({multiplier:Number(input.value),version:record.version})});await reload();notice('Selection multiplier saved');}catch(error){notice(error.message,true);}finally{input.disabled=!!legacy;save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);}},'example-open');save.disabled=true;input.disabled=!!legacy;input.addEventListener('input',()=>{save.disabled=!!legacy||Number(input.value)===(record.multiplier||1);});details.append(save);
+        const matching=node('details',null,'selection-matching'),summary=node('summary','Matching options'),label=node('label',null,'checkbox-label'),rotations=node('input');rotations.type='checkbox';rotations.checked=includesRotations(record.example.algorithm);label.append(rotations,node('span','Quarter-turn rotations'));
+        const recount=button('Update matching',async()=>{recount.disabled=true;try{await updateMatching(record,rotations.checked);}catch(e){notice(e.message,true);}finally{recount.disabled=false;}});matching.append(summary,label,node('small','Recounts this selection across its discipline. Reviewed corrections stay.'),recount);details.append(matching);
         if(excluded||moved)details.append(node('small',`${excluded} excluded · ${moved} assigned to other headings`,'selection-adjustments'));
         detailRow.append(details);body.append(detailRow);
       });

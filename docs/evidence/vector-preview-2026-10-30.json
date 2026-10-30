@@ -1,0 +1,722 @@
+{
+  "date": "2026-10-30T06:44:25.039Z",
+  "runtime": "v24.22.0",
+  "platform": "darwin",
+  "architecture": "x64",
+  "fixture": {
+    "id": "qa-vector-elements-v1",
+    "provenance": "Original independent QA-authored geometry and hand-labelled placement commands, 2026-10-30; no customer or competitor material",
+    "sha256": "2736c874917f78d11f03a5143873ea74b4104d3224b1a7a9c71b83c537556a41",
+    "selection": [
+      38,
+      38,
+      62,
+      62
+    ],
+    "labels": [
+      {
+        "id": "seed-crossing",
+        "page": 1,
+        "x": 50,
+        "y": 50,
+        "angle": 0,
+        "pipe": "horizontal"
+      },
+      {
+        "id": "translated-clean",
+        "page": 1,
+        "x": 150,
+        "y": 50,
+        "angle": 0
+      },
+      {
+        "id": "quarter-turn-crossing",
+        "page": 1,
+        "x": 250,
+        "y": 50,
+        "angle": 90,
+        "pipe": "vertical"
+      },
+      {
+        "id": "half-turn",
+        "page": 1,
+        "x": 350,
+        "y": 50,
+        "angle": 180
+      },
+      {
+        "id": "three-quarter-turn",
+        "page": 1,
+        "x": 50,
+        "y": 150,
+        "angle": 270
+      },
+      {
+        "id": "fractional-crossing",
+        "page": 1,
+        "x": 150.25,
+        "y": 150.25,
+        "angle": 0,
+        "pipe": "diagonal"
+      },
+      {
+        "id": "fractional-rotated",
+        "page": 1,
+        "x": 250.125,
+        "y": 150.375,
+        "angle": 90
+      },
+      {
+        "id": "two-pipe-crossing",
+        "page": 1,
+        "x": 350,
+        "y": 150,
+        "angle": 270,
+        "pipe": "both"
+      },
+      {
+        "id": "scaled-positive",
+        "page": 1,
+        "x": 50,
+        "y": 250,
+        "angle": 0,
+        "scale": 1.2,
+        "challenge": "scale"
+      },
+      {
+        "id": "oblique-positive",
+        "page": 1,
+        "x": 150,
+        "y": 250,
+        "angle": 45,
+        "challenge": "arbitrary rotation"
+      },
+      {
+        "id": "nested-form",
+        "page": 2,
+        "x": 50,
+        "y": 50,
+        "angle": 0,
+        "challenge": "nested Form XObject"
+      },
+      {
+        "id": "nested-form-quarter-turn",
+        "page": 2,
+        "x": 150,
+        "y": 50,
+        "angle": 90,
+        "challenge": "nested Form XObject"
+      },
+      {
+        "id": "clipped-visible",
+        "page": 3,
+        "x": 50,
+        "y": 50,
+        "angle": 0,
+        "challenge": "explicit clipping"
+      },
+      {
+        "id": "raster-only",
+        "page": 4,
+        "x": 50,
+        "y": 50,
+        "angle": 0,
+        "challenge": "image-only page"
+      }
+    ],
+    "negatives": [
+      {
+        "id": "missing-dot",
+        "page": 1,
+        "x": 250,
+        "y": 250,
+        "kind": "missing-dot"
+      },
+      {
+        "id": "mirrored",
+        "page": 1,
+        "x": 350,
+        "y": 250,
+        "kind": "mirrored"
+      },
+      {
+        "id": "shifted-detail",
+        "page": 1,
+        "x": 50,
+        "y": 350,
+        "kind": "shifted-detail"
+      },
+      {
+        "id": "wrong-stroke-width",
+        "page": 1,
+        "x": 150,
+        "y": 350,
+        "kind": "wrong-stroke-width"
+      }
+    ],
+    "oracle": "Exact commanded symbol origins in native PDF points; nearest unused positive within 1 PDF point. Missing/extra-detail, mirror and stroke-width variants are negatives; scaled/oblique/nested/clipped/raster instances remain positive challenges.",
+    "limitations": [
+      "Synthetic only; no real-drawing accuracy or competitor comparison",
+      "No human correction-time study",
+      "Nested/clipped/raster pages must report fallback rather than silently losing results"
+    ]
+  },
+  "validation": "Independent QA-authored labels; runner completed and executed by lead. Independent QA sign-off blocked by agent usage limit.",
+  "baseline": {
+    "legacy_same_orientation": {
+      "tp": 4,
+      "fp": 1,
+      "fn": 10,
+      "precision": 0.8,
+      "recall": 0.2857142857142857,
+      "duplicates": 0,
+      "matched": [
+        "seed-crossing",
+        "translated-clean",
+        "nested-form",
+        "clipped-visible"
+      ],
+      "missed": [
+        "quarter-turn-crossing",
+        "half-turn",
+        "three-quarter-turn",
+        "fractional-crossing",
+        "fractional-rotated",
+        "two-pipe-crossing",
+        "scaled-positive",
+        "oblique-positive",
+        "nested-form-quarter-turn",
+        "raster-only"
+      ],
+      "falsePositives": [
+        {
+          "page": 1,
+          "x": 250,
+          "y": 250
+        }
+      ],
+      "perPage": [
+        {
+          "page": 1,
+          "tp": 2,
+          "fp": 1,
+          "fn": 8,
+          "precision": 0.6666666666666666,
+          "recall": 0.2,
+          "duplicates": 0,
+          "matched": [
+            "seed-crossing",
+            "translated-clean"
+          ],
+          "missed": [
+            "quarter-turn-crossing",
+            "half-turn",
+            "three-quarter-turn",
+            "fractional-crossing",
+            "fractional-rotated",
+            "two-pipe-crossing",
+            "scaled-positive",
+            "oblique-positive"
+          ],
+          "falsePositives": [
+            {
+              "page": 1,
+              "x": 250,
+              "y": 250
+            }
+          ]
+        },
+        {
+          "page": 2,
+          "tp": 1,
+          "fp": 0,
+          "fn": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "duplicates": 0,
+          "matched": [
+            "nested-form"
+          ],
+          "missed": [
+            "nested-form-quarter-turn"
+          ],
+          "falsePositives": []
+        },
+        {
+          "page": 3,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "duplicates": 0,
+          "matched": [
+            "clipped-visible"
+          ],
+          "missed": [],
+          "falsePositives": []
+        },
+        {
+          "page": 4,
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "precision": null,
+          "recall": 0,
+          "duplicates": 0,
+          "matched": [],
+          "missed": [
+            "raster-only"
+          ],
+          "falsePositives": []
+        }
+      ],
+      "timings": [
+        {
+          "page": 1,
+          "matchingMs": 18.54821800000002
+        },
+        {
+          "page": 2,
+          "matchingMs": 8.111024999999927
+        },
+        {
+          "page": 3,
+          "matchingMs": 9.496736000000055
+        },
+        {
+          "page": 4,
+          "matchingMs": 15.611333999999943
+        }
+      ],
+      "hits": [
+        {
+          "page": 1,
+          "x": 250,
+          "y": 250
+        },
+        {
+          "page": 1,
+          "x": 50,
+          "y": 50
+        },
+        {
+          "page": 1,
+          "x": 150,
+          "y": 50
+        },
+        {
+          "page": 2,
+          "x": 50,
+          "y": 50
+        },
+        {
+          "page": 3,
+          "x": 50,
+          "y": 50
+        }
+      ]
+    },
+    "raster_quarter_turns": {
+      "tp": 9,
+      "fp": 2,
+      "fn": 5,
+      "precision": 0.8181818181818182,
+      "recall": 0.6428571428571429,
+      "duplicates": 0,
+      "matched": [
+        "fractional-rotated",
+        "three-quarter-turn",
+        "seed-crossing",
+        "translated-clean",
+        "quarter-turn-crossing",
+        "half-turn",
+        "nested-form",
+        "nested-form-quarter-turn",
+        "clipped-visible"
+      ],
+      "missed": [
+        "fractional-crossing",
+        "two-pipe-crossing",
+        "scaled-positive",
+        "oblique-positive",
+        "raster-only"
+      ],
+      "falsePositives": [
+        {
+          "page": 1,
+          "x": 250,
+          "y": 250
+        },
+        {
+          "page": 1,
+          "x": 350,
+          "y": 250
+        }
+      ],
+      "perPage": [
+        {
+          "page": 1,
+          "tp": 6,
+          "fp": 2,
+          "fn": 4,
+          "precision": 0.75,
+          "recall": 0.6,
+          "duplicates": 0,
+          "matched": [
+            "fractional-rotated",
+            "three-quarter-turn",
+            "seed-crossing",
+            "translated-clean",
+            "quarter-turn-crossing",
+            "half-turn"
+          ],
+          "missed": [
+            "fractional-crossing",
+            "two-pipe-crossing",
+            "scaled-positive",
+            "oblique-positive"
+          ],
+          "falsePositives": [
+            {
+              "page": 1,
+              "x": 250,
+              "y": 250
+            },
+            {
+              "page": 1,
+              "x": 350,
+              "y": 250
+            }
+          ]
+        },
+        {
+          "page": 2,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "duplicates": 0,
+          "matched": [
+            "nested-form",
+            "nested-form-quarter-turn"
+          ],
+          "missed": [],
+          "falsePositives": []
+        },
+        {
+          "page": 3,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "duplicates": 0,
+          "matched": [
+            "clipped-visible"
+          ],
+          "missed": [],
+          "falsePositives": []
+        },
+        {
+          "page": 4,
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "precision": null,
+          "recall": 0,
+          "duplicates": 0,
+          "matched": [],
+          "missed": [
+            "raster-only"
+          ],
+          "falsePositives": []
+        }
+      ],
+      "timings": [
+        {
+          "page": 1,
+          "matchingMs": 59.2220309999999
+        },
+        {
+          "page": 2,
+          "matchingMs": 18.533056999999985
+        },
+        {
+          "page": 3,
+          "matchingMs": 20.00964799999997
+        },
+        {
+          "page": 4,
+          "matchingMs": 21.628773000000024
+        }
+      ],
+      "hits": [
+        {
+          "page": 1,
+          "x": 250,
+          "y": 250
+        },
+        {
+          "page": 1,
+          "x": 350,
+          "y": 250
+        },
+        {
+          "page": 1,
+          "x": 250,
+          "y": 150.5
+        },
+        {
+          "page": 1,
+          "x": 50,
+          "y": 150
+        },
+        {
+          "page": 1,
+          "x": 50,
+          "y": 50
+        },
+        {
+          "page": 1,
+          "x": 150,
+          "y": 50
+        },
+        {
+          "page": 1,
+          "x": 250,
+          "y": 50
+        },
+        {
+          "page": 1,
+          "x": 350,
+          "y": 50
+        },
+        {
+          "page": 2,
+          "x": 50,
+          "y": 50
+        },
+        {
+          "page": 2,
+          "x": 150,
+          "y": 50
+        },
+        {
+          "page": 3,
+          "x": 50,
+          "y": 50
+        }
+      ]
+    }
+  },
+  "candidate": {
+    "tp": 11,
+    "fp": 1,
+    "fn": 3,
+    "precision": 0.9166666666666666,
+    "recall": 0.7857142857142857,
+    "duplicates": 0,
+    "matched": [
+      "seed-crossing",
+      "translated-clean",
+      "quarter-turn-crossing",
+      "half-turn",
+      "three-quarter-turn",
+      "two-pipe-crossing",
+      "fractional-crossing",
+      "fractional-rotated",
+      "nested-form",
+      "nested-form-quarter-turn",
+      "clipped-visible"
+    ],
+    "missed": [
+      "scaled-positive",
+      "oblique-positive",
+      "raster-only"
+    ],
+    "falsePositives": [
+      {
+        "page": 1,
+        "x": 350,
+        "y": 250
+      }
+    ],
+    "perPage": [
+      {
+        "page": 1,
+        "tp": 8,
+        "fp": 1,
+        "fn": 2,
+        "precision": 0.8888888888888888,
+        "recall": 0.8,
+        "duplicates": 0,
+        "matched": [
+          "seed-crossing",
+          "translated-clean",
+          "quarter-turn-crossing",
+          "half-turn",
+          "three-quarter-turn",
+          "two-pipe-crossing",
+          "fractional-crossing",
+          "fractional-rotated"
+        ],
+        "missed": [
+          "scaled-positive",
+          "oblique-positive"
+        ],
+        "falsePositives": [
+          {
+            "page": 1,
+            "x": 350,
+            "y": 250
+          }
+        ]
+      },
+      {
+        "page": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "duplicates": 0,
+        "matched": [
+          "nested-form",
+          "nested-form-quarter-turn"
+        ],
+        "missed": [],
+        "falsePositives": []
+      },
+      {
+        "page": 3,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "duplicates": 0,
+        "matched": [
+          "clipped-visible"
+        ],
+        "missed": [],
+        "falsePositives": []
+      },
+      {
+        "page": 4,
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "precision": null,
+        "recall": 0,
+        "duplicates": 0,
+        "matched": [],
+        "missed": [
+          "raster-only"
+        ],
+        "falsePositives": []
+      }
+    ],
+    "hits": [
+      {
+        "page": 1,
+        "x": 50,
+        "y": 50
+      },
+      {
+        "page": 1,
+        "x": 150,
+        "y": 50
+      },
+      {
+        "page": 1,
+        "x": 250,
+        "y": 50
+      },
+      {
+        "page": 1,
+        "x": 350,
+        "y": 50
+      },
+      {
+        "page": 1,
+        "x": 50,
+        "y": 150
+      },
+      {
+        "page": 1,
+        "x": 350,
+        "y": 150
+      },
+      {
+        "page": 1,
+        "x": 150.25,
+        "y": 150.25
+      },
+      {
+        "page": 1,
+        "x": 250.125,
+        "y": 150.375
+      },
+      {
+        "page": 1,
+        "x": 350,
+        "y": 250
+      },
+      {
+        "page": 2,
+        "x": 50,
+        "y": 50
+      },
+      {
+        "page": 2,
+        "x": 150,
+        "y": 50
+      },
+      {
+        "page": 3,
+        "x": 50,
+        "y": 50
+      }
+    ],
+    "timings": [
+      {
+        "page": 1,
+        "matchingMs": 4.189479000000006,
+        "engine": "vector",
+        "fallback": null
+      },
+      {
+        "page": 2,
+        "matchingMs": 41.93150899999995,
+        "engine": "raster",
+        "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+      },
+      {
+        "page": 3,
+        "matchingMs": 39.576977,
+        "engine": "raster",
+        "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+      },
+      {
+        "page": 4,
+        "matchingMs": 24.00480399999998,
+        "engine": "raster",
+        "fallback": "Text, images, clipping, forms, patterns or compositing require raster fallback"
+      }
+    ]
+  },
+  "limitations": [
+    "Synthetic only; no representative real drawing or Countfire comparison",
+    "Single-run timings exclude parsing/rendering and are not p50/p95 or estimator task times",
+    "Scaled and arbitrary-angle positives remain misses",
+    "Nested forms/clipping/image-only pages use raster fallback",
+    "The mirror-labelled distractor is geometrically equal to a rotated seed; raw label score retained pending independent oracle adjudication"
+  ],
+  "sourceSha256": {
+    "scripts/vector-qa-fixture.mjs": "75e52d155a62418bbc412796e9051134f89b508f33875f6b67e232e72a4d4cca",
+    "scripts/vector-qa-benchmark.mjs": "63957bd9e5afee2a186736baeb37591fc0721cf8473d9acaf1a948d2c662e850",
+    "apps/local/web/matcher.mjs": "e8ac7fb2359bd5339fc09c0deec5823e13bc5d7ff7a9cf0cc639c0138b6021c6"
+  }
+}

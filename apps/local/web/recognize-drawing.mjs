@@ -1,4 +1,5 @@
-import {inkImage,exampleImage} from './matcher.mjs';
+import {createVectorTemplate} from './vector-recognition.mjs';
+import {inkImage,exampleImage,isVectorAlgorithm,includesRotations,matchingThreshold} from './matcher.mjs';
 import {editedTemplate} from './pdf-elements.mjs';
 // Rendering and worker execution are injected, so the same orchestration is tested against actual PDFs in Node.
 export async function recognizeDrawing({state,target,render,search,cancelled=()=>false,progress=()=>{}}){
@@ -9,10 +10,13 @@ export async function recognizeDrawing({state,target,render,search,cancelled=()=
  for(const e of examples){check();const def=e.example,source=state.drawings.find(d=>d.id===def.drawing_id&&d.digest===def.digest);if(!source)throw new Error('Selection source is missing or changed');if(def.algorithm==='binary-elements-1')throw new Error('Re-edit legacy cleaned selections before recounting');
   const original=await render(source,def.page),a=original.viewport.convertToViewportPoint(def.bounds[0],def.bounds[3]),b=original.viewport.convertToViewportPoint(def.bounds[2],def.bounds[1]),box=[...a,...b];check();
   let template=exampleImage(inkImage(original.data,original.width,original.height),box);
+  const baseTemplate=template;
   if(def.elements){const filtered=await render(source,def.page,def.elements);check();template=editedTemplate(inkImage(original.data,original.width,original.height),inkImage(filtered.data,filtered.width,filtered.height),box);}
+  template.matchRotations=includesRotations(def.algorithm);template.matchThreshold=matchingThreshold(def.algorithm);
+  if(isVectorAlgorithm(def.algorithm)){const anchor=original.viewport.convertToPdfPoint(baseTemplate.left+baseTemplate.width/2,baseTemplate.top+baseTemplate.height/2);template.vector=createVectorTemplate(original.vectorPage,{bounds:def.bounds,ids:def.elements?.ids,excluded:def.elements?.excluded,anchor});}
   const matches=[];
   for(let page=1;page<=target.pages.length;page++){check();progress(`Searching ${headings.get(e.item_id).name} · page ${page}/${target.pages.length} · selection ${results.length+1}/${examples.length}`);const raster=await render(target,page);check();const hits=await search(raster,template);check();
-   for(const hit of hits){if(++count>5000)throw new Error('Recount exceeds 5000 results');const [x,y]=raster.viewport.convertToPdfPoint(hit.left+(template.anchorX??hit.width/2),hit.top+(template.anchorY??hit.height/2));matches.push({drawing_id:target.id,page,x,y,score:hit.score,digest:target.digest});}
+   for(const hit of hits){if(++count>5000)throw new Error('Recount exceeds 5000 results');const [x,y]=Number.isFinite(hit.x)&&Number.isFinite(hit.y)?[hit.x,hit.y]:raster.viewport.convertToPdfPoint(hit.left+(hit.anchorX??template.anchorX??hit.width/2),hit.top+(hit.anchorY??template.anchorY??hit.height/2));matches.push({drawing_id:target.id,page,x,y,score:hit.score,digest:target.digest});}
   }
   results.push({id:e.id,version:e.version,item_version:headings.get(e.item_id).version,matches});
  }

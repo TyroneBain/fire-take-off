@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-30T06:45:59.005574+00:00",
+  "scope": "Opt-in vector preview; independent QA completion pending",
+  "tests": {
+    "command": "npm test",
+    "passed": 137,
+    "failed": 0,
+    "durationMs": 20518.479985,
+    "log": ".local/vector-regression-tests.log"
+  },
+  "browser": {
+    "rotation": {
+      "date": "2026-10-30T06:34:59.349Z",
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/156.0.8078.48",
+        "revision": "@d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "jsVersion": "15.6.75.19"
+      },
+      "checks": [
+        {
+          "passed": 27,
+          "checks": [
+            "One selection finds all 24 known quarter-turn symbols across two actual PDFs",
+            "New selection persists rotation matching policy",
+            "Rotated symbol has the correct native PDF anchor",
+            "Saved selection exposes matching options beside its preview",
+            "Orientation-only update removes 17 unchecked rotated matches",
+            "Excluded rotated symbol and manual count survive policy change",
+            "Saved selection exposes matching options beside its preview",
+            "Rotation update restores omitted matches without duplicating corrections",
+            "Saved selection exposes matching options beside its preview",
+            "Repeated matching update preserves every match identity",
+            "Shift selection finds only six same-orientation instances",
+            "Shift persists orientation-only policy",
+            "Automatic matches colour retained glyph masks instead of opaque check badges",
+            "Changing item colour preserves all quantities, review decisions and match identities",
+            "Colour change updates all current-drawing matches in the heading",
+            "Excluded detections retain original drawing ink without counted colour",
+            "Failed colour save leaves saved colour unchanged",
+            "Hide markers also hides counted symbol colours",
+            "Restoring markers restores symbol colours",
+            "Cancellation saves no partial counts",
+            "measure remains accessible",
+            "zone remains accessible",
+            "note remains accessible",
+            "layout remains accessible",
+            "page remains accessible",
+            "count remains accessible",
+            "Other tool workflows leave saved counts untouched"
+          ],
+          "totalMarks": 31
+        }
+      ],
+      "reloadUnchanged": true,
+      "errors": []
+    },
+    "vector": {
+      "date": "2026-10-30T06:42:25.019Z",
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/156.0.8078.48",
+        "revision": "@d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "jsVersion": "15.6.75.19"
+      },
+      "checks": [
+        {
+          "passed": 9,
+          "checks": [
+            "Opt-in vector policy persists without changing default matching",
+            "Editor retains saved vector policy",
+            "Estimator removes crossing pipe while retaining three symbol paths",
+            "Hybrid recount produces 12 reported candidates across vector and fallback pages",
+            "Excluded source operation persists",
+            "Vector matcher recovers fractional crossing symbol",
+            "Vector matcher recovers symbol crossed by two pipes",
+            "Repeated vector recount adds no duplicates",
+            "Reviewed exclusion retains identity and quantity after vector recount"
+          ],
+          "totalMarks": 12,
+          "knownLimits": "Synthetic candidates include one mirror-labelled lookalike; no accuracy parity claim"
+        }
+      ],
+      "reloadUnchanged": true,
+      "errors": []
+    }
+  },
+  "productionState": {
+    "equalBeforeAfter": true,
+    "sha256": "bcec834362257186d97b225bcad502d2b3e4b86a25f1ec93eb93dc265d589e7f",
+    "schemaMigration": false
+  },
+  "rea": {
+    "summaryEvidence": "ev_1cf83ce71ee537b56c31be2dd7ca78d0f39841b3599cbce1706fb2f5d65aa20b",
+    "parsedModules": 9,
+    "parseFailures": 0,
+    "applicationCoverage": "partial",
+    "semanticUnknowns": 4610,
+    "unselectedFiles": 44,
+    "bundle": ".local/rea-counting-2026-10-30.json",
+    "kind": "static analysis, not runtime accuracy"
+  },
+  "agents": {
+    "codex": "0.163.0",
+    "rolesParsed": 8,
+    "skillsParsed": 5,
+    "liveCatalogRoles": 8,
+    "liveCatalogSkills": 5,
+    "multiAgentFeature": true,
+    "customRoleExecution": "data_integrity instantiated; vector and QA loaded their role/skill instructions",
+    "independentQa": "Interrupted by usage limit after authoring fixture/oracle; lead finished runner, integration and tests"
+  },
+  "failures": [
+    "Restricted full test run failed HTTP listen EPERM; permitted retry passed",
+    "Initial browser test tried opening selection before refresh completed; explicit wait fixed harness",
+    "Initial integrity assertion compared SQLite null-prototype objects against structuredClone plain objects; JSON value comparison fixed harness",
+    "Raw oracle retains one mirror-labelled false positive which is geometrically rotation-equivalent; independent adjudication pending",
+    "Scaled, oblique and raster-only positive remain missed"
+  ],
+  "sourceSha256": {
+    "apps/local/web/vector-recognition.mjs": "9f450dedaf433584dbc96569fe7bb77d58fea0a3650d71f8f8d9901601aab375",
+    "apps/local/web/matcher.mjs": "e8ac7fb2359bd5339fc09c0deec5823e13bc5d7ff7a9cf0cc639c0138b6021c6",
+    "apps/local/web/match-worker.mjs": "f4a912e612d41d32cf15f80be126a69eb7b378867e16f69ec494080823f28ad0",
+    "apps/local/web/takeoff-ui.mjs": "1938a9db73eaca3e815ef7414eceb72dbe1b2ace5649eeebcdc1bc5415449284",
+    "apps/local/web/recognize-drawing.mjs": "fc555913eb7c3c256d5831c7fb1e93023633ed92ee5576e6ebc1e1ceb74e6668",
+    "apps/local/web/drawing-recount.mjs": "e9efb18d40bccabf3d2b432cb794d2b966a1e62b16e9600611b274eb1c20343c",
+    "apps/local/takeoff-store.mjs": "d34f73b1b7bada42ba4e5afbef3e3062842a02dfc11d0a014c687712e2c7631a",
+    "scripts/vector-qa-fixture.mjs": "75e52d155a62418bbc412796e9051134f89b508f33875f6b67e232e72a4d4cca",
+    "scripts/run-vector-preview-benchmark.mjs": "216a342e23a0606d613ecc7d4cfad47dfd7010a2e64317190a993d36d832895a",
+    "tests/vector-preview.test.mjs": "0427e0c3f638b9179146184cc1a229882b249b4f4d7a64422c15e4aac6d77495"
+  }
+}
