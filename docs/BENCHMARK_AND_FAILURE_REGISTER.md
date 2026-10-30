@@ -35,3 +35,16 @@ Source PDFs/private labels/workbooks remain ignored .local. Public-facing/privat
 - Frozen v4 module in Chrome: two identical passes; first pair 13 TP / 0 FP / 6 FN versus strict 4 / 0 / 15; third sheet 8 / 0 / 2 versus 3 / 0 / 7. All shared strict anchors exact; no duplicate or outside-region hits. Application workflow acceptance is recorded separately in the latest evidence.
 - Existing correction dedup uses strict per-axis <0.5 PDF point. An isolated probe showed a shifted new hit could bypass an exclusion. Appearance saves now conservatively reject ambiguous new hits near protected corrections before any mutation; global dedup is unchanged. Dense genuine neighbours can trigger a conflict and require review.
 - Owned 12-symbol PDF acceptance covers declared quarter-turn placements. Its fractional-phase and oblique-angle challenges remain outside that main oracle; 12/12 is not general accuracy. Private real labels remain provisional AI visual review, with legend/workbook corroboration rather than human estimator certification.
+
+
+### Broader sources and A1 selection follow-up, 2026-10-31
+
+| ID | Category | Observed result | Status / next action |
+|---|---|---|---|
+| A1-006a | Element editing | Bounded large-page metadata/crops now support renderer-applied nonpainting clips; owned UI13checks and independent exact-PDF tests pass | Fixed for supported A1 cases; compositing/forms/combined clip-and-paint fail closed; legacy small-page hidden-path limitation remains |
+| A1-007 | Preview | Static omission masks concealed newly revealed underlying paint | Fixed using serial latest-only actual filteredPDF preview; independent4tests pass |
+| MULTI-001 | Generalisation | Fresh2projects: strict2TP/0FP/38FN on40provisional independently labelled symbols | Open;5%recall inadequate; appearance rejects bothsourceexamples before fullscan |
+| A1-008 | Recognition experiments | Known-position4x17/29 andsupport-mask18/29 vsunchanged2x21/29 | Rejected for production; oracle-centred diagnostics are not full-searchaccuracy |
+| A1-009 | Clip candidates |29/29isolatedfills reconstructexactly onlywhen originalclip+paint transformsretained | Candidate helper testedbutunwired; no acceptedcount gain |
+
+Evidence: `docs/evidence/large-element-selection-2026-10-31.json`. All customer sources, labels and identifying workflow observations remainignoredlocal. Proposed next native-contour work is not implemented capability.

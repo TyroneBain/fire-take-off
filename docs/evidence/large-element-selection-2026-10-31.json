@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-31",
+  "scope": "Bounded A1 vector-element editing and independent recognition diagnostics; not Countfire parity",
+  "privacy": "Owner-authorised drawings and identifying evidence remain ignored in .local; repository fixtures are original literal PDF geometry",
+  "fresh_baseline": {
+    "runtime": "Chrome 156.0.8078.79",
+    "ground_truth": "Independent provisional AI visual labels frozen before matcher output; not human estimator certification",
+    "drawings": [
+      {
+        "expected": 31,
+        "strict_tp": 1,
+        "strict_fp": 0,
+        "strict_fn": 30
+      },
+      {
+        "expected": 9,
+        "strict_tp": 1,
+        "strict_fp": 0,
+        "strict_fn": 8
+      }
+    ],
+    "strict_recall": 0.05,
+    "full_page_scans": true,
+    "scoring": "Frozen regions; zero additional hits outside those regions",
+    "repeated_native_results_exact": true,
+    "appearance": {
+      "status": "Both source examples unsupported: bounded isolated contrast detail required",
+      "completed_scans": 0,
+      "accuracy": null
+    },
+    "label_sha256": [
+      "cffb92899592e69049d11559092cb02f0a14e6f345e23a30fd51e03fbf9a6304",
+      "c7dbcd574a4e92c971e88a9064b9dea44ed6fd6e2ab031cb38fbb75183242dbf"
+    ]
+  },
+  "historical_diagnostics": {
+    "scope": "Oracle-centred development patches; not full-search accuracy or independent holdout",
+    "known_positives": 29,
+    "existing_2x_accepted": 21,
+    "experimental_4x_accepted": 17,
+    "experimental_selected_support_accepted": 18,
+    "quartered_negative_controls": 3,
+    "negative_acceptances": 0,
+    "decision": "Both replacements rejected; production appearance policy unchanged",
+    "all_eight_existing_misses_reached_verification": true
+  },
+  "clip_geometry_proof": {
+    "runtime_and_scope": "Node PDF.js with @napi-rs/canvas at 4x; isolated clipped fills, not full symbols, Chrome or final page visibility",
+    "real_fill_instances": 29,
+    "exact_rgba_reconstructions": 29,
+    "contract": "Retain original clip and covering-paint commands with separate transforms; flattening changes antialiasing",
+    "candidate_counts": [
+      58,
+      34,
+      50
+    ],
+    "accepted_counts": null,
+    "visibility": "Unverified; standalone helper is not connected to automatic counting",
+    "limits": "One simple closed polygon clip plus opaque RGB covering rectangle; no compound/nested geometry, curves, forms, groups or partial covering fill; bounded state and atomic errors"
+  },
+  "preservation": {
+    "existing_appearance_sha256": "b82eb08f4552952e57b8e153fc013ed49f5c8f3bf767ed54856cd7687b2490ef",
+    "live_state_sha256_before_and_after": "edf81515d8112d0d33a7fc2cb4d6b4e99690f44720d26b63b5ee90f04c88da1d",
+    "live_marks": 116,
+    "quantity_zone_export_calculations_changed": false
+  },
+  "countfire_observation": {
+    "method": "Normal owner-authorised visible UI only",
+    "session": "Owner resolved login; existing takeoff and drawing loaded",
+    "observed": "Count mode offers drag-box selection across drawings; selected takeoff displayed first-selection guidance",
+    "customer_project_mutated": false,
+    "new_comparative_accuracy": null,
+    "additional_observed": "Owner-directed dense sheet:185below-ceiling fromfour savedexamples38+32+54+61,76concealed-space,19balcony. Owner erased whitecomponents21\u219219; transparentpreview observed. No newautomaticaccuracy or sourcealgorithm claim.",
+    "owner_edit": "Left open and untouched by agent after demonstration"
+  },
+  "acceptance": {
+    "local_tests": {
+      "passed": 228,
+      "failed": 0,
+      "duration_ms": 26115.937075
+    },
+    "owned_a1_browser_checks": 13,
+    "existing_vector_scale_browser_checks": 17,
+    "browser_reload_unchanged": true,
+    "browser_exceptions": 0,
+    "independent_excel_xml": {
+      "marks": 4,
+      "included": 3,
+      "excluded": 1,
+      "manual": 1,
+      "zones": [
+        1,
+        2
+      ],
+      "trace_ids_and_snapshot_digest_match": true
+    },
+    "workflow_scope": "Owned original A1 PDF; actual UI selection, pipe erasure, filtered preview, save, reopen, recount and cancel. Manual mark, zones and review-all use isolated API/store setup. Not a human pointer usability or real-drawing accuracy benchmark.",
+    "review": "Independent QA and integrity reviewers found no remaining blocker; revealed underlayers retain original hit targets rather than gaining new ones",
+    "real_chrome_element_inspection": {
+      "drawings": 2,
+      "source_elements": [
+        6,
+        5
+      ],
+      "inspection_ms": [
+        13371.4,
+        11991.8
+      ],
+      "max_canvas_pixels": 981274,
+      "source_ids_and_native_anchors_preserved": true,
+      "erasure_and_exact_restore_verified": true,
+      "interrupted_bbox_cache_rejected": true,
+      "fresh_reopen_succeeds": true,
+      "scope": "Production helper in isolated Chrome, not full UI or count accuracy; 108 assertions include allocation checks, not 108 workflows"
+    }
+  },
+  "delivery": {
+    "sourceCommit": "0618521616d3de0502556bf806a06c403474ca51",
+    "tree": "184b6da02bf874976441fa1e7bca7b8417cf85bc",
+    "parent": "edd57367dcc6ccf7992102e07cc6f1cbd54e3052",
+    "branch": "codex/vector-recognition-preview-2026-10-30",
+    "private": true,
+    "verifiedBlobs": 10,
+    "unrelatedBlobsPreserved": 262,
+    "mainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+    "localBranchIndexPreserved": true,
+    "canonicalCommitMirrored": true,
+    "localTests": {
+      "passed": 228,
+      "failed": 0,
+      "durationMs": 26115.937075
+    },
+    "hostedRun": 41126312096,
+    "hostedJob": 124305652119,
+    "hostedTests": {
+      "passed": 228,
+      "failed": 0,
+      "durationMs": 79142.119595
+    },
+    "browserChecks": {
+      "ownedA1": 13,
+      "existingVectorScale": 17,
+      "realSourceHelperAssertions": 108
+    },
+    "productionStateByteIdentical": true
+  }
+}
