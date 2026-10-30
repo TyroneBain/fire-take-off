@@ -22,8 +22,16 @@ A counting claim requires independently reviewed real-drawing evidence, preserve
 | A1-001 | Render capacity | 16.06Mpixel fullpage rejected by4Mlimit | Fixed2x boundedtiles implemented;178tests and17A1browserchecks pass |
 | A1-002 | Recognition | Chrome4TP/0FP/15FN across19 provisional visually labelled symbols | Open;21.05%recall insufficient; preserve detail and investigate raster phase/background |
 | A1-003 | Environment | Node5detections vsChrome4 on identicalsourcepair/seed | Open; cause not established; report separate metrics |
-| A1-004 | Memory | Node3run processpeak1.88GB→1.77GB aftercanvascleanup | Open; controlled browser/cache profiling needed |
+| A1-004 | Memory | Controlled fresh-process Node three-search peak 2.64 GB → 578 MB with identical results after inter-tile timer yield | Fixed for this measured Node case; browser/native memory and long-duration behavior remain unverified |
 | A1-005 | False positives | 1pixel-distance prototype accepts shifted internal dot | Experiment rejected, no production matching changes |
 | A1-006 | Workflow | Largepage elementeditor andglyphmask retain separate4Mlimits | Open; outlinefallback, no claim of full largepage vector workflow |
 
 Source PDFs/private labels/workbooks remain ignored .local. Public-facing/private-repo evidence is anonymised in docs/evidence/real-drawing-capacity-2026-10-30.json. Counts are geometry-family labels, not estimator-confirmed product quantities.
+
+### Appearance preview follow-up
+
+- The rejected independent-pixel drift experiment remains excluded. The new original matcher uses a global subpixel fit, retained colour and symmetric internal-detail checks. Independent controls: 14 TP, 0 FP, 1 FN over 15 positives and 16 negatives; black diagonal occlusion remains a miss.
+- First unseen Node v3 run: 7/10 versus strict 3/10, with one lost baseline hit. An orientation-selection defect was then identified and fixed using unchanged acceptance gates plus an original counterexample. This third sheet is regression data for v4, not fresh held-out validation.
+- Frozen v4 module in Chrome: two identical passes; first pair 13 TP / 0 FP / 6 FN versus strict 4 / 0 / 15; third sheet 8 / 0 / 2 versus 3 / 0 / 7. All shared strict anchors exact; no duplicate or outside-region hits. Application workflow acceptance is recorded separately in the latest evidence.
+- Existing correction dedup uses strict per-axis <0.5 PDF point. An isolated probe showed a shifted new hit could bypass an exclusion. Appearance saves now conservatively reject ambiguous new hits near protected corrections before any mutation; global dedup is unchanged. Dense genuine neighbours can trigger a conflict and require review.
+- Owned 12-symbol PDF acceptance covers declared quarter-turn placements. Its fractional-phase and oblique-angle challenges remain outside that main oracle; 12/12 is not general accuracy. Private real labels remain provisional AI visual review, with legend/workbook corroboration rather than human estimator certification.

@@ -245,6 +245,286 @@
       "reloadUnchanged": true,
       "browserExceptions": []
     },
-    "recognitionGuard": "Original hard-pixel fixture: strict matcher finds two true symbols and rejects shifted internal dots and missing detail. New appearance candidate remains unintegrated pending independent controls and browser evidence."
+    "recognitionGuard": "Original hard-pixel fixture: strict matcher finds two true symbols and rejects shifted internal dots and missing detail. New appearance candidate remains unintegrated pending independent controls and browser evidence.",
+    "delivery": {
+      "sourceCommit": "6d09eb69575233506b60e02438e1e8c67fc02b40",
+      "tree": "e43e75ba0bfd2a9ba047105ca984f26ba62c33a3",
+      "parent": "bc5fdf5b4eed2a27709fa030431fcf458957fa35",
+      "branch": "codex/vector-recognition-preview-2026-10-30",
+      "private": true,
+      "verifiedBlobs": 5,
+      "unrelatedBlobsPreserved": 255,
+      "canonicalCommitMirrored": true,
+      "mainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+      "localBranchIndexPreserved": true,
+      "localTests": {
+        "passed": 180,
+        "failed": 0,
+        "durationMs": 21938.513159
+      },
+      "browserLargeA1Checks": 17,
+      "hostedRun": 41036466725,
+      "hostedJob": 123998402798,
+      "hostedTests": {
+        "passed": 180,
+        "failed": 0,
+        "durationMs": 70066.142648
+      }
+    }
+  },
+  "appearanceExperiment": {
+    "status": "Integrated explicit new-selection opt-in; local194tests,67ownedbrowserchecks,8realUIchecks and independent actual-instance Excel reconciliation passed.",
+    "method": "Retained RGB, one global fractional-pixel translation and quarter-turn orientation, symmetric isolated contrast-detail checks. Every strict proposal is verified; no blind union.",
+    "fixedGates": {
+      "normalizedRgbRmseMax": 0.12,
+      "detailCentroidDistanceMaxPixels": 0.5,
+      "contrastMassRatio": [
+        0.75,
+        1.25
+      ]
+    },
+    "independentControls": {
+      "positiveDefinitions": 15,
+      "tp": 14,
+      "fp": 0,
+      "fn": 1,
+      "negativeDefinitions": 16,
+      "remainingMiss": "Black diagonal stroke occludes internal detail."
+    },
+    "v3FirstUnseenNode": {
+      "expected": 10,
+      "baseline": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 7
+      },
+      "candidate": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 3
+      },
+      "lostBaselineTruePositives": 1,
+      "limitation": "Labels frozen before candidate output. Reviewer had previously seen an archived aggregate; not fully blinded to historical total. Later versions use this drawing as regression data, not unseen validation."
+    },
+    "v4DevelopmentNode": {
+      "expected": 19,
+      "baseline": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 14
+      },
+      "candidate": {
+        "tp": 15,
+        "fp": 0,
+        "fn": 4
+      },
+      "sharedBaselineAnchorDisplacement": 0,
+      "selectionFix": "Keep passing strict orientation; otherwise choose lowest-RMSE orientation among those passing all unchanged gates. Original generated orientation counterexample added."
+    },
+    "remainingGates": [
+      "Fresh representative holdout and human-estimator labels",
+      "Resolve8remainingrealmisseswithoutweakeningsemanticdetailrejection",
+      "Occluded internal detail and unsafe clip/form geometry",
+      "Largepage element selection and retained-glyph colouring",
+      "Commercial Countfire comparative accuracy evidence"
+    ],
+    "unsupported": [
+      "Cleaned/ignored selection pixels",
+      "Transparent input",
+      "Sources without bounded isolated contrast detail",
+      "Arbitrary angles or scale variation"
+    ],
+    "moduleInChrome": {
+      "scope": "Module benchmark in isolated Chrome using actual PDF.js RGBA and fixed tiles; not application UI acceptance. Third drawing now regression, not unseen.",
+      "browser": "Chrome/156.0.8078.79",
+      "passes": 2,
+      "perDrawing": [
+        {
+          "drawing": 1,
+          "strict": {
+            "TP": 4,
+            "FP": 0,
+            "FN": 6
+          },
+          "appearance": {
+            "TP": 9,
+            "FP": 0,
+            "FN": 1
+          },
+          "renderMs": 13656.500000059605,
+          "strictMatchMs": 1247.7999998927116,
+          "appearanceMatchMs": 5966.500000059605
+        },
+        {
+          "drawing": 2,
+          "strict": {
+            "TP": 0,
+            "FP": 0,
+            "FN": 9
+          },
+          "appearance": {
+            "TP": 4,
+            "FP": 0,
+            "FN": 5
+          },
+          "renderMs": 14189.400000095367,
+          "strictMatchMs": 1047.8999999761581,
+          "appearanceMatchMs": 3852.7000000476837
+        },
+        {
+          "drawing": 3,
+          "strict": {
+            "TP": 3,
+            "FP": 0,
+            "FN": 7
+          },
+          "appearance": {
+            "TP": 8,
+            "FP": 0,
+            "FN": 2
+          },
+          "renderMs": 13604.399999976158,
+          "strictMatchMs": 1108.5,
+          "appearanceMatchMs": 3750.8000000715256
+        }
+      ],
+      "repeat": [
+        {
+          "sourceDrawing": 1,
+          "strictExact": true,
+          "appearanceExact": true
+        },
+        {
+          "sourceDrawing": 2,
+          "strictExact": true,
+          "appearanceExact": true
+        },
+        {
+          "sourceDrawing": 3,
+          "strictExact": true,
+          "appearanceExact": true
+        }
+      ],
+      "exceptions": [],
+      "approximateJsHeapSamplePeak": 210630678,
+      "memoryLimitation": "performance.memory usedJSHeapSize samples, approximate JS heap only; excludes canvas/native/worker/process memory",
+      "sourceModuleSha256": "e8b19d2b08d232772b237f8e00144a8edd0b47f7c72a15b8b8b835201e852da4"
+    },
+    "applicationChrome": {
+      "browser": "Chrome/156.0.8078.79",
+      "initialDetections": 21,
+      "perDrawingExpected": [
+        10,
+        9,
+        10
+      ],
+      "workflowChecksPassed": 8,
+      "afterOneDeliberateExclusionAndOneManualMiss": {
+        "marks": 22,
+        "included": 21
+      },
+      "reloadUnchanged": true,
+      "exceptions": [],
+      "note": "Geometry matched to independent labels separately by QA. Corrections are test decisions, not measured estimator effort.",
+      "scored": {
+        "tp": 21,
+        "fp": 0,
+        "fn": 8,
+        "precision": 1,
+        "recall": 0.7241379310344828
+      },
+      "manualPlacementRetest": {
+        "firstFitSheetDistancePdfPoints": 3.0500680110893996,
+        "firstAttemptWithinTolerance": false,
+        "precisionZoomPercent": 155,
+        "distancePdfPoints": 0.16401239071615173,
+        "tolerancePdfPoints": 1.5,
+        "eventCoordinatesRoundedToIntegers": true,
+        "productionCoordinateCodeChanged": false,
+        "scopeLimitation": "Synthetic click outside visible1440px viewport; validates handler/native mapping, not human pointer/panning usability."
+      }
+    },
+    "integration": {
+      "defaultOff": true,
+      "existingPoliciesMigrated": false,
+      "newVersions": [
+        "appearance-rgb-1",
+        "appearance-rgb-fixed-1"
+      ],
+      "unsupportedIsExplicitError": true,
+      "guard": "New proposals near related reviewed/excluded/reclassified/manual corrections conservatively reject the whole save before mutation; strict0.5point identity tolerance unchanged. Dense genuine neighbours may conflict.",
+      "originalPdfWorkflow": {
+        "ownedBrowserChecksPassed": 23,
+        "declaredMainTargets": 12,
+        "additionalKnownChallenges": "Fractional-phase and oblique glyphs outside main12 oracle; do not claim general12/12accuracy."
+      }
+    },
+    "validation": {
+      "localTests": {
+        "passed": 194,
+        "failed": 0,
+        "durationMs": 24390.438105
+      },
+      "browser": {
+        "newAppearanceOwned": 23,
+        "legacyRaster": 27,
+        "actualReal": 8,
+        "legacyScaleGlyph": 17,
+        "ownedTotal": 67
+      },
+      "independentIntegrityReview": "No blocking client/server integration issues found",
+      "productionStateByteIdentical": true,
+      "productionStateSha256": "edf81515d8112d0d33a7fc2cb4d6b4e99690f44720d26b63b5ee90f04c88da1d"
+    },
+    "independentActualInstanceIntegrity": {
+      "input": "21 actual initial Chrome app detections; separate isolated QA state",
+      "manualMissesAdded": 8,
+      "deliberateExclusions": 1,
+      "marks": 29,
+      "includedQuantity": 28,
+      "overlappingZoneQuantities": [
+        16,
+        12
+      ],
+      "drawingQuantities": [
+        9,
+        9,
+        10
+      ],
+      "independentWorkbookXmlTotal": 28,
+      "rerunReopenExact": true,
+      "sourcePdfHashesUnchanged": true,
+      "unreviewedExportBlocked": true,
+      "interpretation": "Test corrections are not measured estimator effort. This workbook state is distinct from the actual UI22-mark state."
+    },
+    "delivery": {
+      "sourceCommit": "bab748618e703455bc60bc35945ff440df34beca",
+      "tree": "7f27e767af14324929486006fefac717747525f6",
+      "parent": "6d09eb69575233506b60e02438e1e8c67fc02b40",
+      "branch": "codex/vector-recognition-preview-2026-10-30",
+      "private": true,
+      "verifiedBlobs": 17,
+      "unrelatedBlobsPreserved": 249,
+      "mainUnchanged": "5adef81a1524c3d17572ec080914bfdbbc5fb85f",
+      "localBranchIndexPreserved": true,
+      "canonicalCommitMirrored": true,
+      "localTests": {
+        "passed": 194,
+        "failed": 0,
+        "durationMs": 24390.438105
+      },
+      "browserChecks": {
+        "owned": 67,
+        "actualReal": 8
+      },
+      "hostedRun": 41042581383,
+      "hostedJob": 124018732289,
+      "hostedTests": {
+        "passed": 194,
+        "failed": 0,
+        "durationMs": 73680.070097
+      },
+      "productionStateByteIdentical": true
+    }
   }
 }
