@@ -1,4 +1,4 @@
-import {extractVectorPage,createVectorTemplate,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION} from './vector-recognition.mjs';
+import {extractVectorPage,resolveVectorTextBounds,createVectorTemplate,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION} from './vector-recognition.mjs';
 import {setupCountInk,inkTransform} from './count-ink.mjs';
 import {colourControl} from './count-colour.mjs';
 import {setupMeasurementCreation} from './measurement-creation.mjs';
@@ -188,7 +188,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     if(job)return;const c=context();if(!c.drawing)return;
     if(!confirm(`Recount ${c.drawing.name} using saved selections? Reviewed corrections and manual matches on this drawing are kept. Other drawings stay unchanged.`))return;
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=$('manual-item').disabled=true;paint();
-    try{const body=await runDrawingRecount({state:c.state,target:c.drawing,pdfjs,run,progress:text=>$('count-progress').textContent=text});if(run.cancelled)throw new Error('Recount cancelled; no results saved');$('cancel-match').hidden=true;const result=await api(`/api/drawings/${c.drawing.id}/recount`,json('POST',body));await reload();const message=`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Review new results.`;$('count-progress').textContent=message;notice(message);}
+    try{const body=await runDrawingRecount({state:c.state,target:c.drawing,pdfjs,run,progress:text=>$('count-progress').textContent=text});if(run.cancelled)throw new Error('Recount cancelled; no results saved');$('cancel-match').hidden=true;const result=await api(`/api/drawings/${c.drawing.id}/recount`,json('POST',body));await reload();const message=`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Review new results.${run.fallbacks?.size?` Raster fallback: ${[...run.fallbacks].join("; ")}.`:""}`;$('count-progress').textContent=message;notice(message);}
     catch(e){const message=run.cancelled?'Recount cancelled; no results saved':e.message;$('count-progress').textContent=message;notice(message,!run.cancelled);}
     finally{if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=$('manual-item').disabled=false;paint();}
   };
@@ -207,7 +207,10 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
       const page=await doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0});
       const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);if(width*height>4000000)throw new Error('Drawing exceeds the current matching resolution budget');
       const vectorKey=d.id+':'+number;if(vector&&!vectors.has(vectorKey))vectors.set(vectorKey,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
-      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport,operationsFilter:elements?selectionFilter(elements):undefined}).promise;const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
+      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true}),recordText=!elements&&vectors.get(vectorKey)?.pendingTextBounds===true;
+      await page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter:elements?selectionFilter(elements):undefined}).promise;
+      if(recordText)vectors.set(vectorKey,resolveVectorTextBounds(vectors.get(vectorKey),{reader:page.recordedBBoxes,viewport,width,height}));
+      const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
     }
     try{
       const original=await renderPage(source,sourcePage),a=original.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=original.viewport.convertToViewportPoint(bounds[2],bounds[1]);
@@ -226,7 +229,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
           const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;
           const timer=setTimeout(()=>{worker.terminate();reject(new Error('Page matching timed out'));},20000);
           run.cancel=()=>{clearTimeout(timer);worker.terminate();reject(new Error('Matching cancelled; no count saved'));};
-          worker.onmessage=event=>{clearTimeout(timer);worker.terminate();run.worker=null;event.data.error?reject(new Error(event.data.error)):resolve(event.data.matches);};
+          worker.onmessage=event=>{clearTimeout(timer);worker.terminate();run.worker=null;if(event.data.fallbackReason)fallbacks.add(event.data.fallbackReason);event.data.error?reject(new Error(event.data.error)):resolve(event.data.matches);};
           worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(new Error(event.message||'Matching failed'));};
           worker.postMessage({rgba:rendered.image.data.buffer,width:rendered.width,height:rendered.height,template,vectorPage:rendered.vectorPage},[rendered.image.data.buffer]);
         });

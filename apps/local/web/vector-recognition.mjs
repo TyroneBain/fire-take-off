@@ -25,12 +25,14 @@ function segmentsFrom(data,m,close){
 export function extractVectorPage({operatorList,OPS,maxElements=50000}){
  const list=operatorList;if(!list||!Array.isArray(list.fnArray)||!Array.isArray(list.argsArray)||list.fnArray.length!==list.argsArray.length)return unsupported('Invalid PDF operator list');
  if(list.fnArray.length>1000000)return unsupported('PDF exceeds vector operator budget');
- let state={matrix:identity(),width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000'};const stack=[],elements=[];let totalSegments=0;
+ let state={matrix:identity(),width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000',textMode:0};const stack=[],elements=[],textOperationIds=[];let totalSegments=0;
  const fills=new Set([OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]),strokes=new Set([OPS.stroke,OPS.closeStroke,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]);
- const unsafe=new Set(['clip','eoClip','beginGroup','beginSMaskGroup','paintFormXObjectBegin','shadingFill','rawFillPath','setFillColorN','setStrokeColorN','setFillTransparent','setStrokeTransparent','beginMarkedContentProps','showText','showSpacedText','nextLineShowText','nextLineSetSpacingShowText','paintImageXObject','paintInlineImageXObject','paintImageMaskXObject','paintImageXObjectRepeat','paintImageMaskXObjectRepeat','paintImageMaskXObjectGroup','paintInlineImageXObjectGroup'].map(n=>OPS[n]).filter(Number.isInteger));
+ const unsafe=new Set(['clip','eoClip','beginGroup','beginSMaskGroup','paintFormXObjectBegin','shadingFill','rawFillPath','setFillColorN','setStrokeColorN','setFillTransparent','setStrokeTransparent','beginMarkedContentProps','paintImageXObject','paintInlineImageXObject','paintImageMaskXObject','paintImageXObjectRepeat','paintImageMaskXObjectRepeat','paintImageMaskXObjectGroup','paintInlineImageXObjectGroup'].map(n=>OPS[n]).filter(Number.isInteger));
  try{for(let id=0;id<list.fnArray.length;id++){
   const op=list.fnArray[id],a=list.argsArray[id]||[];
   if(unsafe.has(op))return unsupported('Text, images, clipping, forms, patterns or compositing require raster fallback');
+  if(op===OPS.setTextRenderingMode){if(![0,3].includes(a[0]))return unsupported('Stroked or clipping text requires raster fallback');state.textMode=a[0];continue;}
+  if([OPS.showText,OPS.showSpacedText,OPS.nextLineShowText,OPS.nextLineSetSpacingShowText].includes(op)){if(state.textMode!==3)textOperationIds.push(id);if(textOperationIds.length>10000)return unsupported('PDF exceeds text visibility region budget');continue;}
   if(op===OPS.save){stack.push(structuredClone(state));continue;}
   if(op===OPS.restore){if(!stack.length)return unsupported('Unbalanced PDF graphics state');state=stack.pop();continue;}
   if(op===OPS.transform){if(!finite(a)||a.length!==6)return unsupported('Invalid PDF transform');state.matrix=multiply(state.matrix,a);continue;}
@@ -53,14 +55,51 @@ export function extractVectorPage({operatorList,OPS,maxElements=50000}){
   elements.push({id,segments,bounds,style});if(elements.length>maxElements)return unsupported('PDF exceeds vector element budget');
  }}catch(error){return unsupported(error.message);}
  if(stack.length)return unsupported('Unbalanced PDF graphics state');
+ if(elements.length&&textOperationIds.length)return {supported:false,pendingTextBounds:true,reason:'Text visibility needs recorded rendering bounds',elements,textOperationIds};
  return elements.length?{supported:true,elements,limitations:['Whole paint-operation identity must be retained','Text/image appearance and arbitrary rotations/scales are not matched']} : unsupported('No supported vector paths; use raster matching');
+}
+// Resolve only after a successful FULL, unfiltered render of the same operator list.
+// PDF.js records glyph outlines or conservative font bounds; uncertain fonts may
+// deliberately yield a full-page box, which remains an explicit raster fallback.
+export function resolveVectorTextBounds(page,{reader,viewport,width,height}={}){
+ if(!page?.pendingTextBounds)return page;
+ if(!reader||!viewport||!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return unsupported('Text rendering bounds unavailable; use raster matching');
+ const textRegions=[];
+ try{for(const id of page.textOperationIds){
+  if(reader.isEmpty(id))return unsupported('Text rendering bounds are empty or unavailable; use raster matching');
+  const box=[reader.minX(id),reader.minY(id),reader.maxX(id),reader.maxY(id)];
+  if(!finite(box)||box[0]<0||box[1]<0||box[2]>1||box[3]>1||box[2]<=box[0]||box[3]<=box[1])return unsupported('Invalid text rendering bounds; use raster matching');
+  if(box[0]===0&&box[1]===0&&box[2]===1&&box[3]===1)return unsupported('Font bounds are uncertain across the whole page; use raster matching');
+  // Two device pixels conservatively include antialiasing and bbox quantization.
+  const x0=box[0]*width-2,y0=box[1]*height-2,x1=box[2]*width+2,y1=box[3]*height+2;
+  const corners=[[x0,y0],[x1,y0],[x0,y1],[x1,y1]].map(p=>viewport.convertToPdfPoint(...p));
+  if(corners.some(p=>!finite(p)))return unsupported('Invalid text coordinate mapping; use raster matching');
+  textRegions.push([Math.min(...corners.map(p=>p[0])),Math.min(...corners.map(p=>p[1])),Math.max(...corners.map(p=>p[0])),Math.max(...corners.map(p=>p[1]))]);
+ }}catch{return unsupported('Text rendering bounds unavailable; use raster matching');}
+ if(!textRegions.length)return unsupported('Text rendering bounds unavailable; use raster matching');
+ return {supported:true,elements:page.elements,textRegions,limitations:['Text regions are excluded from vector recognition; overlapping candidates use raster fallback','Whole paint-operation identity must be retained','Arbitrary rotations/scales are not matched']};
+}
+// An enclosing stroked rectangle has a large overall box but no ink in its
+// interior. Exclude it from automatic selection only when EVERY segment hull
+// is disjoint, including conservative cap/join extent. Cubic control hulls can
+// overestimate visible ink; that uncertainty deliberately remains selectable.
+function strokeMayTouchSelection(element,selection){
+ if(element.style.fill||!element.style.stroke)return intersects(element.bounds,selection);
+ const {width,miter}=element.style;
+ if(!Number.isFinite(width)||width<=0||!Number.isFinite(miter)||miter<0)return true;
+ const padding=width/2*Math.max(Math.SQRT2,miter)+.01;
+ return element.segments.some(segment=>{
+  const b=boundsOf([segment]);if(!finite(b))return true;
+  return intersects([b[0]-padding,b[1]-padding,b[2]+padding,b[3]+padding],selection);
+ });
 }
 export function createVectorTemplate(page,{bounds,ids,excluded=[],anchor}={}){
  if(!page?.supported)return unsupported(page?.reason||'Vector source unavailable');
  if(!finite(bounds)||bounds.length!==4||bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||!finite(anchor)||anchor.length!==2)return unsupported('Invalid vector selection bounds or anchor');
  if(ids!==undefined&&(!Array.isArray(ids)||ids.length>128||ids.some(id=>!Number.isInteger(id))||new Set(ids).size!==ids.length))return unsupported('Invalid vector selection identities');
  if(!Array.isArray(excluded)||excluded.some(id=>!Number.isInteger(id)||ids&&!ids.includes(id)))return unsupported('Invalid excluded vector identities');
- const selected=ids?new Set(ids):null,erased=new Set(excluded),elements=page.elements.filter(e=>(selected?selected.has(e.id):intersects(e.bounds,bounds))&&!erased.has(e.id));
+ if(page.textRegions?.some(region=>intersects(region,bounds)))return unsupported('Selected symbol overlaps text; use raster matching');
+ const selected=ids?new Set(ids):null,erased=new Set(excluded),elements=page.elements.filter(e=>(selected?selected.has(e.id):strokeMayTouchSelection(e,bounds))&&!erased.has(e.id));
  if(selected&&ids.some(id=>!page.elements.some(e=>e.id===id)))return unsupported('Saved selection contains unavailable vector paths');
  if(!elements.length||elements.length>128)return unsupported('Select between 1 and 128 vector paths');
  if(elements.some(e=>!inside(e.bounds,bounds,.01)))return unsupported('Selection cuts a vector path; remove crossing linework or enlarge selection');
@@ -97,6 +136,9 @@ export function findVectorMatches(page,template,{rotations=true,tolerance=.05,ma
    // Reject additional whole paths within the symbol envelope. Long crossing pipes
    // remain allowed; explicitly erased source paths are ignored at equivalent sites.
    const envelope=boundsOf(parts.flatMap(p=>transformElement(p,0,[0,0],offset).segments));
+   const strokePad=Math.max(0,...parts.map(p=>p.style.width*Math.max(1,p.style.miter)/2));
+   const visibleEnvelope=[envelope[0]-strokePad,envelope[1]-strokePad,envelope[2]+strokePad,envelope[3]+strokePad];
+   if(page.textRegions?.some(region=>{if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');return intersects(region,visibleEnvelope);})){const error=new Error('A geometric candidate overlaps text; use raster matching for this page');error.code='VECTOR_TEXT_OVERLAP';throw error;}
    const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset));
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
    for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget))){valid=false;break;}}

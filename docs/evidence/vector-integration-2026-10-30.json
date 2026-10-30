@@ -148,5 +148,147 @@
       "failed": 0,
       "durationMs": 42225.990776
     }
+  },
+  "textVisibilityIncrement": {
+    "date": "2026-10-30T07:14:25.994428+00:00",
+    "implemented": [
+      "Resolve vector text regions from full unfiltered PDF.js recorded rendering bounds",
+      "Retain raster fallback for unknown fonts, clipping/stroked text and source/candidate overlap; no partial vector/raster union",
+      "Ignore enclosing stroke-only outlines only when all conservatively padded segment hulls are disjoint from automatic selection",
+      "Keep explicit path IDs, source anchors, saved schema and export formulas unchanged",
+      "Disclose worker fallback reasons for initial count and drawing recount"
+    ],
+    "tests": {
+      "command": "npm test",
+      "passed": 151,
+      "failed": 0,
+      "durationMs": 21798.970167,
+      "initialFailure": "Restricted sandbox loopback listen EPERM; rerun with approved local-server permission passed"
+    },
+    "independentQa": {
+      "agent": "qa_benchmark",
+      "passed": 7,
+      "failed": 0,
+      "actualPdfCases": [
+        "distant labels at four viewport rotations: 2TP/0FP/0FN",
+        "normal, rotated, scaled and negative-size overlapping text uses complete raster result",
+        "source overlap, invisible text, clipping modes, missing/fullpage bounds",
+        "enclosing frame vs crossing stroke and filled cover"
+      ]
+    },
+    "browser": {
+      "text": {
+        "date": "2026-10-30T07:13:38.903Z",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/156.0.8078.48",
+          "revision": "@d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+          "jsVersion": "15.6.75.19"
+        },
+        "checks": [
+          {
+            "passed": 8,
+            "checks": [
+              "All six declared symbols found on a page with distant text",
+              "Actual browser worker uses vector recognition with rendered text bounds: [{\"engine\":\"vector\",\"fallback\":null}]",
+              "No hidden raster fallback for distant labels",
+              "Vector policy saved",
+              "Saved drawing recount also resolves distant text before vector matching",
+              "Drawing recount adds no duplicate marks",
+              "Drawing recount preserves reviewed exclusion exactly",
+              "Included quantity retains manual correction"
+            ],
+            "engines": [
+              {
+                "engine": "vector",
+                "fallback": null
+              },
+              {
+                "engine": "vector",
+                "fallback": null
+              }
+            ],
+            "scope": "Owned six-symbol fixture; no real-drawing or competitor accuracy claim"
+          }
+        ],
+        "reloadUnchanged": true,
+        "errors": []
+      },
+      "existingVector": {
+        "date": "2026-10-30T07:13:10.622Z",
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/156.0.8078.48",
+          "revision": "@d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+          "jsVersion": "15.6.75.19"
+        },
+        "checks": [
+          {
+            "passed": 9,
+            "checks": [
+              "Opt-in vector policy persists without changing default matching",
+              "Editor retains saved vector policy",
+              "Estimator removes crossing pipe while retaining three symbol paths",
+              "Hybrid recount produces 12 reported candidates across vector and fallback pages",
+              "Excluded source operation persists",
+              "Vector matcher recovers fractional crossing symbol",
+              "Vector matcher recovers symbol crossed by two pipes",
+              "Repeated vector recount adds no duplicates",
+              "Reviewed exclusion retains identity and quantity after vector recount"
+            ],
+            "totalMarks": 12,
+            "knownLimits": "Synthetic candidates include one mirror-labelled lookalike; no accuracy parity claim"
+          }
+        ],
+        "reloadUnchanged": true,
+        "errors": []
+      }
+    },
+    "productionState": {
+      "comparison": "All prior records in the previous checkpoint remain unchanged; current snapshot has additive live changes, so byte identity is NOT claimed. This turn tested only isolated temporary stores.",
+      "oldCounts": {
+        "countItems": 10,
+        "countExamples": 6,
+        "countMarks": 104
+      },
+      "currentCounts": {
+        "countItems": 11,
+        "countExamples": 7,
+        "countMarks": 116
+      },
+      "removedOrChangedOldRecords": 0,
+      "currentSnapshotSha256": "edf81515d8112d0d33a7fc2cb4d6b4e99690f44720d26b63b5ee90f04c88da1d"
+    },
+    "competitor": {
+      "normalUiObserved": true,
+      "projectName": "test",
+      "ownedFixtureSha256": "2736c874917f78d11f03a5143873ea74b4104d3224b1a7a9c71b83c537556a41",
+      "uploadSucceeded": false,
+      "blocker": "Chrome MCP upload_file denied project path outside its configured workspace roots. No access workaround attempted. No same-input competitor count measured."
+    },
+    "failuresFixed": [
+      "Independent Node tests initially assumed browser font behavior; default Node fonts yield fullpage bounds and correctly retain fallback",
+      "Browser initially used raster because enclosing frame contaminated source selection; conservative segment-hull selection fix verified in browser",
+      "Initial near-stroke padding test exposed premature aggregate-bounds filter; removed for stroke-only paths"
+    ],
+    "limitations": [
+      "Vector mode remains opt-in preview",
+      "Unknown fonts, forms/clips/images and text overlap can still require raster fallback",
+      "Scaled, arbitrary-angle and raster-only challenge positives remain misses",
+      "No Countfire parity or representative real-drawing accuracy established"
+    ],
+    "sourceSha256": {
+      "apps/local/web/vector-recognition.mjs": "afa658f5ccf538f3aa6eeee0c059b72fea315716cdc2ad4f2278588aedf2bf78",
+      "apps/local/web/match-worker.mjs": "716b5f4797d22369b79420f3655a6d08ad00cfe48724db7aa18a8fa59b5d6da3",
+      "apps/local/web/takeoff-ui.mjs": "4f6e8903d0173db9b7474b56b215b97f9b2e74cf5a15889c01a990c970fc5dd9",
+      "apps/local/web/drawing-recount.mjs": "bbb0a145354f220ff3e9579f8bb83c1529f1ed367ac4d0e204069172c95cf952",
+      "tests/vector-independent.test.mjs": "1a011d006ae35f77ebe6a76277de755edfdffed22c3d889b6ab50afa00e523c0",
+      "tests/vector-text-visibility.test.mjs": "770c7127e6e62184c8b6daab6f77c461f7f4bdd7cf879ea3c87a8c11612a02c9",
+      "tests/vector-selection-bounds.test.mjs": "77efa7b0d7899d8faac88931e86f5e31c3b2d5e2b63db988bafb340a429df91c",
+      "tests/browser/vector-text.js": "94111a881055a872df651cbc57cab2fb335b07e0da3021cff5793ea3dc6815e2",
+      "scripts/run-count-browser-acceptance.mjs": "469805db3477aa9e5f4657adbcb1dc0ee085ae69842f148db05b15cdad97e3aa"
+    }
   }
 }

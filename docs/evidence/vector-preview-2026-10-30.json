@@ -718,5 +718,31 @@
     "scripts/vector-qa-fixture.mjs": "75e52d155a62418bbc412796e9051134f89b508f33875f6b67e232e72a4d4cca",
     "scripts/vector-qa-benchmark.mjs": "63957bd9e5afee2a186736baeb37591fc0721cf8473d9acaf1a948d2c662e850",
     "apps/local/web/matcher.mjs": "e8ac7fb2359bd5339fc09c0deec5823e13bc5d7ff7a9cf0cc639c0138b6021c6"
+  },
+  "independentAdjudication": {
+    "date": "2026-10-30T07:14:25.993290+00:00",
+    "agent": "qa_benchmark",
+    "tests": "tests/vector-independent.test.mjs",
+    "method": "Independent literal-coordinate equivalence: mirrored square/L/dot equals seed rotated 270 degrees. Original fixture and raw metrics retained above; corrected oracle adds this site as a positive.",
+    "baseline": {
+      "tp": 10,
+      "fp": 1,
+      "fn": 5,
+      "precision": 0.9090909090909091,
+      "recall": 0.6666666666666666
+    },
+    "candidate": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1,
+      "recall": 0.8
+    },
+    "remainingMisses": [
+      "scaled-positive",
+      "oblique-positive",
+      "raster-only"
+    ],
+    "scope": "Original synthetic fixture only; no representative real drawing or Countfire comparison."
   }
 }
