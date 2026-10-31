@@ -1,6 +1,12 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+### 2026-10-31 symmetric-pose duplicate fix and frozen fresh benchmark
+
+The existing matcher emitted four off-centre anchors for one physical symmetric paint set. Generic original-ID-set deduplication now retains the first pose/anchor without changing tolerances. Original fixtures, actual Chrome Worker, correction/reclassification/manual-mark persistence, overlapping zones, Excel and reopen pass; full suite 304/304.
+
+On the same frozen cleaned source/31 labels, raw before-fix output was 22 TP/66 duplicate FP/9 FN; fixed output is 22/0/9. Original-PDF gate produces 19/0/12, repeated exactly in actual Chrome. Prior uncleaned-source strict baseline 1/0/30 is not an algorithm-only comparison. No accepted real quantities or parity claim. The 31-label set is development data after diagnosis. Remaining failures: nine extra-path vetoes from distinct earlier PDF layers, three AA-only sequential-canvas-transform discrepancies. Preserve all pre-fix reports. Layer-scope controls must reject wrong coloured internal details; pixel replay must improve fidelity, not loosen thresholds.
+
 ### 2026-10-31 redundant rectangular clips and explicit source cleanup
 
 Raw extraction now proves full-footprint containment inside every original rectangle clip using the exact viewport and device-pixel guard, retaining all original clip provenance. Original-render verification remains mandatory because geometrically redundant fractional clips can alter antialiasing. Eleven original fixture cases yield six raw admissions but five Chrome pixel proofs; a thin-stroke/no-opaque-detail case remains unverified. Two exact Chrome repeats, no exceptions.

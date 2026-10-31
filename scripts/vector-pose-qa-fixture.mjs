@@ -1,0 +1,12 @@
+import {createHash} from 'node:crypto';
+
+// Original independently authored PDF. Quarter-turn symmetry must never create
+// four counts for the same two physical paint operations. The user anchor is
+// deliberately off centre and must stay fixed when equivalent poses collapse.
+const circle=(radius,steps)=>Array.from({length:steps},(_,i)=>[radius*Math.cos(i*2*Math.PI/steps),radius*Math.sin(i*2*Math.PI/steps)]).map((p,i)=>p.map(v=>+v.toFixed(6)).join(' ')+(i?' l':' m')).join(' ')+' h S';
+const glyph=(x,y,inner=true)=>`q 1 0 0 1 ${x} ${y} cm 0 G .4 w ${circle(4,32)} ${inner?circle(1.2,16):''} Q`;
+function pdf(contents){const objects=['<< /Type /Catalog /Pages 2 0 R >>',`<< /Type /Pages /Kids [${contents.map((_,i)=>`${3+i*2} 0 R`).join(' ')}] /Count ${contents.length} >>`];for(const [i,c]of contents.entries())objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Contents ${4+i*2} 0 R >>`,`<< /Length ${Buffer.byteLength(c)} >>\nstream\n${c}\nendstream`);let out='%PDF-1.4\n';const offsets=[0];for(const [i,o]of objects.entries()){offsets.push(Buffer.byteLength(out));out+=`${i+1} 0 obj\n${o}\nendobj\n`;}const xref=Buffer.byteLength(out);out+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n${offsets.slice(1).map(v=>`${String(v).padStart(10,'0')} 00000 n \n`).join('')}trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;return Buffer.from(out);}
+export function vectorPoseQaFixture(){
+ const labels=[40,100,160].map((x,i)=>({id:'head-'+(i+1),page:1,x:x+.2,y:40.3,centre:[x,40]})),bytes=pdf([labels.map(p=>glyph(...p.centre)).join('\n'),glyph(40,40,false)+'\n'+glyph(40.12,40,false)]);
+ return {bytes,manifest:{id:'independent-symmetric-pose-v1',sha256:createHash('sha256').update(bytes).digest('hex'),provenance:'Original literal PDF, no customer or competitor content',sourcePage:1,selection:[34,34,46,46],anchor:[40.2,40.3],labels,nearby:{page:2,selection:[34,34,46.2,46],anchor:[40.2,40.3],sourceElementRule:'Explicitly select only the first ring operation; both original whole paint identities are distinct',expectedPhysicalPaintSets:2,centreSeparation:.12},policy:'Exactly one proposal per complete original paint-ID set across equivalent poses. Keep the first stable orientation and original anchor; never recenter or change matching tolerance. The nearby case tests distinct physical identities only, not visually separable accepted takeoff quantities.'}};
+}

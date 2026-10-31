@@ -133,7 +133,7 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
  const check=()=>{if(cancelled())throw new Error('Vector matching cancelled');};
  for(const e of page.elements){check();const k=shapeKey(e);if(!byShape.has(k))byShape.set(k,[]);byShape.get(k).push(e);const c=centre(e),sk=key(...c);if(!spatial.has(sk))spatial.set(sk,[]);spatial.get(sk).push(e);}
  const nearby=e=>{const [x,y]=centre(e),found=[];for(let cy=Math.floor((y-tolerance)/cell);cy<=Math.floor((y+tolerance)/cell);cy++)for(let cx=Math.floor((x-tolerance)/cell);cx<=Math.floor((x+tolerance)/cell);cx++)found.push(...(spatial.get(cx+','+cy)||[]));return found;};
- const hits=[];
+ const hits=[],matchedIdentities=new Set();
  for(const angle of rotations?[0,90,180,270]:[0]){
   const parts=template.elements.map(e=>transformElement(e,angle,template.anchor));
   parts.sort((a,b)=>(byShape.get(shapeKey(a))?.length??0)-(byShape.get(shapeKey(b))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
@@ -162,7 +162,12 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
    const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset,scale));
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
    for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget))){valid=false;break;}}
-   if(valid&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),score:1,elementIds:[...used].sort((a,b)=>a-b)});if(hits.length>5000)throw new Error('Too many vector matches');}
+   if(valid){
+    // Symmetric geometry can match several poses whose off-centre anchors differ.
+    // One original paint set is one instance; retain its first accepted pose.
+    const elementIds=[...used].sort((a,b)=>a-b),identityKey=elementIds.join(',');
+    if(!matchedIdentities.has(identityKey)&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){matchedIdentities.add(identityKey);hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),score:1,elementIds});if(hits.length>5000)throw new Error('Too many vector matches');}
+   }
   }
  }
  check();return hits.sort((a,b)=>a.y-b.y||a.x-b.x);
