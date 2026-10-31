@@ -174,10 +174,11 @@ function prepare(p,budget,viewport){
  * Rendering metadata is an explicit caller contract, not cryptographic proof
  * that supplied pixels came from the stated PDF. Use captureContourRaster.
  */
-export function verifyContourVisibility({paints,contextPaints=[],authorizedContextIds=[],viewportTransform,image,createCanvas,cancelled=()=>false}={}){
+export function verifyContourVisibility({paints,contextPaints=[],authorizedContextIds=[],viewportTransform,image,createCanvas,cancelled=()=>false,includeAlphaMask=false}={}){
  const diagnostics={paintCount:0,contextPaintCount:0,foregroundPixels:0,opaquePixels:0,antialiasPixels:0,mismatchedPixels:0};let canvas,executionStage;
  try{
   if(typeof cancelled!=='function')fail('Invalid cancellation callback');
+  if(typeof includeAlphaMask!=='boolean')fail('Invalid alpha-mask option');
   const check=()=>{if(cancelled())fail('Contour visibility cancelled');};check();
   const m=matrix(viewportTransform);
   if(!validCrop(image)||!(image.data instanceof Uint8Array||image.data instanceof Uint8ClampedArray)||image.data.length!==image.width*image.height*4)fail('Invalid or oversized original RGBA crop');
@@ -220,7 +221,8 @@ export function verifyContourVisibility({paints,contextPaints=[],authorizedConte
   }
   check();if(!diagnostics.foregroundPixels||!diagnostics.opaquePixels)fail('Paint has no opaque detail to verify');
   if(diagnostics.mismatchedPixels)fail('Original raster does not preserve retained paint');
-  return {verified:true,proof:CONTOUR_VISIBILITY_VERSION,requiresSemanticVerification:true,requiresContextVerification:contexts.length>0,diagnostics};
+  const alphaMask=includeAlphaMask?{left:image.left,top:image.top,width:image.width,height:image.height,alpha:Uint8Array.from({length:image.width*image.height},(_,i)=>required[i*4+3])}:undefined;
+  if(includeAlphaMask)check();return {verified:true,proof:CONTOUR_VISIBILITY_VERSION,requiresSemanticVerification:true,requiresContextVerification:contexts.length>0,diagnostics,...includeAlphaMask?{alphaMask}:{}};
  // Unexpected renderer failures must not look like ordinary pixel refusals to
  // callers accumulating review proposals. Validation can also run inside draw;
  // its private error type keeps those bounded refusals distinct from execution.

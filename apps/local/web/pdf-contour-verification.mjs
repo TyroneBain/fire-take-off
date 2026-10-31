@@ -64,11 +64,11 @@ export async function preparePdfContourPaints({page,OPS,elementIds,contextIds=[]
  * cannot be forged, rebound to another page or reused after a layer change.
  * This deliberately returns no score, coordinates for accepted marks or count.
  */
-export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion,cancelled=()=>false,onRender=()=>{}}={}){
+export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion,cancelled=()=>false,onRender=()=>{},includeAlphaMask=false}={}){
  let canvas,task,timer,timedOut=false,executionStage=null;
  try{
   const p=preparedPages.get(prepared);
-  if(!p||typeof createCanvas!=='function'||typeof cancelled!=='function'||typeof onRender!=='function')fail('Invalid prepared paint handle or render callbacks');
+  if(!p||typeof createCanvas!=='function'||typeof cancelled!=='function'||typeof onRender!=='function'||typeof includeAlphaMask!=='boolean')fail('Invalid prepared paint handle or render callbacks');
   const check=()=>{if(cancelled())fail('Contour verification cancelled');if(contentState(p.optionalContentConfig)!==p.contentHash)fail('Drawing layer visibility changed; prepare again');};check();
   const viewport=p.page.getViewport({scale:2,rotation:0}),all=[...p.paints,...p.contextPaints],native=[Infinity,Infinity,-Infinity,-Infinity],scale=Math.hypot(viewport.transform[0],viewport.transform[1]);
   if(!sameTransform(Array.from(viewport.transform),p.viewportTransform))fail('Drawing viewport changed; prepare again');
@@ -88,7 +88,7 @@ export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion
   task.onContinue=resume=>{try{check();resume();}catch{task.cancel();}};
   onRender(task);await task.promise;check();
   executionStage='readback';const image=captureContourRaster({context,left,top,width,height,pdfjsVersion});executionStage=null;
-  const proof=verifyContourVisibility({paints:p.paints,contextPaints:p.contextPaints,authorizedContextIds:prepared.contextIds,viewportTransform:Array.from(viewport.transform),image,createCanvas,cancelled});check();
+  const proof=verifyContourVisibility({paints:p.paints,contextPaints:p.contextPaints,authorizedContextIds:prepared.contextIds,viewportTransform:Array.from(viewport.transform),image,createCanvas,cancelled,includeAlphaMask});check();
   return {...proof,crop:{left,top,width,height},redundantClipOperations:p.clipProofs.map(p=>p.id),requiresSemanticVerification:true};
  }catch(error){
   if(task){task.cancel();try{await task.promise;}catch{}}

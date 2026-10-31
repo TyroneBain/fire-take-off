@@ -1,3 +1,4 @@
+import {VECTOR_REVIEW_VERSION,isVectorReviewAlgorithm,validVectorReview,vectorReviewAppliesToPage} from './web/vector-review-policy.mjs';
 import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './web/vector-recognition.mjs';
 import {isVectorAlgorithm,includesRotations,includesScales,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
 import {drawingRecounts} from './drawing-recounts.mjs';
@@ -61,13 +62,14 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,VECTOR_REVIEW_VERSION].includes(example.algorithm))fail('Invalid matching example');
     if(isAppearanceAlgorithm(example.algorithm)&&example.elements!==undefined)fail('Colour and fine-detail matching does not support cleaned selections');
     if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
-    return JSON.stringify({drawing_id:d.id,page:example.page,bounds:example.bounds,digest:d.digest,algorithm:example.algorithm,...(example.elements?{elements:{renderer:example.elements.renderer,ids:example.elements.ids,excluded:example.elements.excluded}}:{})});
+    if(isVectorReviewAlgorithm(example.algorithm)){if(!validElementSelection(example.elements)||!validVectorReview(example.vectorReview))fail('Invalid native vector review metadata');geometry(example.drawing_id,example.page,'point',[example.vectorReview.anchor]);}
+    return JSON.stringify({drawing_id:d.id,page:example.page,bounds:example.bounds,digest:d.digest,algorithm:example.algorithm,...(isVectorReviewAlgorithm(example.algorithm)?{vectorReview:example.vectorReview}:{}),...(example.elements?{elements:{renderer:example.elements.renderer,ids:example.elements.ids,excluded:example.elements.excluded}}:{})});
   }
   function assertAppearanceCorrections(itemId,source,matches,exampleId=null,removed=new Set()) {
-    if(!isAppearanceAlgorithm(source.algorithm)||!matches.length)return;
+    if((!isAppearanceAlgorithm(source.algorithm)&&!isVectorReviewAlgorithm(source.algorithm))||!matches.length)return;
     const dimension=definition=>{const b=definition?.bounds;return b?Math.max(b[2]-b[0],b[3]-b[1]):0;},radius=dimension(source),groups=new Map();
     const rows=db.prepare('SELECT m.*,coalesce(e.example,i.example) AS source_definition FROM count_marks m LEFT JOIN count_examples e ON e.id=m.example_id LEFT JOIN count_items i ON i.id=m.original_item_id WHERE m.item_id=? OR m.original_item_id=? OR m.example_id=?').all(itemId,itemId,exampleId);
     for(const m of rows){if(removed.has(m.id))continue;const key=m.drawing_id+':'+m.page;if(!groups.has(key))groups.set(key,{exact:new Map(),protected:[],radius});const group=groups.get(key),cell=Math.floor(m.x)+':'+Math.floor(m.y);if(!group.exact.has(cell))group.exact.set(cell,[]);group.exact.get(cell).push(m);
@@ -80,8 +82,28 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       // Bounds are deliberately conservative: an unknown trimmed anchor or a
       // quarter turn must not let a shifted proposal bypass a manual decision.
       // Dense genuine neighbours may require another selection; never merge them.
-      for(let y=Math.floor(m.y/group.radius)-1;y<=Math.floor(m.y/group.radius)+1;y++)for(let x=Math.floor(m.x/group.radius)-1;x<=Math.floor(m.x/group.radius)+1;x++)if((group.bins.get(x+':'+y)||[]).some(p=>Math.abs(p.x-m.x)<=p.radius&&Math.abs(p.y-m.y)<=p.radius))fail('Colour and fine-detail results overlap an existing correction. No results saved; review the nearby symbols or use another selection.',409);
+      for(let y=Math.floor(m.y/group.radius)-1;y<=Math.floor(m.y/group.radius)+1;y++)for(let x=Math.floor(m.x/group.radius)-1;x<=Math.floor(m.x/group.radius)+1;x++)if((group.bins.get(x+':'+y)||[]).some(p=>Math.abs(p.x-m.x)<=p.radius&&Math.abs(p.y-m.y)<=p.radius))fail((isVectorReviewAlgorithm(source.algorithm)?'Native vector review':'Colour and fine-detail')+' results overlap an existing correction. No results saved; review the nearby symbols or use another selection.',409);
     }
+  }
+  function validateNativeResults(source,matches) {
+    if(!isVectorReviewAlgorithm(source.algorithm))return;
+    if(!Array.isArray(matches)||!validVectorReview(source.vectorReview,matches.length))fail('Invalid native vector review decision');
+    const selected=source.vectorReview.decisions.filter(d=>d.included);
+    if(new Set(matches.map(m=>m?.x+':'+m?.y)).size!==matches.length)fail('Duplicate native vector review results');
+    for(const m of matches)if(!m||!vectorReviewAppliesToPage(source,m.drawing_id,m.page)||m.score!==1||!selected.some(d=>d.x===m.x&&d.y===m.y))fail('Native vector review results must match explicit source-page decisions');
+    for(const decision of source.vectorReview.decisions)geometry(source.drawing_id,source.page,'point',[[decision.x,decision.y]]);
+  }
+  const nativeDecisionMarks=source=>source.vectorReview.decisions.map(d=>({drawing_id:source.drawing_id,page:source.page,digest:source.digest,x:d.x,y:d.y,score:1}));
+  function applyNativeRejections(itemId,disciplineId,source,exampleId) {
+    if(!isVectorReviewAlgorithm(source.algorithm))return 0;let rejected=0;
+    for(const d of source.vectorReview.decisions.filter(d=>!d.included)){
+      let existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 ORDER BY reviewed DESC,created,id LIMIT 1').get(itemId,itemId,exampleId,source.drawing_id,source.page,d.x,d.y);
+      if(existing&&!existing.included)continue;
+      if(existing&&(existing.reviewed||existing.origin==='manual'||existing.item_id!==itemId||existing.example_id!==exampleId))fail('A draft rejection conflicts with an existing correction. Review that saved mark directly.',409);
+      if(!existing)existing=insertMark(itemId,disciplineId,{drawing_id:source.drawing_id,page:source.page,digest:source.digest,x:d.x,y:d.y,score:1},'automatic',exampleId);
+      updateMark(existing.id,{included:false,reviewed:true,version:existing.version});rejected++;
+    }
+    return rejected;
   }
   function insertMark(itemId,disciplineId,m,origin,exampleId=null) {
     const d=validateMark(disciplineId,m,origin);
@@ -103,7 +125,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     } catch(error) {db.exec('ROLLBACK TO match_decision; RELEASE match_decision');throw error;}
   }
   return {
-    ...drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,assertAppearanceCorrections,fail}),
+    ...drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insertMark,assertAppearanceCorrections,validateNativeResults,nativeDecisionMarks,applyNativeRejections,fail}),
     snapshot(){
       const calibrations=db.prepare('SELECT * FROM calibrations ORDER BY drawing_id,page').all().map(c=>({...c,points:JSON.parse(c.points)}));
       return {countItems:db.prepare('SELECT * FROM count_items ORDER BY created,id').all().map(i=>({...i,example:i.example?JSON.parse(i.example):null})),
@@ -123,9 +145,10 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       if(!/^#[0-9a-f]{6}$/i.test(color))fail('Invalid item colour');
       if(!Array.isArray(matches)||matches.length>5000)fail('Too many match results');
       const encoded=example?exampleJSON(disciplineId,example):null;
+      if(example)validateNativeResults(example,matches);
       if(!example&&matches.length)fail('Automatic results require a source example');
       const id=randomUUID();db.exec('BEGIN');
-      try{const created=new Date().toISOString(),exampleId=encoded?randomUUID():null;db.prepare('INSERT INTO count_items (id,discipline_id,name,color,example,created) VALUES (?,?,?,?,?,?)').run(id,disciplineId,label,color,encoded,created);if(encoded)db.prepare('INSERT INTO count_examples (id,item_id,example,created) VALUES (?,?,?,?)').run(exampleId,id,encoded,created);for(const m of matches)insertMark(id,disciplineId,m,'automatic',exampleId);db.exec('COMMIT');}
+      try{const created=new Date().toISOString(),exampleId=encoded?randomUUID():null;db.prepare('INSERT INTO count_items (id,discipline_id,name,color,example,created) VALUES (?,?,?,?,?,?)').run(id,disciplineId,label,color,encoded,created);if(encoded)db.prepare('INSERT INTO count_examples (id,item_id,example,created) VALUES (?,?,?,?)').run(exampleId,id,encoded,created);for(const m of matches)insertMark(id,disciplineId,m,'automatic',exampleId);if(example)applyNativeRejections(id,disciplineId,example,exampleId);db.exec('COMMIT');}
       catch(error){db.exec('ROLLBACK');throw error;}
       return item(id);
     },
@@ -133,10 +156,11 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       const i=item(itemId);if(version!==i.version)fail('Heading changed. Reload before adding an example.',409);
       const encoded=exampleJSON(i.discipline_id,example);
       if(!Array.isArray(matches)||matches.length>5000)fail('Invalid match results');
+      validateNativeResults(example,matches);
       let saved=db.prepare('SELECT * FROM count_examples WHERE item_id=? AND example=?').get(itemId,encoded);
       if(!saved&&db.prepare('SELECT count(*) AS n FROM count_examples WHERE item_id=?').get(itemId).n>=50)fail('Limit of 50 examples per heading reached');
       for(const m of matches)validateMark(i.discipline_id,m,'automatic');
-      assertAppearanceCorrections(itemId,example,matches,saved?.id);
+      assertAppearanceCorrections(itemId,example,isVectorReviewAlgorithm(example.algorithm)?nativeDecisionMarks(example):matches,saved?.id);
       let added=0,skipped=0,linked=0;const isNew=!saved;
       db.exec('BEGIN');
       try {
@@ -146,51 +170,64 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
           const exists=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 ORDER BY (original_item_id=?) DESC,created,id LIMIT 1').get(itemId,itemId,saved.id,m.drawing_id,m.page,m.x,m.y,itemId);
           if(exists){if(exists.origin==='automatic'&&!exists.example_id&&exists.original_item_id===itemId){db.prepare('UPDATE count_marks SET example_id=?,version=version+1 WHERE id=?').run(saved.id,exists.id);db.prepare('INSERT INTO count_events VALUES (?,?,?,?,?,?)').run(randomUUID(),exists.id,'link-example',JSON.stringify(exists),JSON.stringify(mark(exists.id)),new Date().toISOString());linked++;}skipped++;continue;}insertMark(itemId,i.discipline_id,m,'automatic',saved.id);added++;
         }
-        if(isNew||added||linked)db.prepare('UPDATE count_items SET example=coalesce(example,?),version=version+1 WHERE id=?').run(encoded,itemId);
+        const rejected=applyNativeRejections(itemId,i.discipline_id,example,saved.id);
+        if(isNew||added||linked||rejected)db.prepare('UPDATE count_items SET example=coalesce(example,?),version=version+1 WHERE id=?').run(encoded,itemId);
         db.exec('COMMIT');
       }catch(error){db.exec('ROLLBACK');throw error;}
       return {item:item(itemId),example_id:saved.id,added,skipped,linked};
     },
-    editCountSelection(exampleId,{version,elements,matches,scope,expected_marks,rotations,vector,scales,appearance}={}) {
+    editCountSelection(exampleId,{version,item_version,elements,matches,scope,expected_marks,rotations,vector,scales,appearance,vectorReview}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
       if(e.version!==version)fail('Selection changed. Reload before editing.',409);
-      const source=JSON.parse(e.example),i=item(e.item_id);
+      const source=JSON.parse(e.example),i=item(e.item_id),native=vectorReview!==undefined;
+      if(isVectorReviewAlgorithm(source.algorithm)&&!native)fail('Native vector reviews require an explicit Apply decision');
+      if(native){
+        if(item_version!==i.version)fail('Heading changed. Reload before applying vector review.',409);
+        if(!validVectorReview(vectorReview,Array.isArray(matches)?matches.length:-1)||!validElementSelection(elements))fail('Invalid native vector review decision or source elements');
+        if([rotations,vector,scales,appearance].some(v=>v!==undefined))fail('Native vector review cannot use legacy matching settings');
+        if(isVectorReviewAlgorithm(source.algorithm)&&source.vectorReview.anchor.some((v,k)=>v!==vectorReview.anchor[k]))fail('The saved native selection anchor cannot change');
+        if(db.prepare('SELECT drawing_id,page FROM count_marks WHERE example_id=?').all(exampleId).some(m=>m.drawing_id!==source.drawing_id||m.page!==source.page))fail('This selection has results on another page. Preserve them and create a separate source-page selection.',409);
+      }
       if(vector!==undefined&&typeof vector!=='boolean')fail('Invalid vector setting');
       if(rotations!==undefined&&typeof rotations!=='boolean')fail('Invalid rotation setting');
       if(scales!==undefined&&typeof scales!=='boolean')fail('Invalid scale setting');
       if(appearance!==undefined&&typeof appearance!=='boolean')fail('Invalid appearance setting');
-      const useAppearance=isAppearanceAlgorithm(source.algorithm);
+      const useAppearance=!native&&isAppearanceAlgorithm(source.algorithm);
       if(appearance!==undefined&&appearance!==useAppearance)fail('Choose colour and fine-detail matching only when adding a new selection');
       if(elements===undefined){if(typeof rotations!=='boolean'&&typeof vector!=='boolean'&&typeof scales!=='boolean')fail('Invalid source element selection');elements=source.elements;}
       if(elements!==undefined&&!validElementSelection(elements))fail('Invalid source element selection');
       const rotate=rotations??(useAppearance?source.algorithm===APPEARANCE_MATCHER_VERSION:includesRotations(source.algorithm)),useVector=vector??isVectorAlgorithm(source.algorithm),scale=scales??includesScales(source.algorithm);
       if(useAppearance&&(elements!==undefined||useVector||scale))fail('Colour and fine-detail matching requires an uncleaned selection at its original size');
       if(scale&&!useVector)fail('Scaled symbols require vector geometry');
-      const algorithm=useAppearance?(rotate?APPEARANCE_MATCHER_VERSION:APPEARANCE_FIXED_VERSION):useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
-      const definition={...source,algorithm,...(elements?{elements}:{})},encodedDefinition=exampleJSON(i.discipline_id,definition);
+      const algorithm=native?VECTOR_REVIEW_VERSION:useAppearance?(rotate?APPEARANCE_MATCHER_VERSION:APPEARANCE_FIXED_VERSION):useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
+      const definition={...source,algorithm,...(elements?{elements}:{}),...(native?{vectorReview}:{} )},encodedDefinition=exampleJSON(i.discipline_id,definition);
       if(db.prepare('SELECT id FROM count_examples WHERE item_id=? AND example=? AND id<>?').get(i.id,encodedDefinition,exampleId))fail('Another saved selection already uses these matching settings',409);
       if(!Array.isArray(scope)||!scope.length||scope.length>20||scope.some(d=>!d||typeof d.id!=='string'||typeof d.digest!=='string')||new Set(scope.map(d=>d.id)).size!==scope.length)fail('Invalid matching scope');
-      let pages=0;for(const d of scope){const actual=drawing(d.id);if(actual.discipline_id!==i.discipline_id||actual.digest!==d.digest)fail('Drawing scope changed',409);pages+=actual.pages.length;}if(pages>20)fail('Select a scope of at most 20 pages');
+      if(native&&(scope.length!==1||scope[0].id!==source.drawing_id))fail('Native vector review scope must be the original source page');
+      let pages=0;for(const d of scope){const actual=drawing(d.id);if(actual.discipline_id!==i.discipline_id||actual.digest!==d.digest)fail('Drawing scope changed',409);pages+=native?1:actual.pages.length;}if(pages>20)fail('Select a scope of at most 20 pages');
       const ids=new Set(scope.map(d=>d.id));if(!ids.has(source.drawing_id))fail('Scope must contain the selection source');
       if(!Array.isArray(matches)||matches.length>5000||!Array.isArray(expected_marks)||expected_marks.length>5000||expected_marks.some(m=>!m||typeof m.id!=='string'||!Number.isInteger(m.version)))fail('Invalid matching results');
       const previous=db.prepare('SELECT * FROM count_marks WHERE example_id=? ORDER BY id').all(exampleId).filter(m=>ids.has(m.drawing_id));
       if(expected_marks.length!==previous.length||new Set(expected_marks.map(m=>m.id)).size!==expected_marks.length||previous.some(m=>!expected_marks.some(p=>p.id===m.id&&p.version===m.version)))fail('Matches changed. Reload before editing.',409);
       // Selection changes must cover every drawing previously searched by this example.
       if(db.prepare('SELECT drawing_id FROM count_marks WHERE example_id=?').all(exampleId).some(m=>!ids.has(m.drawing_id)))fail('Search all drawings containing this selection before editing');
+      validateNativeResults(definition,matches);
       for(const m of matches){validateMark(i.discipline_id,m,'automatic');if(!ids.has(m.drawing_id))fail('Result outside matching scope');}
       const near=(a,b)=>a.drawing_id===b.drawing_id&&a.page===b.page&&Math.abs(a.x-b.x)<.5&&Math.abs(a.y-b.y)<.5;
-      const obsolete=previous.filter(m=>!m.reviewed&&m.included&&m.item_id===e.item_id&&!matches.some(n=>near(m,n)));
-      assertAppearanceCorrections(i.id,definition,matches,exampleId,new Set(obsolete.map(m=>m.id)));
-      let added=0,skipped=0;db.exec('BEGIN');
+      const decisionMarks=native?nativeDecisionMarks(definition):matches;
+      const obsolete=previous.filter(m=>(!native||m.origin==='automatic')&&!m.reviewed&&m.included&&m.item_id===e.item_id&&!decisionMarks.some(n=>near(m,n)));
+      assertAppearanceCorrections(i.id,definition,decisionMarks,exampleId,new Set(obsolete.map(m=>m.id)));
+      let added=0,skipped=0,rejected=0;db.exec('BEGIN');
       try{
         for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);
         const encoded=encodedDefinition;db.prepare('UPDATE count_examples SET example=?,version=version+1 WHERE id=?').run(encoded,exampleId);
         for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,exampleId,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}insertMark(i.id,i.discipline_id,m,'automatic',exampleId);added++;}
+        rejected=applyNativeRejections(i.id,i.discipline_id,definition,exampleId);
         db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,encoded,i.id);
-        db.prepare('INSERT INTO count_selection_events VALUES (?,?,?,?,?)').run(randomUUID(),exampleId,JSON.stringify({example:source,version:e.version,marks:previous}),JSON.stringify({example:JSON.parse(encoded),version:e.version+1,scope,added,removed:obsolete.map(m=>m.id),retained_corrections:previous.filter(m=>m.reviewed||!m.included||m.item_id!==i.id).map(m=>m.id)}),new Date().toISOString());
+        db.prepare('INSERT INTO count_selection_events VALUES (?,?,?,?,?)').run(randomUUID(),exampleId,JSON.stringify({example:source,version:e.version,marks:previous}),JSON.stringify({example:JSON.parse(encoded),version:e.version+1,scope,added,...(native?{rejected}:{}),removed:obsolete.map(m=>m.id),retained_corrections:previous.filter(m=>m.reviewed||!m.included||m.item_id!==i.id).map(m=>m.id)}),new Date().toISOString());
         db.exec('COMMIT');
       }catch(error){db.exec('ROLLBACK');throw error;}
-      return {id:exampleId,version:e.version+1,added,removed:obsolete.length,skipped};
+      return {id:exampleId,version:e.version+1,added,removed:obsolete.length,skipped,...(native?{rejected}:{} )};
     },
     moveCountSelection(exampleId,{version,item_version,destination_id,destination_version,expected_marks}={}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);

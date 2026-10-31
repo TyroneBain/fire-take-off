@@ -2,6 +2,8 @@ import {inkImage,exampleImage,rotateTemplate,isVectorAlgorithm,includesRotations
 import {editedTemplate,selectionFilter} from './pdf-elements.mjs';
 import {extractVectorPage,resolveVectorTextBounds,createVectorTemplate} from './vector-recognition.mjs';
 import {vectorInkMask} from './vector-ink.mjs';
+import {isVectorReviewAlgorithm} from './vector-review-policy.mjs';
+import {prepareNativeCountInk,nativeDecisionForMark} from './native-count-ink.mjs';
 // Return only retained template pixels that are actually present in this target drawing.
 export function alignedInk(image,template,centre,{rotations=false,threshold=.85}={}){
  const variants=[template];if(rotations)for(let i=1;i<4;i++)variants.push(rotateTemplate(variants.at(-1)));
@@ -39,6 +41,7 @@ export function setupCountInk({context,pdfjs,onReady,createCanvas=browserCanvas,
  const pages=new Map(),templates=new Map(),masks=new Map(),hitIndexes=new Map();let requested='',running=false,epoch=0;
  const key=(m,e)=>`${m.drawing_id}:${m.page}:${m.id}:${m.x}:${m.y}:${e.id}:${e.version}`;
  const trim=(map,limit)=>{while(map.size>limit)map.delete(map.keys().next().value);};
+ const trimNative=()=>{const entries=[...masks].filter(([,mask])=>mask?.native);let pixels=entries.reduce((sum,[,mask])=>sum+mask.width*mask.height,0);while(entries.length>512||pixels>4000000){const [id,mask]=entries.shift();pixels-=mask.width*mask.height;masks.delete(id);}};
  async function raster(d,number,elements,vector=false){
   const id=`${d.digest}:${number}:${JSON.stringify(elements||null)}:${vector}`;if(pages.has(id))return pages.get(id);
   const task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});
@@ -66,8 +69,18 @@ export function setupCountInk({context,pdfjs,onReady,createCanvas=browserCanvas,
  function maskURL(mask){const canvas=createCanvas(mask.width,mask.height),ctx=canvas.getContext('2d'),rgba=ctx.createImageData(mask.width,mask.height);for(let i=0;i<mask.data.length;i++)rgba.data[i*4+3]=mask.data[i]*255;ctx.putImageData(rgba,0,0);return canvas.toDataURL('image/png');}
  async function prepare(){
   if(running)return;const c=context();if(!c.drawing||!c.viewport)return;const rows=(c.state.countMarks||[]).filter(m=>m.drawing_id===c.drawing.id&&m.page===c.pageNumber&&m.origin==='automatic'&&m.included&&m.example_id),examples=new Map(c.state.countExamples.map(e=>[e.id,e]));
-  const signature=c.drawing.id+':'+c.pageNumber+':'+rows.map(m=>`${m.id}:${m.x}:${m.y}:${m.example_id}:${examples.get(m.example_id)?.version}`).join(',');if(signature===requested)return;requested=signature;running=true;const token=++epoch;
-  try{const vector=rows.some(m=>isVectorAlgorithm(examples.get(m.example_id)?.example.algorithm)),target=await raster(c.drawing,c.pageNumber,null,vector);let completed=0;for(const m of rows){const e=examples.get(m.example_id);if(!e)continue;const id=key(m,e);if(masks.has(id))continue;
+  const signature=c.drawing.id+':'+c.drawing.digest+':'+c.pageNumber+':'+rows.map(m=>`${m.id}:${m.x}:${m.y}:${m.example_id}:${examples.get(m.example_id)?.version}`).join(',');if(signature===requested)return;requested=signature;running=true;const token=++epoch;
+  const stale=()=>token!==epoch||context().drawing?.id!==c.drawing.id||context().drawing?.digest!==c.drawing.digest||context().pageNumber!==c.pageNumber;
+  try{
+   const native=rows.filter(m=>isVectorReviewAlgorithm(examples.get(m.example_id)?.example.algorithm)),legacy=rows.filter(m=>!isVectorReviewAlgorithm(examples.get(m.example_id)?.example.algorithm));
+   const missing=native.filter(m=>!masks.has(key(m,examples.get(m.example_id))));
+   for(let offset=0;offset<missing.length;offset+=128){if(stale())break;const batch=missing.slice(offset,offset+128);try{
+     const result=await prepareNativeCountInk({pdfjs,drawing:c.drawing,pageNumber:c.pageNumber,marks:batch,examples:[...examples.values()],createCanvas,cancelled:stale});if(stale())break;
+     for(const m of batch){const mask=result.masks.get(m.id);masks.set(key(m,examples.get(m.example_id)),mask?{...mask,native:true}:null);}
+    }catch{if(!stale())for(const m of batch)masks.set(key(m,examples.get(m.example_id)),null);}trimNative();trim(masks,5000);
+   }
+   if(stale()||!legacy.length)return;
+   const vector=legacy.some(m=>isVectorAlgorithm(examples.get(m.example_id)?.example.algorithm)),target=await raster(c.drawing,c.pageNumber,null,vector);let completed=0;for(const m of legacy){const e=examples.get(m.example_id);if(!e)continue;const id=key(m,e);if(masks.has(id))continue;
     try{const t=await templateFor(e,c.state);let mask=null;if(isVectorAlgorithm(e.example.algorithm)){try{mask=await verifiedMask(target,t,e,m,c.drawing.digest);}catch{/* A failed geometric check retains the established raster/outline fallback. */}}
      if(!mask)mask=alignedInk(target,t,target.viewport.convertToViewportPoint(m.x,m.y),{rotations:includesRotations(e.example.algorithm),threshold:matchingThreshold(e.example.algorithm)});masks.set(id,mask?{...mask,data:undefined,url:maskURL(mask),viewport:target.viewport}:null);}catch{masks.set(id,null);}
     // Yield in bounded batches so large result sets do not lock drawing navigation.
@@ -76,5 +89,5 @@ export function setupCountInk({context,pdfjs,onReady,createCanvas=browserCanvas,
   }catch{/* Unavailable source or rendering failure keeps an explicit fallback marker. */}
   finally{running=false;const now=context();if(now.drawing?.id!==c.drawing.id||now.pageNumber!==c.pageNumber)requested='';if(token===epoch)onReady();}
  }
- return {prepare,get(m){if(!m.included||m.origin!=='automatic')return null;const e=context().state.countExamples.find(e=>e.id===m.example_id);return e?masks.get(key(m,e)):null;}};
+ return {prepare,get(m){if(!m.included||m.origin!=='automatic')return null;const c=context(),e=c.state.countExamples.find(e=>e.id===m.example_id);if(isVectorReviewAlgorithm(e?.example.algorithm)&&!nativeDecisionForMark({mark:m,example:e,drawing:c.drawing,pageNumber:c.pageNumber}))return null;return e?masks.get(key(m,e)):null;}};
 }

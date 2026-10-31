@@ -1,5 +1,6 @@
 import {isVectorAlgorithm,includesScales} from './matcher.mjs';
 import {isAppearanceAlgorithm} from './appearance-policy.mjs';
+import {isVectorReviewAlgorithm} from './vector-review-policy.mjs';
 import {inspectPdfElements,ELEMENT_RENDERER,elementAt} from './pdf-elements.mjs';
 const $=id=>document.getElementById(id);
 // One render at a time per PDF page. Edits replace the queued request; stale
@@ -20,7 +21,7 @@ export function selectionPreviewPixels(model,excluded,image){
  if(image){if(image.width!==model.width||image.height!==model.height||image.data.length!==pixels.length)throw Error('Selection preview dimensions changed');for(let i=0;i<pixels.length;i+=4)if(image.data[i+3]&&(image.data[i]!==255||image.data[i+1]!==255||image.data[i+2]!==255))pixels.set(image.data.subarray(i,i+4),i);}
  return pixels;
 }
-export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching}){
+export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,reviewVector}){
  let model=null,record=null,task=null,epoch=0,excluded=new Set(),mode='erase',shift=false,drag=null,saving=false,preview=null,previewImage=null;
  const dialog=$('selection-dialog'),canvas=$('selection-canvas');
  function close(){if(saving){cancelMatching();return;}epoch++;preview?.dispose();preview=null;previewImage=null;task?.destroy().catch(()=>{});task=null;model=null;record=null;dialog.close();}
@@ -28,7 +29,8 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching}
   if(!model)return;const {width,height,elements}=model;canvas.width=width;canvas.height=height;const fit=Math.min((canvas.parentElement.clientWidth-24)/width,280/height);canvas.style.width=width*fit+'px';canvas.style.height=height*fit+'px';const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(width,height);
   pixels.data.set(selectionPreviewPixels(model,excluded,previewImage));
   ctx.putImageData(pixels,0,0);$('selection-elements').textContent=String(elements.length-excluded.size);$('selection-erase').classList.toggle('selected',!shift&&mode==='erase');$('selection-restore').classList.toggle('selected',shift||mode==='restore');
-  $('selection-vector').disabled=saving;$('selection-scales').disabled=saving||!$('selection-vector').checked;$('selection-done').disabled=saving||!preview?.ready(excluded);$('selection-erase-all').disabled=saving;canvas.classList.toggle('restoring',shift||mode==='restore');
+  const native=isVectorReviewAlgorithm(record?.example.algorithm);$('selection-vector').disabled=saving||native;$('selection-scales').disabled=saving||native||!$('selection-vector').checked;$('selection-done').disabled=saving||!preview?.ready(excluded);$('selection-erase-all').disabled=saving;canvas.classList.toggle('restoring',shift||mode==='restore');
+  $('selection-native-review').disabled=saving||!preview?.ready(excluded)||excluded.size===model.elements.length;$('selection-native-layer').disabled=saving;$('selection-done').textContent=native?'Review matches':'Done';
  }
  const point=e=>{const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height];};
  function touch(p){if(!model||saving)return;const restore=shift||mode==='restore',candidates=model.elements.filter(e=>excluded.has(e.id)===restore),id=elementAt(candidates,...p,model.width,model.height);if(id===null)return;restore?excluded.delete(id):excluded.add(id);preview.update(excluded);paint();}
@@ -40,12 +42,18 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching}
  dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
  dialog.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,textarea,select'))return;if(e.key==='Shift'){shift=true;paint();}else if(e.key.toLowerCase()==='d'){e.preventDefault();$('selection-erase-all').click();}else if(e.key.toLowerCase()==='e'){e.preventDefault();$('selection-done').click();}});
  dialog.addEventListener('keyup',e=>{if(e.key==='Shift'){shift=false;paint();}});window.addEventListener('blur',()=>{shift=false;drag=null;if(dialog.open)paint();});
- $('selection-done').onclick=async event=>{if(!model||saving||!preview?.ready(excluded))return;saving=true;paint();const empty=excluded.size===model.elements.length;$('selection-error').textContent=empty?'Delete selection or cancel to keep editing.':'Recounting drawings…';
+ async function nativePreview(){if(!reviewVector||!model||saving||!preview?.ready(excluded)||excluded.size===model.elements.length)return;saving=true;paint();$('selection-error').textContent='Finding matches on the source page…';
+  try{await reviewVector(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},$('selection-native-layer').checked);saving=false;close();}
+  catch(error){$('selection-error').textContent=error.message;}finally{saving=false;if(dialog.open)paint();}
+ }
+ $('selection-native-review').onclick=nativePreview;
+ $('selection-done').onclick=async event=>{if(isVectorReviewAlgorithm(record?.example.algorithm)&&excluded.size!==model?.elements.length)return nativePreview();if(!model||saving||!preview?.ready(excluded))return;saving=true;paint();const empty=excluded.size===model.elements.length;$('selection-error').textContent=empty?'Delete selection or cancel to keep editing.':'Recounting drawings…';
   try{if(empty){const deleted=await remove(record,{skipConfirmation:!!event?.shiftKey});saving=false;if(deleted)close();return;}await apply(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},{vector:$('selection-vector').checked,scales:$('selection-vector').checked&&$('selection-scales').checked});saving=false;close();}
   catch(error){$('selection-error').textContent=error.message;}finally{saving=false;if(dialog.open)paint();}
  };
  return {async open(next){
-  if(saving)return;close();const generation=++epoch;record=next;$('selection-vector').checked=isVectorAlgorithm(next.example.algorithm);$('selection-vector').disabled=true;$('selection-scales').checked=includesScales(next.example.algorithm);$('selection-scales').disabled=true;excluded=new Set(next.example.elements?.excluded||[]);mode='erase';shift=false;drag=null;$('selection-error').textContent='Loading selection…';$('selection-elements').textContent='…';$('selection-done').disabled=true;$('selection-erase-all').disabled=true;canvas.width=canvas.height=1;dialog.showModal();
+  if(saving)return;close();const generation=++epoch;record=next;$('selection-vector').checked=isVectorAlgorithm(next.example.algorithm);$('selection-vector').disabled=true;$('selection-scales').checked=includesScales(next.example.algorithm);$('selection-scales').disabled=true;$('selection-native-layer').checked=next.example.vectorReview?.sourceLayerScope??true;$('selection-native-review').disabled=true;excluded=new Set(next.example.elements?.excluded||[]);mode='erase';shift=false;drag=null;$('selection-error').textContent='Loading selection…';$('selection-elements').textContent='…';$('selection-done').disabled=true;$('selection-erase-all').disabled=true;canvas.width=canvas.height=1;dialog.showModal();
+  $('selection-scope-hint').textContent=isVectorReviewAlgorithm(next.example.algorithm)?'Click or drag to erase. Hold Shift to restore. Review searches this source page only; corrections are kept.':'Click or drag to erase. Hold Shift to restore. Done recounts all drawings in this discipline; corrections are kept.';
   const state=context().state,marks=state.countMarks.filter(m=>m.example_id===next.id&&m.item_id===next.item_id&&m.drawing_id===context().drawing?.id&&m.included);$('selection-matches').textContent=String(marks.length);$('selection-factor').textContent=String(next.multiplier||1);$('selection-total').textContent=String(marks.reduce((sum,m)=>sum+(m.quantity??1),0));
   const appearance=isAppearanceAlgorithm(next.example.algorithm);$('selection-erase').disabled=appearance;$('selection-restore').disabled=appearance;
   if(appearance){$('selection-elements').textContent='—';$('selection-error').textContent='Colour and fine-detail selections do not support element cleaning. Use Matching options to change quarter-turn rotations, or add a new selection.';return;}

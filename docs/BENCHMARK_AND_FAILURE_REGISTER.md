@@ -86,3 +86,12 @@ Source PDFs/private labels/workbooks remain ignored .local. Public-facing/privat
 | A1-009 | Clip candidates |29/29isolatedfills reconstructexactly onlywhen originalclip+paint transformsretained | Candidate helper testedbutunwired; no acceptedcount gain |
 
 Evidence: `docs/evidence/large-element-selection-2026-10-31.json`. All customer sources, labels and identifying workflow observations remainignoredlocal. Proposed next native-contour work is not implemented capability.
+
+
+### Native counting UI acceptance, 2026-10-31
+
+Actual application: 30 TP / 0 FP / 1 FN verified on the existing31-label development drawing;31/31 geometric proposals. Not a new blind holdout or competitor comparison. Independent180 UI checks pass across this drawing and an original four-head fixture. Explicit review choices produce29included real instances; recount/reload retain the full correction ledger and glyph colours; independent Excel instance/zone reconciliation is29 =20+9. Full regression368/368 passes. Private final report SHA2561cfb357c51ecd0787e7d629fa638fccb112267b8ff707cfc23e132149fae2ec6.
+
+Failures retained: synchronous cached-mask completion duplicated overlay buttons (fixed by attach-before-notify); test clicked zone creation before rendered readiness (QA wait fixed); review dialog closed before refreshed classification state (fixed by close-after-refresh); fit-sheet synthetic manual click landed2.77nativepoints from intended centre (QA now zooms/pans visibly; final0.400762point offset, same1.5point scoring tolerance). No matching threshold or coordinate calculation changed. Real white-overpaint candidate remains explicitly unverified.
+
+Second source remains unsupported:188 coarse box candidates,20 isolated nonwhite crop painters, one with9 obscured pixels,69-channel joint reconstruction difference. No target labels inspected in this source-only diagnosis. Bounded candidate refinement is the next investigation; raising the cap alone is not an accepted fix. Counts remain the sole development priority.

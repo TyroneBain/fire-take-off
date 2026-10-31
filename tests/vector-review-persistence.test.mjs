@@ -1,0 +1,64 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {DatabaseSync} from 'node:sqlite';
+import {getDocument,OPS} from 'pdfjs-dist/legacy/build/pdf.mjs';
+import ExcelJS from 'exceljs';
+import {openStore} from '../apps/local/store.mjs';
+import {quantityWorkbook} from '../apps/local/workbook.mjs';
+import {ELEMENT_RENDERER} from '../apps/local/web/pdf-elements.mjs';
+import {VECTOR_REVIEW_VERSION,validVectorReview} from '../apps/local/web/vector-review-policy.mjs';
+function originalPdf(){
+ const glyph=x=>`${x-4} 96 8 8 re S ${x-1} 99 m ${x+1} 99 l ${x} 101 l h f`;
+ const stream='0 G 0 g .5 w '+[glyph(100),'100 104 m 100 120 l S',... [200,300,400,450,500].map(glyph)].join('\n');
+ const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Resources << >> /Contents 4 0 R >>',`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Resources << >> /Contents 6 0 R >>','<< /Length 0 >>\nstream\n\nendstream'];
+ let out='%PDF-1.4\n';const offsets=[0];for(const [i,o]of objects.entries()){offsets.push(Buffer.byteLength(out));out+=`${i+1} 0 obj\n${o}\nendobj\n`;}const xref=Buffer.byteLength(out);out+=`xref\n0 7\n0000000000 65535 f \n${offsets.slice(1).map(n=>`${String(n).padStart(10,'0')} 00000 n \n`).join('')}trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;return new Uint8Array(Buffer.from(out));
+}
+async function workspace(t){
+ const dir=await mkdtemp(join(tmpdir(),'native-review-')),store=await openStore(dir);t.after(()=>{store.close();return rm(dir,{recursive:true,force:true});});
+ const bytes=Buffer.from(originalPdf()),task=getDocument({data:new Uint8Array(bytes),isEvalSupported:false});const pdf=await task.promise,page=await pdf.getPage(1),ops=await page.getOperatorList(),ids=ops.fnArray.flatMap((op,id)=>op===OPS.constructPath?[id]:[]);await task.destroy();
+ const project=store.create('project',null,'Original vector review'),takeoff=store.create('takeoff',project.id,'Takeoff'),discipline=store.create('discipline',takeoff.id,'Fire'),drawing=await store.importPdf(discipline.id,'Original.pdf',bytes),hit=(x,page=1)=>({drawing_id:drawing.id,page,x,y:100,digest:drawing.digest,score:1});
+ const item=store.createCount(discipline.id,{name:'Sprinklers',example:{drawing_id:drawing.id,page:1,bounds:[90,90,110,110],digest:drawing.digest,algorithm:'binary-overlap-1'},matches:[100,200,300,400].map(x=>hit(x))}),example=store.snapshot().countExamples[0],elements={renderer:ELEMENT_RENDERER,ids:ids.slice(0,3),excluded:[ids[2]]};
+ const indices=new Map([[100,0],[200,3],[300,5],[400,7],[450,9],[500,11]]),decision=(x,included=true)=>({x,y:100,rotation:0,elementIds:ids.slice(indices.get(x)??0,(indices.get(x)??0)+2),included});
+ const metadata=decisions=>({version:VECTOR_REVIEW_VERSION,scope:'source-page',sourceLayerScope:false,anchor:[100,100],decision:'apply',decisions,provenance:{engine:'vector-candidate-review-1',visibility:'contour-paint-visibility-4',requestedPaints:ids.length,admittedPaints:ids.length,unknownCount:0,excludedCount:0,proposalCount:decisions.length,verifiedCount:decisions.length,selectedCount:decisions.filter(d=>d.included).length}});
+ const payload=decisions=>{const s=store.snapshot();return {version:s.countExamples.find(e=>e.id===example.id).version,item_version:s.countItems.find(i=>i.id===item.id).version,elements,matches:decisions.filter(d=>d.included).map(d=>hit(d.x)),scope:[{id:drawing.id,digest:drawing.digest}],expected_marks:s.countMarks.filter(m=>m.example_id===example.id).map(m=>({id:m.id,version:m.version})),vectorReview:metadata(decisions)};};
+ return {dir,store,bytes,drawing,discipline,takeoff,item,example,hit,decision,metadata,payload,elements};
+}
+test('explicit Apply persists native identity, durable draft rejections, manual corrections, quantities, zones, Excel and reopen',async t=>{
+ const f=await workspace(t),{store}=f,other=store.createCount(f.discipline.id,{name:'Other sprinkler'}),marks=store.snapshot().countMarks.sort((a,b)=>a.x-b.x);
+ store.updateMark(marks[0].id,{version:1,included:false,reviewed:true});store.updateMark(marks[1].id,{version:1,included:true,reviewed:true,item_id:other.id});store.updateMark(marks[2].id,{version:1,included:true,reviewed:true});store.updateCountMultiplier(f.example.id,{version:1,multiplier:2});const manual=store.addManualMark(f.item.id,{drawing_id:f.drawing.id,page:1,x:450,y:100}),protectedMarks=store.snapshot().countMarks.filter(m=>m.reviewed);
+ const decisions=[100,200,300,450,500].map(x=>f.decision(x)).concat(f.decision(400,false)),result=store.editCountSelection(f.example.id,f.payload(decisions));assert.equal(result.rejected,1);assert.equal(result.added,1);
+ let s=store.snapshot();for(const m of protectedMarks)assert.deepEqual(s.countMarks.find(v=>v.id===m.id),m);assert.equal(s.countMarks.find(m=>m.id===manual.id).origin,'manual');const rejected=s.countMarks.find(m=>m.x===400);assert.equal(rejected.id,marks[3].id);assert.equal(rejected.included,0);assert.equal(rejected.reviewed,1);assert.ok(s.countEvents.some(e=>e.mark_id===rejected.id&&e.action==='exclude'));const added=s.countMarks.find(m=>m.x===500);assert.equal(added.origin,'automatic');assert.equal(added.reviewed,0);assert.equal(added.score,1);
+ assert.equal(s.countExamples[0].example.algorithm,VECTOR_REVIEW_VERSION);assert.deepEqual(s.countExamples[0].example.vectorReview.decisions,decisions);assert.deepEqual(s.countExamples[0].example.elements,f.elements);
+ const west=store.createZoneHeading(f.discipline.id,{name:'West'}),east=store.createZoneHeading(f.discipline.id,{name:'East'});store.createZone(f.drawing.id,{heading_id:west.id,page:1,points:[[0,0],[350,0],[350,800],[0,800]]});store.createZone(f.drawing.id,{heading_id:east.id,page:1,points:[[250,0],[600,0],[600,800],[250,800]]});s=store.snapshot();assert.equal(s.quantitySchedule.reduce((n,r)=>n+r.value,0),7);
+ await assert.rejects(()=>quantityWorkbook(s,f.takeoff.id),/Review 1 included matches/);store.updateMark(added.id,{version:added.version,included:true,reviewed:true});s=store.snapshot();const book=new ExcelJS.Workbook();await book.xlsx.load((await quantityWorkbook(s,f.takeoff.id)).bytes);let total=0;book.getWorksheet('Count instances').eachRow((row,n)=>{if(n>1)total+=row.getCell(17).value;});assert.equal(total,7);assert.equal(book.getWorksheet('Selection edits').getCell('J2').value,VECTOR_REVIEW_VERSION);
+ const before=s;store.close();store.close=()=>{};const reopened=await openStore(f.dir);try{assert.deepEqual(reopened.snapshot(),before);}finally{reopened.close();}
+});
+test('source-page conversion refuses cross-page or cross-drawing history without deleting it',async t=>{
+ for(const destination of ['page','drawing']){const f=await workspace(t),other=destination==='drawing'?await f.store.importPdf(f.discipline.id,'Second.pdf',Buffer.concat([f.bytes,Buffer.from('\n% Independent second document\n')])):f.drawing;f.store.addCountExample(f.item.id,{version:f.store.snapshot().countItems[0].version,example:f.example.example,matches:[{...f.hit(500,destination==='page'?2:1),drawing_id:other.id,digest:other.digest}]});const before=f.store.snapshot();assert.throws(()=>f.store.editCountSelection(f.example.id,f.payload([f.decision(100)])),/another page/);assert.deepEqual(f.store.snapshot(),before);}
+});
+test('native metadata, item versions, exact decisions and protected correction shifts reject atomically',async t=>{
+ const f=await workspace(t);f.store.editCountSelection(f.example.id,f.payload([100,200,300,400].map(x=>f.decision(x))));let before=f.store.snapshot(),valid=f.payload([100,200,300,400].map(x=>f.decision(x)));
+ for(const change of [{item_version:999},{version:999},{expected_marks:[]},{rotations:false},{vector:false},{vectorReview:undefined},{vectorReview:{...valid.vectorReview,anchor:[100.1,100]}},{matches:[{...valid.matches[0],page:2}]},{matches:[{...valid.matches[0],score:.99}]},{vectorReview:{...valid.vectorReview,decisions:[{...valid.vectorReview.decisions[0],elementIds:[2,1]}]}}]){assert.throws(()=>f.store.editCountSelection(f.example.id,{...valid,...change}));assert.deepEqual(f.store.snapshot(),before);}
+ const mark=before.countMarks.find(m=>m.x===200);f.store.updateMark(mark.id,{version:mark.version,included:false,reviewed:true});before=f.store.snapshot();assert.throws(()=>f.store.editCountSelection(f.example.id,f.payload([f.decision(205)])),/overlap an existing correction/);assert.deepEqual(f.store.snapshot(),before);
+ const protectedMark=before.countMarks.find(m=>m.x===300);f.store.updateMark(protectedMark.id,{version:protectedMark.version,included:true,reviewed:true});before=f.store.snapshot();assert.throws(()=>f.store.editCountSelection(f.example.id,f.payload([f.decision(300,false)])),/conflicts with an existing correction/);assert.deepEqual(f.store.snapshot(),before);
+});
+test('source-page recount keeps rejected marks and skips unrelated drawings without erasing history',async t=>{
+ const f=await workspace(t),decisions=[f.decision(100),f.decision(200,false),f.decision(300),f.decision(400)];f.store.editCountSelection(f.example.id,f.payload(decisions));const original=f.store.snapshot().countMarks.find(m=>m.x===200),all=decisions.map(d=>({...d,included:true})).concat(f.decision(500));
+ const request=(target,matches,vectorReview)=>{const s=f.store.snapshot();return {digest:target.digest,selections:[{id:f.example.id,version:s.countExamples[0].version,item_version:s.countItems[0].version,matches,...(vectorReview?{vectorReview}:{})}],expected_marks:s.countMarks.filter(m=>m.drawing_id===target.id).map(m=>({id:m.id,version:m.version}))};};
+ f.store.recountDrawing(f.drawing.id,request(f.drawing,all.map(d=>f.hit(d.x)),f.metadata(all)));assert.deepEqual(f.store.snapshot().countMarks.find(m=>m.id===original.id),original);const refreshed=f.store.snapshot();assert.equal(refreshed.countExamples[0].version,3);assert.deepEqual(refreshed.countExamples[0].example.vectorReview.decisions,all);assert.equal(refreshed.countMarks.find(m=>m.x===500).reviewed,0);assert.deepEqual(refreshed.countDrawingRecounts[0].previous.selections[0].example.vectorReview.decisions,decisions);
+ const other=await f.store.importPdf(f.discipline.id,'Different.pdf',Buffer.concat([f.bytes,Buffer.from('\n% Independent different document\n')])),before=f.store.snapshot().countMarks;f.store.recountDrawing(other.id,request(other,[]));assert.deepEqual(f.store.snapshot().countMarks,before);
+ assert.throws(()=>f.store.recountDrawing(other.id,request(other,[{...f.hit(100),drawing_id:other.id,digest:other.digest}],f.metadata([f.decision(100)]))),/another drawing/);
+ assert.throws(()=>f.store.recountDrawing(f.drawing.id,request(f.drawing,[f.hit(100,2)],f.metadata([f.decision(100)]))),/source-page decisions/);
+});
+test('selection audit failure rolls back added exclusions, matches, example metadata and review events',async t=>{
+ const f=await workspace(t),before=f.store.snapshot(),db=new DatabaseSync(join(f.dir,'projects.sqlite'));try{db.exec("CREATE TRIGGER reject_native_audit BEFORE INSERT ON count_selection_events BEGIN SELECT RAISE(ABORT,'native audit failed'); END");assert.throws(()=>f.store.editCountSelection(f.example.id,f.payload([f.decision(500),f.decision(400,false)])),/native audit failed/);assert.deepEqual(f.store.snapshot(),before);}finally{db.close();}
+});
+
+test('new draft rejection is durable and a failed native recount rolls back decisions, versions and mark audit',async t=>{
+ const f=await workspace(t),initial=[f.decision(100),f.decision(200),f.decision(300),f.decision(400),f.decision(500,false)];f.store.editCountSelection(f.example.id,f.payload(initial));let s=f.store.snapshot(),rejection=s.countMarks.find(m=>m.x===500);assert.equal(rejection.included,0);assert.equal(rejection.reviewed,1);assert.equal(rejection.origin,'automatic');assert.equal(rejection.example_id,f.example.id);assert.ok(s.countEvents.some(e=>e.mark_id===rejection.id&&e.action==='exclude'));
+ const next=[f.decision(100),f.decision(450),f.decision(400,false)],request={digest:f.drawing.digest,selections:[{id:f.example.id,version:s.countExamples[0].version,item_version:s.countItems[0].version,matches:next.filter(d=>d.included).map(d=>f.hit(d.x)),vectorReview:f.metadata(next)}],expected_marks:s.countMarks.map(m=>({id:m.id,version:m.version}))},db=new DatabaseSync(join(f.dir,'projects.sqlite'));
+ try{db.exec("CREATE TRIGGER reject_native_recount BEFORE INSERT ON count_drawing_recounts BEGIN SELECT RAISE(ABORT,'native recount audit failed'); END");assert.throws(()=>f.store.recountDrawing(f.drawing.id,request),/native recount audit failed/);assert.deepEqual(f.store.snapshot(),s);}finally{db.close();}
+});

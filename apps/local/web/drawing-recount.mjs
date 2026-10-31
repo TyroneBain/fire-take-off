@@ -3,6 +3,8 @@ import {isVectorAlgorithm} from './matcher.mjs';
 import {recognizeDrawing} from './recognize-drawing.mjs';
 import {selectionFilter} from './pdf-elements.mjs';
 import {MATCH_IMAGE_PIXELS,createTileBudget,renderMatchSelection,tiledMatchPage,searchMatchTiles} from './pdf-match-tiles.mjs';
+import {runSavedVectorReview} from './vector-review-runner.mjs';
+import {vectorReviewPayload} from './vector-review-ui.mjs';
 export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  const opened=new Map(),vectors=new Map(),vector=state.countExamples.some(e=>isVectorAlgorithm(e.example.algorithm)&&state.countItems.some(i=>i.id===e.item_id&&i.discipline_id===target.discipline_id)),check=()=>{if(run.cancelled)throw new Error('Recount cancelled; no results saved');};
  run.fallbacks=new Set();
@@ -18,6 +20,10 @@ export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  }
  function searchRaster(raster,template){return new Promise((resolve,reject)=>{check();const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;const finish=()=>{clearTimeout(timer);worker.terminate();run.worker=null;},timer=setTimeout(()=>{finish();reject(new Error('Page matching timed out'));},20000);run.cancel=()=>{finish();reject(new Error('Recount cancelled; no results saved'));};worker.onmessage=e=>{finish();if(e.data.fallbackReason)run.fallbacks.add(e.data.fallbackReason);e.data.error?reject(new Error(e.data.error)):resolve(e.data.matches);};worker.onerror=e=>{finish();reject(new Error(e.message||'Matching failed'));};worker.postMessage({rgba:raster.data.buffer,width:raster.width,height:raster.height,template,vectorPage:raster.vectorPage},[raster.data.buffer]);});}
  async function search(raster,template){if(!raster.tiled)return searchRaster(raster,template);if(!template.matchAppearance)run.fallbacks.add(raster.vectorPage.reason);return searchMatchTiles({raster,template,search:searchRaster,cancelled:()=>run.cancelled,budget:tileBudget,progress:(tile,count)=>progress?.(`Searching large drawing · tile ${tile}/${count}…`)});}
- try{return await recognizeDrawing({state,target,render,search,cancelled:()=>run.cancelled,progress});}
+ async function reviewVector(record,drawing){
+  const review=await runSavedVectorReview({pdfjs,drawing,example:record.example,sourceLayerScope:record.example.vectorReview.sourceLayerScope,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total})=>progress?.(`Recounting original vectors · ${phase}${total?` ${completed}/${total}`:''}`)});check();
+  return vectorReviewPayload({record,item:state.countItems.find(i=>i.id===record.item_id),drawing,marks:state.countMarks,elements:record.example.elements,review,selected:new Set(review.result.proposals.flatMap((p,i)=>p.visibility.verified?[i]:[]))});
+ }
+ try{return await recognizeDrawing({state,target,render,search,reviewVector,cancelled:()=>run.cancelled,progress});}
  finally{run.worker?.terminate();for(const {task} of opened.values())await task.destroy().catch(()=>{});run.cancel=null;run.task=null;}
 }
