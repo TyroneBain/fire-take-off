@@ -2,6 +2,13 @@
 2026-10-30. No real-world benchmark is implied by this template.
 
 
+
+### 2026-10-31 complete candidate-review pipeline
+
+The public review orchestrator now reproduces the earlier scoped experiment end to end: Chrome31/0/0 geometry,30/0/1 original-paint verification twice, same anchors/IDs and every raster capture, opaque owned fixture3/3. Exact31-label set is development data, not a new holdout. Unverified target remains genuinely white-overpainted. This is review-only, not live accepted quantities. Final read-only CLI derives the original application anchor from a separate unfiltered render, verifies source digest, writes a new report without overwriting or saving project quantities. Unknowncoverage distinguishes808raw paths from194text/3image operations.
+
+Fixed independently reproduced stalled-render and execution-error publication defects: operational render/canvas/readback/Path2D failures abort the entire job; semantic/pixel refusals remain reportable. Initial full346-test run had1helper-readback failure; final349/349 passes. No rendering threshold changed. Existing state116marks remains byte-identical, correction/zone/export regressions pass. Evidence `qa-candidate-orchestrator-final-independent-score.json`; full Chromium module runs5.14/4.95s on this drawing, approximateJSsample96.04MB excludingnative/worker/processpeak. Next gate is actual UI review/correction-safe integration and broader independent drawing evaluation.
+
 ### 2026-10-31 original transform fidelity and explicit PDF-layer experiment
 
 Exact transform-chain replay fixes three antialias-only pixel refusals without relaxing thresholds: independent Chrome now22/0/9 for geometry and original-pixel verification on unchanged all-layer candidates. Original one-pixel white knockout still rejects; older text-overlaid case remains rejected. Full v4 regression309/309.

@@ -185,3 +185,34 @@ test('original transform chains reject malformed, mismatched and excessive prove
  for(const chain of badChains){const paints=structuredClone(f.paints);paints[0].rawPath.transformChain=chain;const r=verify(f,paints,{createCanvas:createCanvasTracked});assert.equal(r.verified,false);assert.match(r.reason,/transform|matrix/i);}
  const paints=Array.from({length:3},(_,i)=>{const p=structuredClone(f.paints[0]);p.id=i;while(p.rawPath.transformChain.length<256)p.rawPath.transformChain.push([1,0,0,1,0,0]);return p;});const r=verify(f,paints,{createCanvas:createCanvasTracked});assert.equal(r.verified,false);assert.match(r.reason,/chain budget/);assert.equal(allocations,0);
 });
+
+test('unexpected helper canvas, drawing and readback errors are tagged and every allocated canvas is released',async t=>{
+ const f=await oracle(t,rectangle),paints=extractVectorPage({operatorList:f.ops,OPS}).elements.map(native);
+ for(const stage of ['canvas','render','readback']){
+  const canvases=[],result=verify(f,paints,{createCanvas:(w,h)=>{
+   if(stage==='canvas')throw Error('Independent canvas execution error');
+   const canvas=createCanvas(w,h),ctx=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);canvases.push(canvas);
+   ctx[stage==='render'?'fill':'getImageData']=()=>{throw Error('Independent '+stage+' execution error');};return canvas;
+  }});
+  assert.equal(result.verified,false);assert.equal(result.executionFailure,stage);assert.equal(result.proof,null);assert.ok(canvases.every(c=>c.width===0&&c.height===0));
+ }
+});
+
+test('validation inside drawing and ordinary opaque-pixel refusals remain distinct from execution failures',async t=>{
+ const f=await oracle(t,rectangle),paints=extractVectorPage({operatorList:f.ops,OPS}).elements.map(native);
+ const outside=verify(f,paints,{createCanvas:(w,h)=>{const canvas=createCanvas(w,h),ctx=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS),get=ctx.getTransform.bind(ctx);ctx.getTransform=()=>{const m=get();m.e+=1000;return m;};return canvas;}});
+ assert.equal(outside.verified,false);assert.match(outside.reason,/Actual complete painted footprint/);assert.equal('executionFailure'in outside,false,'known footprint validation inside draw is a normal refusal');
+ const bad=structuredClone(paints);bad[0].wholeOperation=false;const provenance=verify(f,bad);assert.equal(provenance.verified,false);assert.equal('executionFailure'in provenance,false);
+ const covered=await oracle(t,`${rectangle} 1 g 29.5 29.5 .5 .5 re f`),mismatch=verify(covered,paints);assert.equal(mismatch.verified,false);assert.equal(mismatch.diagnostics.mismatchedPixels,1);assert.equal('executionFailure'in mismatch,false);
+ const success=verify(f,paints);assert.equal(success.verified,true);assert.equal(success.proof,'contour-paint-visibility-4');assert.equal('executionFailure'in success,false);
+});
+
+test('unexpected native Path2D construction failure aborts verification before canvas allocation',async t=>{
+ const f=await oracle(t,rectangle),paints=extractVectorPage({operatorList:f.ops,OPS}).elements.map(native),OriginalPath2D=globalThis.Path2D;let allocations=0,result;
+ try{
+  globalThis.Path2D=class {constructor(){throw Error('Independent native Path2D construction failure');}};
+  result=verify(f,paints,{createCanvas:(w,h)=>{allocations++;return createCanvas(w,h);}});
+ }finally{globalThis.Path2D=OriginalPath2D;}
+ assert.equal(result.verified,false);assert.equal(result.proof,null);assert.equal(result.executionFailure,'verification');assert.match(result.reason,/Path2D construction failure/);assert.equal(allocations,0);
+ assert.equal(verify(f,paints).verified,true,'restored native constructor leaves the original input reusable');
+});

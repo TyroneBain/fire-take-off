@@ -65,7 +65,7 @@ export async function preparePdfContourPaints({page,OPS,elementIds,contextIds=[]
  * This deliberately returns no score, coordinates for accepted marks or count.
  */
 export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion,cancelled=()=>false,onRender=()=>{}}={}){
- let canvas,task,timer,timedOut=false;
+ let canvas,task,timer,timedOut=false,executionStage=null;
  try{
   const p=preparedPages.get(prepared);
   if(!p||typeof createCanvas!=='function'||typeof cancelled!=='function'||typeof onRender!=='function')fail('Invalid prepared paint handle or render callbacks');
@@ -80,18 +80,18 @@ export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion
   const points=[[native[0],native[1]],[native[0],native[3]],[native[2],native[1]],[native[2],native[3]]].map(point=>viewport.convertToViewportPoint(...point));
   const left=Math.floor(Math.min(...points.map(p=>p[0])))-2,top=Math.floor(Math.min(...points.map(p=>p[1])))-2,width=Math.ceil(Math.max(...points.map(p=>p[0])))+2-left,height=Math.ceil(Math.max(...points.map(p=>p[1])))+2-top;
   if(![left,top,width,height].every(Number.isSafeInteger)||width<1||height<1||width>256||height>256)fail('Complete paint footprint exceeds bounded verification crop');
-  canvas=createCanvas(width,height);const context=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);
+  executionStage='canvas';canvas=createCanvas(width,height);const context=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);
   // Validate actual context configuration before spending time on PDF replay.
   captureContourRaster({context,left,top,width,height,pdfjsVersion});
-  task=p.page.render({canvas,canvasContext:context,viewport,transform:[1,0,0,1,-left,-top],...(p.optionalContentConfig?{optionalContentConfigPromise:Promise.resolve(p.optionalContentConfig)}:{})});
+  executionStage='render';task=p.page.render({canvas,canvasContext:context,viewport,transform:[1,0,0,1,-left,-top],...(p.optionalContentConfig?{optionalContentConfigPromise:Promise.resolve(p.optionalContentConfig)}:{})});
   timer=setTimeout(()=>{timedOut=true;task.cancel();},20000);
   task.onContinue=resume=>{try{check();resume();}catch{task.cancel();}};
   onRender(task);await task.promise;check();
-  const image=captureContourRaster({context,left,top,width,height,pdfjsVersion});
+  executionStage='readback';const image=captureContourRaster({context,left,top,width,height,pdfjsVersion});executionStage=null;
   const proof=verifyContourVisibility({paints:p.paints,contextPaints:p.contextPaints,authorizedContextIds:prepared.contextIds,viewportTransform:Array.from(viewport.transform),image,createCanvas,cancelled});check();
   return {...proof,crop:{left,top,width,height},redundantClipOperations:p.clipProofs.map(p=>p.id),requiresSemanticVerification:true};
  }catch(error){
   if(task){task.cancel();try{await task.promise;}catch{}}
-  return {verified:false,proof:null,reason:timedOut?'Original contour render timed out':error instanceof Error?error.message:'Original contour rendering failed',requiresSemanticVerification:true};
+  return {verified:false,proof:null,reason:timedOut?'Original contour render timed out':error instanceof Error?error.message:'Original contour rendering failed',...(executionStage?{executionFailure:executionStage}:{}),requiresSemanticVerification:true};
  }finally{clearTimeout(timer);if(canvas){canvas.width=0;canvas.height=0;}}
 }

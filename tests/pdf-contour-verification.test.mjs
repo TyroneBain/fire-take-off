@@ -27,7 +27,7 @@ test('original clipped and unclipped paint verifies end-to-end with raw CTMs and
 
 test('later white overpainting remains in original replay and rejects an invisible symbol detail',async t=>{
  const f=await original(t,'0 g 30 30 20 20 re f 1 g 39.5 39.5 .5 .5 re f'),prepared=await prepare(f,{elementIds:[f.ids[0]]}),result=await verify(prepared);
- assert.equal(prepared.supported,true,prepared.reason);assert.equal(result.verified,false);assert.equal(result.diagnostics.mismatchedPixels,1);
+ assert.equal(prepared.supported,true,prepared.reason);assert.equal(result.verified,false);assert.equal(result.diagnostics.mismatchedPixels,1);assert.equal('executionFailure'in result,false);
 });
 
 test('caller-authorised context is separate from required symbol paint and cannot substitute for it',async t=>{
@@ -40,7 +40,7 @@ test('forged handles and oversize whole paths are refused before any canvas allo
  let allocations=0;const factory=(w,h)=>{allocations++;return createCanvas(w,h);};
  assert.equal((await verify({supported:true},{createCanvas:factory})).verified,false);
  const f=await original(t,'0 G 1 w 10 20 m 290 20 l S'),prepared=await prepare(f),result=await verify(prepared,{createCanvas:factory});
- assert.equal(prepared.supported,true,prepared.reason);assert.equal(result.verified,false);assert.match(result.reason,/footprint/);assert.equal(allocations,0);
+ assert.equal(prepared.supported,true,prepared.reason);assert.equal(result.verified,false);assert.match(result.reason,/footprint/);assert.equal(allocations,0);assert.equal('executionFailure'in result,false);
  assert.equal((await verify({...prepared},{createCanvas:factory})).verified,false);
 });
 
@@ -48,7 +48,12 @@ test('cancellation and renderer failures release canvas memory without returning
  const f=await original(t,shape),prepared=await prepare(f),allocated=[],factory=(w,h)=>{const c=createCanvas(w,h);allocated.push(c);return c;};
  const cancelled=await verify(prepared,{createCanvas:factory,cancelled:()=>true});assert.equal(cancelled.verified,false);assert.equal(allocated.length,0);
  const aborted=await verify(prepared,{createCanvas:factory,onRender:task=>task.cancel()});assert.equal(aborted.verified,false);assert.ok(allocated.every(c=>c.width===0&&c.height===0));
- const failed=await verify(prepared,{createCanvas:factory,onRender:()=>{throw Error('Injected render callback failure');}});assert.equal(failed.verified,false);assert.match(failed.reason,/Injected/);assert.ok(allocated.every(c=>c.width===0&&c.height===0));
+ const failed=await verify(prepared,{createCanvas:factory,onRender:()=>{throw Error('Injected render callback failure');}});assert.equal(failed.verified,false);assert.equal(failed.executionFailure,'render');assert.match(failed.reason,/Injected/);assert.ok(allocated.every(c=>c.width===0&&c.height===0));
+});
+
+test('synchronous render dispatch errors are operational failures, not ordinary visibility refusals',async t=>{
+ const f=await original(t,shape),prepared=await prepare(f),allocated=[];f.page.render=()=>{throw Error('Synchronous render failure');};
+ const result=await verify(prepared,{createCanvas:(w,h)=>{const c=createCanvas(w,h);allocated.push(c);return c;}});assert.equal(result.executionFailure,'render');assert.match(result.reason,/Synchronous/);assert.ok(allocated.every(c=>c.width===0&&c.height===0));
 });
 
 test('wrong renderer version fails explicitly and releases its crop',async t=>{

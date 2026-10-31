@@ -10,7 +10,8 @@ const LIMIT=256,MAX_VALUES=32768,EPS=1e-7;
 const finite=a=>Array.isArray(a)&&a.every(v=>Number.isFinite(v)&&Math.abs(v)<=1e8);
 const colour=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 const point=(m,x,y)=>[m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]];
-const fail=reason=>{throw new Error(reason);};
+class ContourRefusal extends Error {}
+const fail=reason=>{throw new ContourRefusal(reason);};
 function validCrop(image){
  return !!image&&Number.isInteger(image.width)&&Number.isInteger(image.height)&&image.width>=1&&image.height>=1&&image.width<=LIMIT&&image.height<=LIMIT&&Number.isSafeInteger(image.left)&&Number.isSafeInteger(image.top)&&Math.abs(image.left)<=1e8&&Math.abs(image.top)<=1e8;
 }
@@ -174,7 +175,7 @@ function prepare(p,budget,viewport){
  * that supplied pixels came from the stated PDF. Use captureContourRaster.
  */
 export function verifyContourVisibility({paints,contextPaints=[],authorizedContextIds=[],viewportTransform,image,createCanvas,cancelled=()=>false}={}){
- const diagnostics={paintCount:0,contextPaintCount:0,foregroundPixels:0,opaquePixels:0,antialiasPixels:0,mismatchedPixels:0};let canvas;
+ const diagnostics={paintCount:0,contextPaintCount:0,foregroundPixels:0,opaquePixels:0,antialiasPixels:0,mismatchedPixels:0};let canvas,executionStage;
  try{
   if(typeof cancelled!=='function')fail('Invalid cancellation callback');
   const check=()=>{if(cancelled())fail('Contour visibility cancelled');};check();
@@ -195,14 +196,15 @@ export function verifyContourVisibility({paints,contextPaints=[],authorizedConte
   }
   prepared.sort((a,b)=>a.id-b.id);const retained=prepared.filter(p=>!p.context),contexts=prepared.filter(p=>p.context);
   diagnostics.paintCount=retained.length;diagnostics.contextPaintCount=contexts.length;
-  canvas=createCanvas(image.width,image.height);if(!canvas||canvas.width!==image.width||canvas.height!==image.height)fail('Canvas dimensions differ from verification crop');
+  executionStage='canvas';canvas=createCanvas(image.width,image.height);if(!canvas||canvas.width!==image.width||canvas.height!==image.height)fail('Canvas dimensions differ from verification crop');
   // Reset also removes a stale clipping region if a factory reuses a canvas.
   canvas.width=image.width;canvas.height=image.height;
-  const ctx=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);if(!ctx)fail('Canvas rendering unavailable');readbackAttributes(ctx);
+  const ctx=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);if(!ctx)fail('Canvas rendering unavailable');readbackAttributes(ctx);executionStage=null;
   function render(entries,background=null){
+   executionStage='render';
    check();ctx.resetTransform();ctx.clearRect(0,0,image.width,image.height);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.setLineDash([]);if(background){ctx.fillStyle=background;ctx.fillRect(0,0,image.width,image.height);}
    for(const p of entries){check();ctx.save();try{ctx.resetTransform();ctx.transform(1,0,0,1,-image.left,-image.top);ctx.transform(...m);p.draw(ctx);}finally{ctx.restore();}}
-   check();return ctx.getImageData(0,0,image.width,image.height).data;
+   check();executionStage='readback';const data=ctx.getImageData(0,0,image.width,image.height).data;executionStage=null;return data;
   }
   // A source-authorized context is explanatory paint, never replacement symbol
   // ink. Detect a context that erases all opaque support of any retained part.
@@ -219,6 +221,9 @@ export function verifyContourVisibility({paints,contextPaints=[],authorizedConte
   check();if(!diagnostics.foregroundPixels||!diagnostics.opaquePixels)fail('Paint has no opaque detail to verify');
   if(diagnostics.mismatchedPixels)fail('Original raster does not preserve retained paint');
   return {verified:true,proof:CONTOUR_VISIBILITY_VERSION,requiresSemanticVerification:true,requiresContextVerification:contexts.length>0,diagnostics};
- }catch(error){return {verified:false,proof:null,reason:error instanceof Error?error.message:'Contour visibility failed',diagnostics};}
+ // Unexpected renderer failures must not look like ordinary pixel refusals to
+ // callers accumulating review proposals. Validation can also run inside draw;
+ // its private error type keeps those bounded refusals distinct from execution.
+ }catch(error){return {verified:false,proof:null,reason:error instanceof Error?error.message:'Contour visibility failed',...(!(error instanceof ContourRefusal)?{executionFailure:executionStage??'verification'}:{}),diagnostics};}
  finally{if(canvas){try{canvas.width=canvas.height=0;}catch{/* No retained canvas after verification. */}}}
 }
