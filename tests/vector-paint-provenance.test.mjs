@@ -11,8 +11,23 @@ function literalPdf(stream){const objects=['<< /Type /Catalog /Pages 2 0 R >>','
 test('actual PDF retains raw commands, composed CTMs and original line width without mutating extraction',async t=>{
  const task=getDocument({data:literalPdf('q 1 0 0 1 10 20 cm 2 0 0 2 0 0 cm .3 w 1 J 2 j 1 2 m 5 6 l S q 0 1 -1 0 3 4 cm .7 w 1 2 m 5 6 l h S Q 1 2 m 5 6 l S Q 1 2 m 5 6 l S'),isEvalSupported:false});t.after(()=>task.destroy());const page=await(await task.promise).getPage(1),operatorList=await page.getOperatorList(),ids=operatorList.fnArray.flatMap((v,i)=>v===OPS.constructPath?[i]:[]),before=structuredClone(operatorList),r=extractRawPathProvenance({operatorList,OPS,ids});
  assert.equal(r.requestedComplete,true);assert.equal(r.complete,false);assert.equal('supported'in r,false);assert.equal(r.records.length,4);assert.deepEqual(r.records.map(e=>e.matrix),[[2,0,0,2,10,20],[0,2,-2,0,16,28],[2,0,0,2,10,20],[1,0,0,1,0,0]]);assert.deepEqual(r.records.map(e=>e.sourceLineWidth),[.3,.7,.3,1]);assert.deepEqual(r.records.map(e=>e.style.width),[.6,1.4,.6,1]);
+ const chain=[[1,0,0,1,10,20],[2,0,0,2,0,0]];
+ assert.deepEqual(r.records.map(e=>e.transformChain),[chain,[...chain,[0,1,-1,0,3,4]],chain,[]],'original sequence and nested q/Q restoration survive actual PDF extraction');
  for(const p of r.records){assert.deepEqual(p.sourceCommands,Array.from(operatorList.argsArray[p.id][1][0]));assert.equal(p.wholeOperation,true);assert.equal(p.contextComplete,true);assert.equal(p.opaque,true);assert.equal(p.requiresRenderVerification,true);assert.equal(p.clipDepth,0);assert.equal('score'in p,false);}
  assert.deepEqual(r.records[0].pathCommands,[0,12,24,1,20,32]);assert.deepEqual(operatorList,before);r.records[0].sourceCommands[1]=999;assert.deepEqual(operatorList,before);
+ r.records[0].transformChain[0][4]=999;r.records[0].transformChain.push([1,0,0,1,0,0]);assert.deepEqual(r.records[1].transformChain,[...chain,[0,1,-1,0,3,4]]);assert.deepEqual(r.records[2].transformChain,chain);assert.deepEqual(operatorList,before);
+ operatorList.argsArray[operatorList.fnArray.indexOf(OPS.transform)][4]=123;assert.deepEqual(r.records[2].transformChain,chain,'returned chains do not alias the original operator arguments');
+});
+test('original transform chains are bounded and storage, cancellation and unknown context fail atomically',()=>{
+ const transform=['transform',[1,0,0,1,0,0]],entries=[...Array.from({length:256},()=>transform),path()],atLimit=extractRawPathProvenance({operatorList:list(entries),OPS,ids:[256]});assert.equal(atLimit.requestedComplete,true);assert.equal(atLimit.records[0].transformChain.length,256);
+ const over=list([path(),...Array.from({length:257},()=>transform),path()]),tooLong=extractRawPathProvenance({operatorList:over,OPS,ids:[0,258]});assert.deepEqual(tooLong.records,[]);assert.match(tooLong.reason,/transform chain budget/);
+ const operatorList=list([path(),transform,['save'],transform,path(),['restore'],path()]),ids=[0,4,6],r=extractRawPathProvenance({operatorList,OPS,ids});assert.equal(r.requestedComplete,true);assert.deepEqual(r.records.map(e=>e.transformChain.length),[0,2,1]);
+ // Three raw/native line pairs (36), two transforms (12), saved chain (6),
+ // and the two emitted chain snapshots (18), all charged to one bound.
+ assert.equal(r.storedValues,72);assert.equal(extractRawPathProvenance({operatorList,OPS,ids,maxValues:72}).requestedComplete,true);
+ const short=extractRawPathProvenance({operatorList,OPS,ids,maxValues:71});assert.deepEqual(short.records,[]);assert.match(short.reason,/storage budget/);
+ for(const final of [[99999,[]],['beginMarkedContentProps',['OC',{}]]]){const op=list([...entries,final]),failed=extractRawPathProvenance({operatorList:op,OPS,ids:[256]});assert.deepEqual(failed.records,[]);assert.ok(failed.reason);}
+ let checks=0;const cancelled=extractRawPathProvenance({operatorList:list(entries),OPS,ids:[256],cancelled:()=>++checks>=3});assert.deepEqual(cancelled.records,[]);assert.match(cancelled.reason,/cancelled/);
 });
 test('clip chains match existing helper contexts and are refused until their original restore',()=>{
  const operatorList=list([['save'],['eoClip'],path(OPS.endPath,polygon),path(),['save'],['clip'],path(OPS.endPath,polygon),path(),['restore'],['restore'],path()]),ids=[3,7,10],clips=extractClipFillProposals({operatorList,OPS}),r=extractRawPathProvenance({operatorList,OPS,ids});assert.deepEqual(r.records.map(e=>e.id),[10]);assert.deepEqual(r.failures.map(e=>e.id),[3,7]);for(const f of r.failures)assert.deepEqual(f.clipPathIds,clips.paintContexts.find(c=>c.paintId===f.id).clipPathIds);assert.equal(r.requestedComplete,false);

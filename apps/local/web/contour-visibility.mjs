@@ -2,7 +2,7 @@
 // The caller supplies a complete original-paint inventory and an UNMODIFIED PDF
 // raster crop. Flags attest extraction provenance; this module cannot establish
 // the origin of caller-supplied pixels. Unselected extra detail is not examined.
-export const CONTOUR_VISIBILITY_VERSION='contour-paint-visibility-3';
+export const CONTOUR_VISIBILITY_VERSION='contour-paint-visibility-4';
 export const CONTOUR_PDFJS_VERSION='6.4.299';
 export const CONTOUR_RASTER_CONTRACT='pdfjs-6.4.299-readback-srgb-unorm8-1';
 export const CONTOUR_CONTEXT_OPTIONS=Object.freeze({alpha:true,colorSpace:'srgb',colorType:'unorm8',desynchronized:false,willReadFrequently:true});
@@ -92,7 +92,7 @@ function simplePolygon(vertices,budget){
  if(Math.abs(area)<=EPS)fail('Empty clip polygon');
 }
 function trace(ctx,raw){
- ctx.beginPath();for(let i=0;i<raw.length;){switch(raw[i++]){
+ ctx.beginPath?.();for(let i=0;i<raw.length;){switch(raw[i++]){
   case 0:ctx.moveTo(raw[i++],raw[i++]);break;
   case 1:ctx.lineTo(raw[i++],raw[i++]);break;
   case 2:ctx.bezierCurveTo(raw[i++],raw[i++],raw[i++],raw[i++],raw[i++],raw[i++]);break;
@@ -112,10 +112,16 @@ function prepare(p,budget,viewport){
   // Only opaque flat colours, no dash/alpha/blend/transform overrides.
   if(Object.keys(s).some(k=>!['fill','stroke','width','cap','join','miter','rule'].includes(k)))fail('Unverified native paint style effects');
   const b=extent(c.points);checkBounds(b,p.bounds);
-  let raw=c.raw,rawMatrix=null,sourceWidth=s.width;
+  let raw=c.raw,renderPoints=c.points,rawMatrix=null,transformChain=null,sourceWidth=s.width;
   if(p.rawPath!==undefined){
-   const r=p.rawPath;if(!r||Object.keys(r).some(k=>!['sourceCommands','matrix','sourceLineWidth'].includes(k)))fail('Unverified raw path effects');
-   rawMatrix=matrix(r.matrix);const source=commands(r.sourceCommands,budget);raw=source.raw;
+   const r=p.rawPath;if(!r||Object.keys(r).some(k=>!['sourceCommands','matrix','sourceLineWidth','transformChain'].includes(k)))fail('Unverified raw path effects');
+   rawMatrix=matrix(r.matrix);const source=commands(r.sourceCommands,budget);raw=source.raw;renderPoints=source.points;
+   if(r.transformChain!==undefined){
+    if(!Array.isArray(r.transformChain)||r.transformChain.length>256)fail('Invalid or oversized original transform chain');
+    budget.transformValues+=r.transformChain.length*6;if(budget.transformValues>4096)fail('Original transform-chain budget exceeded');
+    let composed=[1,0,0,1,0,0];transformChain=r.transformChain.map(value=>{budget.check();const step=[...matrix(value)];composed=multiply(composed,step);matrix(composed);return step;});
+    if(composed.some((value,i)=>Math.abs(value-rawMatrix[i])>EPS))fail('Original transform chain does not reproduce raw matrix');
+   }
    if(raw.length!==c.raw.length)fail('Raw and native path identities differ');
    for(let i=0;i<raw.length;){const op=raw[i],n=({0:2,1:2,2:6,3:4,4:0})[op];if(c.raw[i]!==op)fail('Raw and native path commands differ');i++;for(let j=0;j<n;j+=2){const v=point(rawMatrix,raw[i+j],raw[i+j+1]);if(v.some((value,k)=>Math.abs(value-c.raw[i+j+k])>EPS))fail('Raw transform does not reproduce native path');}i+=n;}
    if(s.stroke){sourceWidth=r.sourceLineWidth;if(!Number.isFinite(sourceWidth)||sourceWidth<=0||Math.abs(sourceWidth*uniformScale(rawMatrix)-s.width)>EPS)fail('Raw and native stroke widths differ');}
@@ -123,10 +129,21 @@ function prepare(p,budget,viewport){
   // PDF.js 6.4.299 getScaleForStroking/rescaleAndStroke uses at least one
   // device pixel for uniform transforms. Preserve the raw CTM's raster phase.
   const nativeWidth=s.stroke?Math.max(s.width,1/uniformScale(viewport)):0;
-  const deviceScale=s.stroke?uniformScale(rawMatrix?multiply(viewport,rawMatrix):viewport):1;
-  const renderWidth=s.stroke?Math.max(sourceWidth,1/deviceScale):0;
   const pad=s.stroke?nativeWidth/2*Math.max(Math.SQRT2,s.miter):0;
-  return {bounds:[b[0]-pad,b[1]-pad,b[2]+pad,b[3]+pad],draw(ctx){if(rawMatrix)ctx.transform(...rawMatrix);trace(ctx,raw);if(p.paintClosesPath)ctx.closePath();if(s.fill){ctx.fillStyle=s.fill;ctx.fill(s.rule);}if(s.stroke){ctx.strokeStyle=s.stroke;ctx.lineWidth=renderWidth;ctx.lineCap=['butt','round','square'][s.cap];ctx.lineJoin=['miter','round','bevel'][s.join];ctx.miterLimit=s.miter;ctx.stroke();}}};
+  if(typeof globalThis.Path2D!=='function')fail('Native Path2D rendering unavailable');
+  const path=new globalThis.Path2D();trace(path,raw);if(p.paintClosesPath)path.closePath();
+  return {bounds:[b[0]-pad,b[1]-pad,b[2]+pad,b[3]+pad],draw(ctx){
+   // Canvas rounds sequential transforms. The algebraic aggregate establishes
+   // geometry identity but cannot reproduce original raster phase by itself.
+   if(transformChain){for(const step of transformChain)ctx.transform(...step);}else if(rawMatrix)ctx.transform(...rawMatrix);
+   const dm=ctx.getTransform(),deviceMatrix=[dm.a,dm.b,dm.c,dm.d,dm.e,dm.f],deviceScale=s.stroke?uniformScale(deviceMatrix):1;
+   const renderWidth=s.stroke?sourceWidth*Math.max(1,1/(sourceWidth*deviceScale)):0;
+   // Sequential Canvas rounding must not move a remote part outside the crop.
+   const actual=extent(renderPoints.map(v=>point(deviceMatrix,...v))),margin=renderWidth*deviceScale/2*Math.max(Math.SQRT2,s.miter??1);
+   if(actual[0]-margin<1-EPS||actual[1]-margin<1-EPS||actual[2]+margin>ctx.canvas.width-1+EPS||actual[3]+margin>ctx.canvas.height-1+EPS)fail('Actual complete painted footprint does not fit the verification crop');
+   if(s.fill){ctx.fillStyle=s.fill;ctx.fill(path,s.rule);}
+   if(s.stroke){ctx.strokeStyle=s.stroke;ctx.lineWidth=renderWidth;ctx.lineCap=['butt','round','square'][s.cap];ctx.lineJoin=['miter','round','bevel'][s.join];ctx.miterLimit=s.miter;ctx.stroke(path);}
+  }};
  }
  if(p.kind!=='clip-fill'||p.clipDepth!==1||p.clips!==undefined||!colour(p.fill)||!['nonzero','evenodd'].includes(p.clipRule))fail('Unsupported paint or clip context');
  if(!p.clip||!p.paint)fail('Missing raw clip and covering paint');
@@ -166,7 +183,7 @@ export function verifyContourVisibility({paints,contextPaints=[],authorizedConte
   checkRasterContract(image.rendering);
   if(!Array.isArray(paints)||!paints.length||paints.length>128||typeof createCanvas!=='function')fail('Invalid paint collection or canvas factory');
   if(!Array.isArray(contextPaints)||contextPaints.length>16||paints.length+contextPaints.length>128||!Array.isArray(authorizedContextIds)||authorizedContextIds.length!==contextPaints.length||new Set(authorizedContextIds).size!==authorizedContextIds.length||contextPaints.some(p=>!authorizedContextIds.includes(p?.id)))fail('Context paints need exact explicit source-authorized identities');
-  const budget={values:0,pairs:0,check},prepared=[],allIds=new Set();
+  const budget={values:0,pairs:0,transformValues:0,check},prepared=[],allIds=new Set();
   for(const [collection,context] of [[paints,false],[contextPaints,true]]){let last=-1;
    for(const p of collection){check();if(p?.id<=last||allIds.has(p?.id))fail('Paint identities must be unique and in original order');const entry=prepare(p,budget,m);last=p.id;allIds.add(p.id);
    const b=entry.bounds,corners=[[b[0],b[1]],[b[0],b[3]],[b[2],b[1]],[b[2],b[3]]].map(v=>point(m,...v)),v=extent(corners);
@@ -184,7 +201,7 @@ export function verifyContourVisibility({paints,contextPaints=[],authorizedConte
   const ctx=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);if(!ctx)fail('Canvas rendering unavailable');readbackAttributes(ctx);
   function render(entries,background=null){
    check();ctx.resetTransform();ctx.clearRect(0,0,image.width,image.height);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.setLineDash([]);if(background){ctx.fillStyle=background;ctx.fillRect(0,0,image.width,image.height);}
-   for(const p of entries){check();ctx.save();try{ctx.setTransform(m[0],m[1],m[2],m[3],m[4]-image.left,m[5]-image.top);p.draw(ctx);}finally{ctx.restore();}}
+   for(const p of entries){check();ctx.save();try{ctx.resetTransform();ctx.transform(1,0,0,1,-image.left,-image.top);ctx.transform(...m);p.draw(ctx);}finally{ctx.restore();}}
    check();return ctx.getImageData(0,0,image.width,image.height).data;
   }
   // A source-authorized context is explanatory paint, never replacement symbol

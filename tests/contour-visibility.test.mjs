@@ -160,3 +160,28 @@ test('original browser-backend regression fixture retains one-pixel knockout rej
  const pixel=(201*256+54)*4;assert.deepEqual(Array.from(image.data.slice(pixel,pixel+4)),[0,0,0,255]);image.data[pixel]=image.data[pixel+1]=image.data[pixel+2]=255;
  const knockedOut=verify(f,paints);assert.equal(knockedOut.verified,false);assert.equal(knockedOut.diagnostics.mismatchedPixels,1);
 });
+
+// Independently authored circles and cancelling transforms: no customer shape
+// or labels. Large translations make Canvas's sequential rounding observable.
+const cubicChain=[[1,0,0,1,975310,1024170],[.12,0,0,.12,0,0],[1,0,0,1,-8127413.92,-8534492.67]];
+const cubicRing=r=>`${r} 0 m ${r} ${r*.55228475} ${r*.55228475} ${r} 0 ${r} c ${-r*.55228475} ${r} ${-r} ${r*.55228475} ${-r} 0 c ${-r} ${-r*.55228475} ${-r*.55228475} ${-r} 0 ${-r} c ${r*.55228475} ${-r} ${r} ${-r*.55228475} ${r} 0 c h S`;
+const cubicContent=`q ${cubicChain.map(m=>m.join(' ')+' cm').join(' ')} 0 G 12 w 1 J 1 j ${cubicRing(30)} ${cubicRing(15)} Q`;
+async function cubicOracle(t,content=cubicContent){
+ const task=getDocument({data:pdf(content),isEvalSupported:false});t.after(()=>task.destroy());const page=await(await task.promise).getPage(1),ops=await page.getOperatorList(),ids=ops.fnArray.flatMap((op,id)=>op===OPS.constructPath&&ops.argsArray[id][0]===OPS.stroke?[id]:[]),raw=extractRawPathProvenance({operatorList:ops,OPS,ids});assert.equal(raw.requestedComplete,true,raw.reason);
+ const paints=raw.records.map(r=>({...native(r),rawPath:{sourceCommands:r.sourceCommands,matrix:r.matrix,sourceLineWidth:r.sourceLineWidth,transformChain:structuredClone(cubicChain)}})),viewport=page.getViewport({scale:2,rotation:0}),canvas=createCanvas(256,256),context=canvas.getContext('2d',CONTOUR_CONTEXT_OPTIONS);
+ await page.render({canvas,canvasContext:context,viewport}).promise;const image=captureContourRaster({context,width:256,height:256,left:0,top:0,pdfjsVersion:PDFJS_VERSION});canvas.width=canvas.height=0;return {paints,image,viewportTransform:Array.from(viewport.transform)};
+}
+test('original cubic circles preserve sequential CTM rounding with native Path2D and unchanged strict tolerance',async t=>{
+ const f=await cubicOracle(t),before=structuredClone(f.paints),aggregate=structuredClone(f.paints);for(const p of aggregate)delete p.rawPath.transformChain;
+ const old=verify(f,aggregate);assert.equal(old.verified,false);assert.ok(old.diagnostics.mismatchedPixels>0,'aggregating original CTMs loses raster phase');
+ const fixed=verify(f,f.paints);assert.equal(fixed.verified,true,fixed.reason);assert.equal(fixed.diagnostics.mismatchedPixels,0);assert.equal(fixed.proof,'contour-paint-visibility-4');assert.equal('score'in fixed,false);assert.deepEqual(f.paints,before);
+ let pixel=-1;for(let i=0;i<f.image.data.length;i+=4)if(f.image.data[i]===0&&f.image.data[i+1]===0&&f.image.data[i+2]===0&&f.image.data[i+3]===255){pixel=i/4;break;}assert.ok(pixel>=0);
+ const x=pixel%256,y=Math.floor(pixel/256),knockout=await cubicOracle(t,`${cubicContent} 1 g ${x/2} ${(255-y)/2} .5 .5 re f`),hidden=verify(knockout,f.paints);
+ assert.equal(hidden.verified,false);assert.equal(hidden.diagnostics.mismatchedPixels,1,'one original white overpaint pixel still rejects');
+});
+test('original transform chains reject malformed, mismatched and excessive provenance before allocation',async t=>{
+ const f=await cubicOracle(t);let allocations=0;const createCanvasTracked=(w,h)=>{allocations++;return createCanvas(w,h);};
+ const badChains=[null,{},[],[[1,0,0,1,1,0]],[[1,0,0,0,0,0]],[[1,0,0,1,Infinity,0]],Array.from({length:257},()=>[1,0,0,1,0,0])];
+ for(const chain of badChains){const paints=structuredClone(f.paints);paints[0].rawPath.transformChain=chain;const r=verify(f,paints,{createCanvas:createCanvasTracked});assert.equal(r.verified,false);assert.match(r.reason,/transform|matrix/i);}
+ const paints=Array.from({length:3},(_,i)=>{const p=structuredClone(f.paints[0]);p.id=i;while(p.rawPath.transformChain.length<256)p.rawPath.transformChain.push([1,0,0,1,0,0]);return p;});const r=verify(f,paints,{createCanvas:createCanvasTracked});assert.equal(r.verified,false);assert.match(r.reason,/chain budget/);assert.equal(allocations,0);
+});

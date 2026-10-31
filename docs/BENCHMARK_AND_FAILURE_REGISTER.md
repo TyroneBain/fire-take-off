@@ -1,6 +1,13 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+
+### 2026-10-31 original transform fidelity and explicit PDF-layer experiment
+
+Exact transform-chain replay fixes three antialias-only pixel refusals without relaxing thresholds: independent Chrome now22/0/9 for geometry and original-pixel verification on unchanged all-layer candidates. Original one-pixel white knockout still rejects; older text-overlaid case remains rejected. Full v4 regression309/309.
+
+Frozen explicit source-OCG experiment on the same31-label development drawing: Chrome geometry31/0/0, original-PDF verification30/0/1 in two exact passes, no duplicates/outside-region proposals. Remaining false negative has actual later white annotation paint over the glyph (five mismatched pixels, one opaque). All original layers remain visible in the oracle; do not remove annotation paint to claim a pass. Scope is explicit and same-PDF/page, not colour filtering. Coloured same-layer centre-detail negatives reject. Existing22-match all-layer baseline preserved. Private evidence `qa-fresh-layer-worker-v4-independent-score.json`; this first validated the private helper. Subsequent independent public-API Chrome runs (`qa-public-layer-worker-v4-independent-score.json`) reproduce31/0/0 geometry and30/0/1 pixel verification twice, with identical anchors/IDs and64included/23727excluded/808unknown raw operations. It still does not validate live persisted counts. Final full regression320/320. Public API independently caught/fixed a cancellation-at-publication boundary and declares caller-attested identity limits. Unknown raw operations remain explicit. Countfire parity and broad fresh-drawing performance remain unproven.
+
 ### 2026-10-31 symmetric-pose duplicate fix and frozen fresh benchmark
 
 The existing matcher emitted four off-centre anchors for one physical symmetric paint set. Generic original-ID-set deduplication now retains the first pose/anchor without changing tolerances. Original fixtures, actual Chrome Worker, correction/reclassification/manual-mark persistence, overlapping zones, Excel and reopen pass; full suite 304/304.

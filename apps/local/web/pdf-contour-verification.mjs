@@ -47,7 +47,7 @@ export async function preparePdfContourPaints({page,OPS,elementIds,contextIds=[]
    const p=byId.get(id);
    if(p){
     if(p.clipDepth!==0){const proof=p.clipRedundancyProof;if(p.effectiveClipDepth!==0||proof?.version!==RAW_REDUNDANT_CLIP_VERSION||!sameTransform(proof.viewportTransform,viewportTransform)||proof.clips.length!==p.clipDepth||proof.clips.some((c,i)=>c.pathId!==p.clipPathIds[i]))fail('Clipping has no proof bound to this exact viewport');}
-    return {kind:'path',id,bounds:[...p.bounds],pathCommands:[...p.pathCommands],paintClosesPath:p.paintClosesPath,style:{...p.style},rawPath:{sourceCommands:[...p.sourceCommands],matrix:[...p.matrix],sourceLineWidth:p.sourceLineWidth},wholeOperation:true,opaque:true,contextComplete:true,clipDepth:0};
+    return {kind:'path',id,bounds:[...p.bounds],pathCommands:[...p.pathCommands],paintClosesPath:p.paintClosesPath,style:{...p.style},rawPath:{sourceCommands:[...p.sourceCommands],matrix:[...p.matrix],sourceLineWidth:p.sourceLineWidth,...(p.transformChain?{transformChain:p.transformChain.map(m=>[...m])}:{})},wholeOperation:true,opaque:true,contextComplete:true,clipDepth:0};
    }
    const failure=failures.get(id),clip=clipById.get(id),context=clipContext.get(id);
    if(failure?.reason!==RAW_PATH_CLIP_REASON||failure.opaque!==true||failure.contextComplete!==true||failure.optionalContentVisible!==true||!clip||!context?.opaque||!context.supportedClipChain||context.definesClip||failure.clipPathIds?.length!==1||failure.clipPathIds[0]!==clip.clipPathId||context.clipPathIds.length!==1||context.clipPathIds[0]!==clip.clipPathId)fail(failure?.reason||'Original paint provenance is incomplete');

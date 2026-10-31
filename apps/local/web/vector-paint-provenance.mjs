@@ -1,6 +1,7 @@
 // Original PDF.js raw-path provenance for selected unclipped paint operations.
 // This is NOT page support or visibility approval. Preserve raw coordinates and
-// CTMs: baking a CTM into coordinates can change rasterizer antialiasing.
+// CTMs: baking coordinates or combining the original transform sequence can
+// change canvas rounding and rasterizer antialiasing. Chains retain q/Q scope.
 import {extractVectorPage} from './vector-recognition.mjs';
 export const RAW_PATH_PROVENANCE_VERSION='pdfjs-raw-path-provenance-1';
 export const RAW_PATH_CLIP_REASON='Clipped or clip-defining paint requires original clip-fill provenance';
@@ -9,7 +10,7 @@ const identity=()=>[1,0,0,1,0,0];
 const multiply=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
 const finite=a=>Array.isArray(a)&&a.every(v=>Number.isFinite(v)&&Math.abs(v)<=1e8);
 const colour=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
-const copy=s=>({...s,matrix:[...s.matrix],dash:[...s.dash],clips:[...s.clips]});
+const copy=s=>({...s,matrix:[...s.matrix],transformChain:s.transformChain.map(m=>[...m]),dash:[...s.dash],clips:[...s.clips]});
 function viewportGeometry(matrix){
  if(!finite(matrix)||matrix.length!==6)return null;const sx=Math.hypot(matrix[0],matrix[1]),sy=Math.hypot(matrix[2],matrix[3]),det=Math.abs(matrix[0]*matrix[3]-matrix[1]*matrix[2]);
  if(sx<1e-8||Math.abs(sx-sy)>1e-8*Math.max(sx,sy)||Math.abs(matrix[0]*matrix[2]+matrix[1]*matrix[3])>1e-8*sx*sy||!Number.isFinite(det)||det<1e-12)return null;
@@ -64,7 +65,7 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
  // Their visible pixels remain present in the required unmodified PDF render.
  const neutral=new Set(['dependency','beginText','endText','setCharSpacing','setWordSpacing','setHScale','setLeading','setFont','setTextRise','moveText','setLeadingMoveText','setTextMatrix','nextLine','showText','showSpacedText','nextLineShowText','nextLineSetSpacingShowText','paintImageXObject','paintInlineImageXObject','paintImageMaskXObject','paintImageXObjectRepeat','paintImageMaskXObjectRepeat','paintImageMaskXObjectGroup','paintInlineImageXObjectGroup','shadingFill','markPoint','markPointProps','setRenderingIntent','setFlatness'].map(k=>OPS[k]).filter(Number.isInteger));
  const strokeUnsupported=new Set(['setStrokeColorSpace','setStrokeColor','setStrokeColorN','setStrokeGray','setStrokeCMYKColor','setStrokeTransparent'].map(k=>OPS[k]).filter(Number.isInteger)),fillUnsupported=new Set(['setFillColorSpace','setFillColor','setFillColorN','setFillGray','setFillCMYKColor','setFillTransparent'].map(k=>OPS[k]).filter(Number.isInteger));
- let state={matrix:identity(),width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000',strokeAlpha:1,fillAlpha:1,normalBlend:true,softMask:false,transfer:false,unsafe:false,clips:[]},pending=null,storedValues=0;
+ let state={matrix:identity(),transformChain:[],width:1,cap:0,join:0,miter:10,dash:[],phase:0,stroke:'#000000',fill:'#000000',strokeAlpha:1,fillAlpha:1,normalBlend:true,softMask:false,transfer:false,unsafe:false,clips:[]},pending=null,storedValues=0;
  const abort=reason=>{throw new Error(reason);},check=()=>{if(cancelled())abort('Raw paint extraction cancelled');};
  const snapshot=(id,a)=>{
   const paint=a[0],fill=fills.has(paint),stroke=strokes.has(paint),reject=(reason,extra={})=>failures.push({id,reason,clipPathIds:state.clips.map(c=>c.pathId),...extra});seen.add(id);
@@ -80,7 +81,7 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
   if(state.clips.length&&(!viewport||state.clips.some(c=>!c.rectangle)))return clippedFailure(viewport?'An active clip is not a proven simple native rectangle':'No viewport-bound clip proof requested');
   const raw=a[1]?.[0];if((!Array.isArray(raw)&&!ArrayBuffer.isView(raw))||raw instanceof DataView||!raw.length||raw.length>16384)return reject('Original raw path unavailable; extract before rendering');
   if(Array.from(raw).some(v=>!Number.isFinite(v)||Math.abs(v)>1e8))return reject('Invalid original raw path values');
-  storedValues+=raw.length;if(storedValues>maxValues)abort('Raw path storage budget exceeded');
+  storedValues+=raw.length+6*state.transformChain.length;if(storedValues>maxValues)abort('Raw path storage budget exceeded');
   // Existing strict extraction validates the complete selected path, similarity
   // CTM, native style, curves, widths and subpath closure. This isolated check
   // does not declare the original page supported; the state audit above does
@@ -94,7 +95,7 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
    if(state.clips.some(c=>guardedBounds[0]<=c.bounds[0]+1e-7||guardedBounds[1]<=c.bounds[1]+1e-7||guardedBounds[2]>=c.bounds[2]-1e-7||guardedBounds[3]>=c.bounds[3]-1e-7))return clippedFailure('Complete paint footprint and pixel guard are not strictly inside every clip');
    clipRedundancyProof={version:RAW_REDUNDANT_CLIP_VERSION,viewportTransform:[...viewportTransform],nativePixelGuard:viewport.nativePixelGuard,nativeStrokeWidth,guardedBounds,clips:state.clips.map(c=>({operatorId:c.operatorId,pathId:c.pathId,rule:c.rule,bounds:[...c.bounds],sourceCommands:[...c.sourceCommands],matrix:[...c.matrix]}))};
   }
-  records.push({id,paintOperator:paint,sourceCommands:Array.from(raw),matrix:[...state.matrix],sourceLineWidth:state.width,pathCommands:[...e.pathCommands],bounds:[...e.bounds],paintClosesPath:e.paintClosesPath,style:{...e.style},clipDepth:state.clips.length,clipPathIds:state.clips.map(c=>c.pathId),...clipRedundancyProof?{effectiveClipDepth:0,clipRedundancyProof}:{},optionalContentScopes:marked.filter(m=>m.descriptor).map(m=>({operatorId:m.id,descriptor:m.descriptor,visible:m.visible})),wholeOperation:true,opaque:true,contextComplete:true,requiresRenderVerification:true});
+  records.push({id,paintOperator:paint,sourceCommands:Array.from(raw),matrix:[...state.matrix],transformChain:state.transformChain.map(m=>[...m]),sourceLineWidth:state.width,pathCommands:[...e.pathCommands],bounds:[...e.bounds],paintClosesPath:e.paintClosesPath,style:{...e.style},clipDepth:state.clips.length,clipPathIds:state.clips.map(c=>c.pathId),...clipRedundancyProof?{effectiveClipDepth:0,clipRedundancyProof}:{},optionalContentScopes:marked.filter(m=>m.descriptor).map(m=>({operatorId:m.id,descriptor:m.descriptor,visible:m.visible})),wholeOperation:true,opaque:true,contextComplete:true,requiresRenderVerification:true});
  };
  try{
   check();for(let id=0;id<list.fnArray.length;id++){if((id&255)===0)check();const op=list.fnArray[id],a=list.argsArray[id]??[];
@@ -110,9 +111,9 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
     continue;
    }
    if(op===OPS.endMarkedContent){if(!Array.isArray(a)||a.length||!marked.length)abort('Unbalanced marked-content nesting');marked.pop();continue;}
-   if(op===OPS.save){if(stack.length>=256)abort('Raw paint graphics stack budget exceeded');stack.push(copy(state));continue;}
+   if(op===OPS.save){if(stack.length>=256)abort('Raw paint graphics stack budget exceeded');storedValues+=6*state.transformChain.length;if(storedValues>maxValues)abort('Raw path storage budget exceeded');stack.push(copy(state));continue;}
    if(op===OPS.restore){if(!stack.length)abort('Unbalanced raw paint graphics stack');state=stack.pop();continue;}
-   if(op===OPS.transform){if(!finite(a)||a.length!==6)abort('Invalid original CTM');state.matrix=multiply(state.matrix,a);if(!finite(state.matrix))abort('Invalid accumulated CTM');continue;}
+   if(op===OPS.transform){if(!finite(a)||a.length!==6)abort('Invalid original CTM');if(state.transformChain.length>=256)abort('Raw paint transform chain budget exceeded');storedValues+=6;if(storedValues>maxValues)abort('Raw path storage budget exceeded');state.matrix=multiply(state.matrix,a);if(!finite(state.matrix))abort('Invalid accumulated CTM');state.transformChain.push([...a]);continue;}
    if(op===OPS.setLineWidth){state.width=a[0];continue;}if(op===OPS.setLineCap){state.cap=a[0];continue;}if(op===OPS.setLineJoin){state.join=a[0];continue;}if(op===OPS.setMiterLimit){state.miter=a[0];continue;}
    if(op===OPS.setDash){if(!finite(a[0])||!Number.isFinite(a[1]))abort('Invalid original stroke dash');state.dash=[...a[0]];state.phase=a[1];continue;}
    if(op===OPS.setStrokeRGBColor){state.stroke=colour(a[0])?a[0]:null;continue;}if(op===OPS.setFillRGBColor){state.fill=colour(a[0])?a[0]:null;continue;}
