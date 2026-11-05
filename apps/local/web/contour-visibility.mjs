@@ -109,7 +109,7 @@ function prepare(p,budget,viewport){
   if(p.clipDepth!==0||p.clip!==undefined||p.clips!==undefined)fail('Unverified clipping on native path');
   const c=commands(p.pathCommands,budget),s=p.style;
   if(typeof p.paintClosesPath!=='boolean'||!s||!['nonzero','evenodd'].includes(s.rule)||s.fill!==null&&!colour(s.fill)||s.stroke!==null&&!colour(s.stroke)||!s.fill&&!s.stroke)fail('Invalid native paint style');
-  if(s.stroke&&(!Number.isFinite(s.width)||s.width<=0||s.width>100000||![0,1,2].includes(s.cap)||![0,1,2].includes(s.join)||!Number.isFinite(s.miter)||s.miter<1||s.miter>1000))fail('Unsupported stroke style');
+  if(s.stroke&&(!Number.isFinite(s.width)||s.width<0||s.width>100000||![0,1,2].includes(s.cap)||![0,1,2].includes(s.join)||!Number.isFinite(s.miter)||s.miter<1||s.miter>1000))fail('Unsupported stroke style');
   // Only opaque flat colours, no dash/alpha/blend/transform overrides.
   if(Object.keys(s).some(k=>!['fill','stroke','width','cap','join','miter','rule'].includes(k)))fail('Unverified native paint style effects');
   const b=extent(c.points);checkBounds(b,p.bounds);
@@ -125,7 +125,7 @@ function prepare(p,budget,viewport){
    }
    if(raw.length!==c.raw.length)fail('Raw and native path identities differ');
    for(let i=0;i<raw.length;){const op=raw[i],n=({0:2,1:2,2:6,3:4,4:0})[op];if(c.raw[i]!==op)fail('Raw and native path commands differ');i++;for(let j=0;j<n;j+=2){const v=point(rawMatrix,raw[i+j],raw[i+j+1]);if(v.some((value,k)=>Math.abs(value-c.raw[i+j+k])>EPS))fail('Raw transform does not reproduce native path');}i+=n;}
-   if(s.stroke){sourceWidth=r.sourceLineWidth;if(!Number.isFinite(sourceWidth)||sourceWidth<=0||Math.abs(sourceWidth*uniformScale(rawMatrix)-s.width)>EPS)fail('Raw and native stroke widths differ');}
+   if(s.stroke){sourceWidth=r.sourceLineWidth;if(!Number.isFinite(sourceWidth)||sourceWidth<0||(sourceWidth===0)!==(s.width===0)||Math.abs(sourceWidth*uniformScale(rawMatrix)-s.width)>EPS)fail('Raw and native stroke widths differ');}
   }
   // PDF.js 6.4.299 getScaleForStroking/rescaleAndStroke uses at least one
   // device pixel for uniform transforms. Preserve the raw CTM's raster phase.
@@ -138,7 +138,9 @@ function prepare(p,budget,viewport){
    // geometry identity but cannot reproduce original raster phase by itself.
    if(transformChain){for(const step of transformChain)ctx.transform(...step);}else if(rawMatrix)ctx.transform(...rawMatrix);
    const dm=ctx.getTransform(),deviceMatrix=[dm.a,dm.b,dm.c,dm.d,dm.e,dm.f],deviceScale=s.stroke?uniformScale(deviceMatrix):1;
-   const renderWidth=s.stroke?sourceWidth*Math.max(1,1/(sourceWidth*deviceScale)):0;
+   // PDF.js getScaleForStroking/rescaleAndStroke explicitly treats zero as
+   // one device pixel. Keep the positive-width formula byte-for-byte intact.
+   const renderWidth=s.stroke?(sourceWidth===0?1/deviceScale:sourceWidth*Math.max(1,1/(sourceWidth*deviceScale))):0;
    // Sequential Canvas rounding must not move a remote part outside the crop.
    const actual=extent(renderPoints.map(v=>point(deviceMatrix,...v))),margin=renderWidth*deviceScale/2*Math.max(Math.SQRT2,s.miter??1);
    if(actual[0]-margin<1-EPS||actual[1]-margin<1-EPS||actual[2]+margin>ctx.canvas.width-1+EPS||actual[3]+margin>ctx.canvas.height-1+EPS)fail('Actual complete painted footprint does not fit the verification crop');

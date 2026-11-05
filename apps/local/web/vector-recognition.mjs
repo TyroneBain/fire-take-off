@@ -26,6 +26,16 @@ function segmentsFrom(data,m,close){
  }
  finish();return {segments,subpaths,pathCommands};
 }
+function closedLineCompound(commands){
+ let closed=false,started=false;
+ for(let i=0;i<commands.length;){const op=commands[i++];
+  if(op===0){if(started&&!closed)return false;started=true;closed=false;i+=2;}
+  else if(op===1){if(closed)return false;i+=2;}
+  else if(op===4)closed=true;
+  else return false;
+ }
+ return started&&closed;
+}
 export function extractVectorPage({operatorList,OPS,maxElements=50000}){
  const list=operatorList;if(!list||!Array.isArray(list.fnArray)||!Array.isArray(list.argsArray)||list.fnArray.length!==list.argsArray.length)return unsupported('Invalid PDF operator list');
  if(list.fnArray.length>1000000)return unsupported('PDF exceeds vector operator budget');
@@ -49,17 +59,18 @@ export function extractVectorPage({operatorList,OPS,maxElements=50000}){
   const m=state.matrix,sx=Math.hypot(m[0],m[1]),sy=Math.hypot(m[2],m[3]);
   if(!Number.isFinite(sx)||!Number.isFinite(sy)||sx<1e-9||sy<1e-9)return unsupported('Degenerate PDF transform');
   if(stroke&&(Math.abs(sx-sy)>1e-6*Math.max(sx,sy)||Math.abs(m[0]*m[2]+m[1]*m[3])>1e-6*sx*sy))return unsupported('Nonuniform stroke transforms require raster fallback');
-  if(stroke&&(state.dash.length||state.width<=0))return unsupported('Dashed or hairline paths require raster fallback');
+  if(stroke&&(state.dash.length||!Number.isFinite(state.width)||state.width<0))return unsupported('Dashed or invalid-width paths require raster fallback');
   const paintClosesPath=[OPS.closeStroke,OPS.closeFillStroke,OPS.closeEOFillStroke].includes(paint);
   const {segments,subpaths,pathCommands}=segmentsFrom(wrapped?.[0],m,fill||paintClosesPath);
   totalPathValues+=pathCommands.length;if(totalPathValues>2000000)return unsupported('PDF exceeds vector path storage budget');
-  if(paintClosesPath&&subpaths>1)return unsupported('Compound close-and-stroke paths require raster fallback');
+  const orderedCompound=subpaths>1&&(fill||paintClosesPath);
+  if(orderedCompound&&!closedLineCompound(pathCommands))return unsupported((paintClosesPath?'Compound close-and-stroke paths require raster fallback: ':'')+'Open or curved compound paths require raster fallback');
   totalSegments+=segments.length;if(totalSegments>250000)return unsupported('PDF exceeds vector segment budget');
-  if(!segments.length)continue;if(fill&&subpaths>1)return unsupported('Compound filled paths require raster fallback');
+  if(!segments.length)continue;
   if(fill&&state.fill==='#ffffff'||stroke&&state.stroke==='#ffffff')return unsupported('White overpainting requires raster fallback');
   const bounds=boundsOf(segments);if(!finite(bounds))return unsupported('Invalid PDF geometry');
   const style={fill:fill?state.fill:null,stroke:stroke?state.stroke:null,width:stroke?state.width*sx:0,cap:stroke?state.cap:0,join:stroke?state.join:0,miter:stroke?state.miter:0,rule:[OPS.eoFill,OPS.eoFillStroke,OPS.closeEOFillStroke].includes(paint)?'evenodd':'nonzero'};
-  elements.push({id,segments,bounds,style,pathCommands,paintClosesPath});if(elements.length>maxElements)return unsupported('PDF exceeds vector element budget');
+  elements.push({id,segments,bounds,style,pathCommands,paintClosesPath,...orderedCompound?{orderedCompound:true}:{}});if(elements.length>maxElements)return unsupported('PDF exceeds vector element budget');
  }}catch(error){return unsupported(error.message);}
  if(stack.length)return unsupported('Unbalanced PDF graphics state');
  if(elements.length&&textOperationIds.length)return {supported:false,pendingTextBounds:true,reason:'Text visibility needs recorded rendering bounds',elements,textOperationIds};
@@ -114,34 +125,111 @@ export function createVectorTemplate(page,{bounds,ids,excluded=[],anchor}={}){
  return {supported:true,elements:structuredClone(elements),bounds:[...bounds],anchor:[...anchor],excludedElements:page.elements.filter(e=>erased.has(e.id)).map(e=>structuredClone(e))};
 }
 const rotate=(x,y,angle)=>angle===0?[x,y]:angle===90?[-y,x]:angle===180?[-x,-y]:[y,-x];
-function transformElement(e,angle,origin=[0,0],offset=[0,0],scale=1){const segments=e.segments.map(s=>{const r=[s[0]];for(let i=1;i<s.length;i+=2){const p=rotate(s[i]-origin[0],s[i+1]-origin[1],angle);r.push(p[0]*scale+offset[0],p[1]*scale+offset[1]);}return r;});return {...e,style:{...e.style,width:e.style.width*scale},segments,bounds:boundsOf(segments)};}
-const styleKey=e=>JSON.stringify({...e.style,width:undefined});
-const shapeKey=e=>styleKey(e)+'|'+e.segments.map(s=>s[0]).sort().join(',');
+function transformElement(e,angle,origin=[0,0],offset=[0,0],scale=1){
+ const transformed=(x,y)=>{const p=rotate(x-origin[0],y-origin[1],angle);return [p[0]*scale+offset[0],p[1]*scale+offset[1]];};
+ const segments=e.segments.map(s=>{const r=[s[0]];for(let i=1;i<s.length;i+=2)r.push(...transformed(s[i],s[i+1]));return r;});
+ let pathCommands;
+ if(e.orderedCompound){pathCommands=[];for(let i=0;i<e.pathCommands.length;){const op=e.pathCommands[i++];pathCommands.push(op);if(op!==4){pathCommands.push(...transformed(e.pathCommands[i],e.pathCommands[i+1]));i+=2;}}}
+ return {...e,...pathCommands?{pathCommands}:{},style:{...e.style,width:e.style.width*scale},segments,bounds:boundsOf(segments)};
+}
+// Zero denotes a device-dependent PDF hairline, not a small positive native
+// width. Preserve it under geometric scaling and keep the classes distinct.
+const styleKey=e=>JSON.stringify({...e.style,width:undefined})+(e.style.stroke&&e.style.width===0?'|hairline':'');
+const compoundShape=e=>{
+ const ops=[],subpaths=[];let start,previous,area=0,vertices=0,closed=false;
+ const finish=()=>{if(start)subpaths.push({winding:Math.sign(area),triangle:vertices===3&&closed});};
+ for(let i=0;i<e.pathCommands.length;){const op=e.pathCommands[i++];ops.push(op);if(op===4){closed=true;continue;}const p=[e.pathCommands[i++],e.pathCommands[i++]];
+  if(op===0){finish();start=previous=p;area=0;vertices=1;closed=false;}
+  else {area+=(previous[0]-start[0])*(p[1]-start[1])-(p[0]-start[0])*(previous[1]-start[1]);previous=p;vertices++;}
+ }
+ finish();return {ops,subpaths};
+};
+const hairlineFill=e=>Boolean(e.style.fill&&e.style.stroke&&e.style.width===0);
+const compoundKey=(e,collapse)=>{
+ const {ops,subpaths}=compoundShape(e),eligible=collapse&&hairlineFill(e);
+ // Only this family shares a candidate bucket across triangle collapse. The
+ // pair check below still rejects opposite NONZERO winding; ordered vertices
+ // and the common coordinate tolerance remain mandatory in both match paths.
+ return ops.join(',')+';'+subpaths.map(p=>eligible&&p.triangle?'triangle':p.winding).join(',');
+};
+function compatibleCompoundWinding(a,b,collapse){
+ if(!a.orderedCompound&&!b.orderedCompound)return true;
+ if(!a.orderedCompound||!b.orderedCompound)return false;
+ const aa=compoundShape(a).subpaths,bb=compoundShape(b).subpaths,eligible=collapse&&hairlineFill(a)&&hairlineFill(b);
+ return aa.length===bb.length&&aa.every((p,i)=>p.winding===bb[i].winding||eligible&&p.triangle&&bb[i].triangle&&(p.winding===0||bb[i].winding===0));
+}
+const shapeKey=(e,collapse=false)=>styleKey(e)+'|'+e.segments.map(s=>s[0]).sort().join(',')+(e.orderedCompound?'|closed-lines:'+compoundKey(e,collapse):'');
 const centre=e=>[(e.bounds[0]+e.bounds[2])/2,(e.bounds[1]+e.bounds[3])/2];
 function reversed(s){const pairs=[];for(let i=1;i<s.length;i+=2)pairs.push([s[i],s[i+1]]);return [s[0],...pairs.reverse().flat()];}
-function equalElements(a,b,tolerance,budget){
- if(shapeKey(a)!==shapeKey(b)||Math.abs(a.style.width-b.style.width)>tolerance)return false;
+function equalElements(a,b,tolerance,budget,collapse=false){
+ if(shapeKey(a,collapse)!==shapeKey(b,collapse)||!compatibleCompoundWinding(a,b,collapse)||Math.abs(a.style.width-b.style.width)>tolerance)return false;
  const ac=centre(a),bc=centre(b);if(Math.abs(ac[0]-bc[0])>tolerance||Math.abs(ac[1]-bc[1])>tolerance)return false;
+ // Compound fills must preserve subpath grouping, direction and winding. Do
+ // not reduce them to the unordered, reversible stroke-segment multiset.
+ if(a.orderedCompound||b.orderedCompound){
+  if(!a.orderedCompound||!b.orderedCompound||a.pathCommands.length!==b.pathCommands.length)return false;
+  for(let i=0;i<a.pathCommands.length;){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const op=a.pathCommands[i];if(op!==b.pathCommands[i++])return false;if(op!==4){if(Math.abs(a.pathCommands[i]-b.pathCommands[i])>tolerance||Math.abs(a.pathCommands[i+1]-b.pathCommands[i+1])>tolerance)return false;i+=2;}}
+  return true;
+ }
  const used=new Set();for(const s of a.segments){let found=false;for(let i=0;i<b.segments.length;i++){if(used.has(i))continue;if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const q=b.segments[i];if(q[0]!==s[0])continue;const r=reversed(q);if(s.every((v,j)=>Math.abs(v-q[j])<=tolerance)||s.every((v,j)=>Math.abs(v-r[j])<=tolerance)){used.add(i);found=true;break;}}if(!found)return false;}return true;
+}
+// A pivot's bbox centre is only an initial translation estimate. Rounded PDF
+// coordinates can agree within the existing tolerance at a different common
+// translation. This bounded fallback preserves directed coordinate ordering;
+// ambiguous whole-operation assignments are refused instead of searched.
+function translationInterval(source,target,range,tolerance,budget,check,collapse){
+ if(shapeKey(source,collapse)!==shapeKey(target,collapse)||!compatibleCompoundWinding(source,target,collapse)||Math.abs(source.style.width-target.style.width)>tolerance)return null;
+ const next=[...range],point=(sx,sy,tx,ty)=>{
+  if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if((budget.comparisons&63)===0)check();
+  next[0]=Math.max(next[0],tx-sx-tolerance);next[1]=Math.min(next[1],tx-sx+tolerance);
+  next[2]=Math.max(next[2],ty-sy-tolerance);next[3]=Math.min(next[3],ty-sy+tolerance);
+  return next[0]<=next[1]&&next[2]<=next[3];
+ };
+ if(source.orderedCompound){
+  const a=source.pathCommands,b=target.pathCommands;if(a.length!==b.length)return null;
+  for(let i=0;i<a.length;){const op=a[i];if(op!==b[i++])return null;if(op!==4){if(!point(a[i],a[i+1],b[i],b[i+1]))return null;i+=2;}}
+ }else{
+  if(source.segments.length!==target.segments.length)return null;
+  for(let i=0;i<source.segments.length;i++){const a=source.segments[i],b=target.segments[i];if(a[0]!==b[0]||a.length!==b.length)return null;for(let j=1;j<a.length;j+=2)if(!point(a[j],a[j+1],b[j],b[j+1]))return null;}
+ }
+ return next;
+}
+function registerTranslation(parts,pivot,candidate,initial,scale,nearby,tolerance,budget,check,collapse){
+ let range=[initial[0]-tolerance,initial[0]+tolerance,initial[1]-tolerance,initial[1]+tolerance];
+ const used=new Set(),pairs=[],ordered=[pivot,...parts.filter(p=>p!==pivot)];
+ for(const part of ordered){
+  check();const source=transformElement(part,0,[0,0],[0,0],scale),expected=transformElement(source,0,[0,0],initial),options=part===pivot?[candidate]:nearby(expected,tolerance*2);let match,nextRange;
+  for(const target of options){check();if(used.has(target.id))continue;if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const fit=translationInterval(source,target,range,tolerance,budget,check,collapse);if(!fit)continue;if(match)return null;match=target;nextRange=fit;}
+  if(!match)return null;range=nextRange;used.add(match.id);pairs.push([source,match]);
+ }
+ const offset=[(range[0]+range[1])/2,(range[2]+range[3])/2],placed=[];
+ for(const [source,target]of pairs){check();const expected=transformElement(source,0,[0,0],offset);if(!equalElements(expected,target,tolerance,budget,collapse))return null;placed.push(expected);}
+ return {offset,used,placed};
 }
 export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false}={}){
  if(!page?.supported||!template?.supported)throw new Error('Vector matching requires supported source and target');
  if(!Number.isFinite(tolerance)||tolerance<=0||tolerance>.25||!Number.isSafeInteger(maxComparisons)||maxComparisons<1)throw new Error('Invalid vector matching tolerance or budget');
  if(scaleRange!==null&&(!finite(scaleRange)||scaleRange.length!==2||scaleRange[0]<.5||scaleRange[0]>1||scaleRange[1]<1||scaleRange[1]>2))throw new Error('Invalid vector scale range');
- const budget={comparisons:0,max:maxComparisons},byShape=new Map(),spatial=new Map(),cell=16;
+ const budget={comparisons:0,max:maxComparisons},strictShapes=new Map(),collapseShapes=new Map(),spatial=new Map(),cell=16;
  const key=(x,y)=>Math.floor(x/cell)+','+Math.floor(y/cell);
  const check=()=>{if(cancelled())throw new Error('Vector matching cancelled');};
- for(const e of page.elements){check();const k=shapeKey(e);if(!byShape.has(k))byShape.set(k,[]);byShape.get(k).push(e);const c=centre(e),sk=key(...c);if(!spatial.has(sk))spatial.set(sk,[]);spatial.get(sk).push(e);}
- const nearby=e=>{const [x,y]=centre(e),found=[];for(let cy=Math.floor((y-tolerance)/cell);cy<=Math.floor((y+tolerance)/cell);cy++)for(let cx=Math.floor((x-tolerance)/cell);cx<=Math.floor((x+tolerance)/cell);cx++)found.push(...(spatial.get(cx+','+cy)||[]));return found;};
+ const canCollapse=template.elements.some(e=>e.orderedCompound&&hairlineFill(e)&&compoundShape(e).subpaths.some(p=>p.triangle));
+ for(const e of page.elements){check();for(const [index,collapse]of canCollapse?[[strictShapes,false],[collapseShapes,true]]:[[strictShapes,false]]){const k=shapeKey(e,collapse);if(!index.has(k))index.set(k,[]);index.get(k).push(e);}const c=centre(e),sk=key(...c);if(!spatial.has(sk))spatial.set(sk,[]);spatial.get(sk).push(e);}
+ const nearby=(e,radius=tolerance)=>{const [x,y]=centre(e),found=[];for(let cy=Math.floor((y-radius)/cell);cy<=Math.floor((y+radius)/cell);cy++)for(let cx=Math.floor((x-radius)/cell);cx<=Math.floor((x+radius)/cell);cx++)found.push(...(spatial.get(cx+','+cy)||[]));return found;};
  const hits=[],matchedIdentities=new Set();
+ // Preserve both prior passes across every orientation before allowing
+ // triangle collapse. New poses never replace an already accepted anchor.
+ for(const [registration,collapse]of [[false,false],[true,false],[true,true]]){
+ if(collapse&&!canCollapse)continue;
+ const byShape=collapse?collapseShapes:strictShapes;
  for(const angle of rotations?[0,90,180,270]:[0]){
   const parts=template.elements.map(e=>transformElement(e,angle,template.anchor));
-  parts.sort((a,b)=>(byShape.get(shapeKey(a))?.length??0)-(byShape.get(shapeKey(b))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
+  parts.sort((a,b)=>(byShape.get(shapeKey(a,collapse))?.length??0)-(byShape.get(shapeKey(b,collapse))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
   const extent=e=>Math.max(e.bounds[2]-e.bounds[0],e.bounds[3]-e.bounds[1]);
   const pivot=scaleRange?parts.find(e=>extent(e)>tolerance*2):parts[0];
   if(!pivot)throw new Error('Vector selection is too small to infer a reliable scale');
   const pc=centre(pivot),axis=pivot.bounds[2]-pivot.bounds[0]>=pivot.bounds[3]-pivot.bounds[1]?0:1,sourceExtent=pivot.bounds[axis+2]-pivot.bounds[axis];
-  for(const candidate of byShape.get(shapeKey(pivot))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');
+  for(const candidate of byShape.get(shapeKey(pivot,collapse))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');
    let scale=1;
    if(scaleRange){
     scale=(candidate.bounds[axis+2]-candidate.bounds[axis])/sourceExtent;
@@ -150,8 +238,9 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
     if(!Number.isFinite(scale)||scale<scaleRange[0]-1e-6||scale>scaleRange[1]+1e-6)continue;
     scale=Math.max(scaleRange[0],Math.min(scaleRange[1],scale));
    }
-   const cc=centre(candidate),offset=[cc[0]-pc[0]*scale,cc[1]-pc[1]*scale],used=new Set(),placed=[];let valid=true;
-   for(const p of parts){const expected=transformElement(p,0,[0,0],offset,scale),match=nearby(expected).find(e=>!used.has(e.id)&&equalElements(expected,e,tolerance,budget));if(!match){valid=false;break;}used.add(match.id);placed.push(expected);}
+   const cc=centre(candidate);let offset=[cc[0]-pc[0]*scale,cc[1]-pc[1]*scale],used=new Set(),placed=[],valid=true;
+   if(registration){const fit=registerTranslation(parts,pivot,candidate,offset,scale,nearby,tolerance,budget,check,collapse);if(!fit)continue;({offset,used,placed}=fit);}
+   else for(const p of parts){const expected=transformElement(p,0,[0,0],offset,scale),match=nearby(expected).find(e=>!used.has(e.id)&&equalElements(expected,e,tolerance,budget));if(!match){valid=false;break;}used.add(match.id);placed.push(expected);}
    if(!valid)continue;
    // Reject additional whole paths within the symbol envelope. Long crossing pipes
    // remain allowed; explicitly erased source paths are ignored at equivalent sites.
@@ -161,7 +250,7 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
    if(page.textRegions?.some(region=>{if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');return intersects(region,visibleEnvelope);})){const error=new Error('A geometric candidate overlaps text; use raster matching for this page');error.code='VECTOR_TEXT_OVERLAP';throw error;}
    const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset,scale));
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
-   for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget))){valid=false;break;}}
+   for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget,collapse))){valid=false;break;}}
    if(valid){
     // Symmetric geometry can match several poses whose off-centre anchors differ.
     // One original paint set is one instance; retain its first accepted pose.
@@ -169,6 +258,7 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
     if(!matchedIdentities.has(identityKey)&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){matchedIdentities.add(identityKey);hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),score:1,elementIds});if(hits.length>5000)throw new Error('Too many vector matches');}
    }
   }
+ }
  }
  check();return hits.sort((a,b)=>a.y-b.y||a.x-b.x);
 }

@@ -73,7 +73,7 @@ export function extractRawPathProvenance({operatorList:list,OPS,ids,maxValues=20
   if(marked.some(m=>!m.visible))return reject('Selected paint is hidden by optional content');
   if(state.unsafe||!state.normalBlend||state.softMask||state.transfer||fill&&state.fillAlpha!==1||stroke&&state.strokeAlpha!==1)return reject('Opaque normal graphics-state context is not established');
   if(fill&&!colour(state.fill)||stroke&&!colour(state.stroke))return reject('Flat paint colour is not established');
-  if(!Number.isFinite(state.width)||state.width<0||state.width>100000||stroke&&(state.width===0||![0,1,2].includes(state.cap)||![0,1,2].includes(state.join)||!Number.isFinite(state.miter)||state.miter<1||state.miter>1000))return reject('Invalid original stroke state');
+  if(!Number.isFinite(state.width)||state.width<0||state.width>100000||stroke&&(![0,1,2].includes(state.cap)||![0,1,2].includes(state.join)||!Number.isFinite(state.miter)||state.miter<1||state.miter>1000))return reject('Invalid original stroke state');
   // Hidden/unsafe clipped paths must NOT reach the clip-fill adapter through
   // this specific refusal. Rendering visibility and paint state come first.
   const clippedFailure=reason=>reject(RAW_PATH_CLIP_REASON,{contextComplete:true,opaque:true,optionalContentVisible:true,...reason?{clipRedundancyReason:reason}:{}});

@@ -44,8 +44,9 @@ test('unknown operators, forms, unbalanced state, cancellation and storage exhau
  assert.match(extractRawPathProvenance({operatorList:list([['save'],path()]),OPS,ids:[1]}).reason,/Unbalanced/);assert.match(extractRawPathProvenance({operatorList:list([...Array.from({length:257},()=>['save']),path()]),OPS,ids:[257]}).reason,/stack budget/);
 });
 test('invalid or already-rendered paths, nonuniform strokes and unsupported stroke state cannot attest provenance',()=>{
- const cases=[[['transform',[2,0,0,1,0,0]],path()],[['setLineWidth',[0]],path()],[['setLineWidth',[NaN]],path()],[['setLineCap',[99]],path()],[['setDash',[[1,2],0]],path()], [['setStrokeRGBColor',['#ffffff']],path()], [['constructPath',[OPS.stroke,[{}]]]], [path(OPS.stroke,[0,NaN,0,1,1,1])]];
+ const cases=[[['transform',[2,0,0,1,0,0]],path()],[['setLineWidth',[-1]],path()],[['setLineWidth',[NaN]],path()],[['setLineCap',[99]],path()],[['setDash',[[1,2],0]],path()], [['setStrokeRGBColor',['#ffffff']],path()], [['constructPath',[OPS.stroke,[{}]]]], [path(OPS.stroke,[0,NaN,0,1,1,1])]];
  for(const entries of cases){const operatorList=list(entries),r=extractRawPathProvenance({operatorList,OPS,ids:[entries.length-1]});assert.deepEqual(r.records,[]);assert.equal(r.failures.length,1);}
+ const hairline=extractRawPathProvenance({operatorList:list([['setLineWidth',[0]],path()]),OPS,ids:[1]});assert.equal(hairline.requestedComplete,true);assert.equal(hairline.records[0].style.width,0);assert.equal(hairline.records[0].requiresRenderVerification,true);
  const operatorList=list([['save'],['restore']]);assert.match(extractRawPathProvenance({operatorList,OPS,ids:[0]}).failures[0].reason,/not a constructPath/);assert.equal(extractRawPathProvenance({operatorList,OPS,ids:[0,0]}).requestedComplete,false);
 });
 function layeredPdf(stream){

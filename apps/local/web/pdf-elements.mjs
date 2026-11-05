@@ -26,7 +26,24 @@ export function editedTemplate(original,filtered,box){
 // PDF.js stores one normalized bbox reader on each page, including after a
 // failed render. Only readers from our successful full-page render are reusable.
 const largeElementMetadata=new WeakMap();
-async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,viewport}){
+// PDF.js records bounds in 256 bins per page dimension. Those broad-phase
+// bounds can overlap a small selection even when the actual paint does not.
+// Refine oversized inventories using the same isolated-ink test as the editor;
+// this is not visibility approval. The existing downstream guards still apply.
+async function refineElementCandidates(candidates,renderCandidate,check){
+ if(candidates.length<=128)return candidates;
+ if(candidates.length>512)throw Error('Selection exceeds the 512 candidate inspection budget');
+ const refined=[];
+ for(const id of candidates){
+  check();const rgba=await renderCandidate(id);check();
+  if(inkImage(rgba.data,rgba.width,rgba.height).data.some(Boolean)){
+   refined.push(id);if(refined.length>128)throw Error('Selection has too many elements to edit');
+  }
+  await new Promise(resolve=>setTimeout(resolve,0));check();
+ }
+ return refined;
+}
+async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,viewport,nativeReviewOnly=false}){
  let deadline=performance.now()+120000;
  const check=()=>{if(cancelled())throw Error('Selection loading cancelled');if(performance.now()>deadline)throw Error('Selection inspection time budget exceeded');};check();
  const corners=[[bounds[0],bounds[1]],[bounds[0],bounds[3]],[bounds[2],bounds[1]],[bounds[2],bounds[3]]].map(p=>viewport.convertToViewportPoint(...p)),box=[Math.min(...corners.map(p=>p[0])),Math.min(...corners.map(p=>p[1])),Math.max(...corners.map(p=>p[0])),Math.max(...corners.map(p=>p[1]))].map(Math.round),width=box[2]-box[0],height=box[3]-box[1];
@@ -52,25 +69,39 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   try{await render(canvas,canvas.getContext('2d'),fullViewport,undefined,true);if(!page.recordedBBoxes)throw Error('This PDF renderer cannot inspect selection elements');metadata={reader:page.recordedBBoxes,viewport:fullViewport,width:w,height:h};largeElementMetadata.set(page,metadata);}finally{canvas.width=canvas.height=0;}
  }
  const a=metadata.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=metadata.viewport.convertToViewportPoint(bounds[2],bounds[1]),reader=metadata.reader;
- const candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*metadata.width>=a[0]&&reader.minX(i)*metadata.width<=b[0]&&reader.maxY(i)*metadata.height>=a[1]&&reader.minY(i)*metadata.height<=b[1]?[i]:[]);
- if(candidates.length>128)throw Error('Selection has too many elements to edit');
+ let candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*metadata.width>=a[0]&&reader.minX(i)*metadata.width<=b[0]&&reader.maxY(i)*metadata.height>=a[1]&&reader.minY(i)*metadata.height<=b[1]?[i]:[]);
  const cropViewport=viewport.clone({offsetX:(viewport.offsetX||0)-box[0],offsetY:(viewport.offsetY||0)-box[1]});
  async function crop(filter){check();const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});try{await render(canvas,ctx,cropViewport,filter);return ctx.getImageData(0,0,width,height);}finally{canvas.width=canvas.height=0;}}
- const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[];
+ candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||index===id),check);
+ const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height);
  for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||index===id),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
-  if(ink.some((v,i)=>v&&!baseline.data[i]))throw Error('Selection contains obscured paths; choose a clearer example');
+  if(!nativeReviewOnly&&ink.some((v,i)=>v&&!baseline.data[i]))throw Error('Selection contains obscured paths; choose a clearer example');
   const without=await crop(index=>index!==id),visible=new Uint8Array(ink.length);let changed=false;
-  for(let i=0;i<ink.length;i++){const p=i*4,different=original.data[p]!==without.data[p]||original.data[p+1]!==without.data[p+1]||original.data[p+2]!==without.data[p+2]||original.data[p+3]!==without.data[p+3];changed||=different;visible[i]=ink[i]&&different?1:0;}
-  if(!changed||!visible.some(Boolean))throw Error('Selection contains hidden or redundant paths; choose a clearer example');
+  for(let i=0;i<ink.length;i++){const p=i*4,different=original.data[p]!==without.data[p]||original.data[p+1]!==without.data[p+1]||original.data[p+2]!==without.data[p+2]||original.data[p+3]!==without.data[p+3];changed||=different;
+   // Several light antialiased path edges can combine into dark original ink.
+   // Coverage records actual paint contribution, not a second binary cutoff.
+   // Picking still requires visible original ink and an omission difference;
+   // recognition still independently proves every retained original paint.
+   covered[i]|=nativeReviewOnly?(rgba.data[p+3]>0&&(rgba.data[p]<255||rgba.data[p+1]<255||rgba.data[p+2]<255)?1:0):ink[i];
+   visible[i]=ink[i]&&different&&(!nativeReviewOnly||baseline.data[i])?1:0;
+  }
+  if(!nativeReviewOnly&&(!changed||!visible.some(Boolean)))throw Error('Selection contains hidden or redundant paths; choose a clearer example');
   elements.push({id,ink:visible,rgba});await new Promise(resolve=>setTimeout(resolve,0));check();
  }
- const selected=new Set(elements.map(e=>e.id)),joint=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||selected.has(index));
- if(!elements.length||original.data.some((value,i)=>value!==joint.data[i]))throw Error('This selection contains text, images or obscured content; editing currently supports visible vector paths only');
- return {elements,box,width,height,viewport,anchor,baseline,async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(selectionFilter({excluded}));}};
+ const selected=new Set(elements.map(e=>e.id));
+ if(nativeReviewOnly){
+  // Interaction admission only: preserve all original context, and allow a
+  // partly hidden unwanted pipe to be picked at its actually visible pixels.
+  // This model MUST NOT feed legacy raster matching. Retained whole paints
+  // still require separate original-PDF verification before native counting.
+  if(!elements.length||baseline.data.some((v,i)=>v&&!covered[i]))throw Error('Selection contains unassigned text or image detail; choose a clearer source');
+ }else{const joint=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||selected.has(index));if(!elements.length||original.data.some((value,i)=>value!==joint.data[i]))throw Error('This selection contains text, images or obscured content; editing currently supports visible vector paths only');}
+ return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(selectionFilter({excluded}));}};
 }
-export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false}){
+export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false,nativeReviewOnly=false}){
+ if(typeof nativeReviewOnly!=='boolean')throw Error('Invalid native inspection mode');
  const check=()=>{if(cancelled())throw new Error('Selection loading cancelled');};check();
- const viewport=page.getViewport({scale:2,rotation:0}),w=Math.ceil(viewport.width),h=Math.ceil(viewport.height);if(w*h>4000000)return inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,viewport});
+ const viewport=page.getViewport({scale:2,rotation:0}),w=Math.ceil(viewport.width),h=Math.ceil(viewport.height);if(nativeReviewOnly||w*h>4000000)return inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,viewport,nativeReviewOnly});
  const a=viewport.convertToViewportPoint(bounds[0],bounds[3]),b=viewport.convertToViewportPoint(bounds[2],bounds[1]),box=[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])].map(Math.round),width=box[2]-box[0],height=box[3]-box[1];
  if(width<1||height<1||width>256||height>256)throw new Error('Select a symbol no larger than 128 PDF points');
  const canvas=createCanvas(w,h),ctx=canvas.getContext('2d',{willReadFrequently:true});
@@ -82,8 +113,16 @@ export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled
  if(ops.fnArray.some((op,i)=>unsafe.has(op)||(op===OPS.setTextRenderingMode&&ops.argsArray[i][0]>=4)))throw new Error('Element editing is not yet supported for clipped or composited drawings');
  const paint=new Set(Object.entries(OPS).filter(([k])=>k==='constructPath'||k.startsWith('paint')||['showText','showSpacedText','nextLineShowText','nextLineSetSpacingShowText','shadingFill'].includes(k)).map(([,v])=>v));
  const eligible=new Set([OPS.stroke,OPS.closeStroke,OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]);
- const candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*w>=box[0]&&reader.minX(i)*w<=box[2]&&reader.maxY(i)*h>=box[1]&&reader.minY(i)*h<=box[3]?[i]:[]);
- if(candidates.length>128)throw new Error('Selection has too many elements to edit');
+ let candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*w>=box[0]&&reader.minX(i)*w<=box[2]&&reader.maxY(i)*h>=box[1]&&reader.minY(i)*h<=box[3]?[i]:[]);
+ const refinementDeadline=performance.now()+120000,refinementCheck=()=>{check();if(performance.now()>refinementDeadline)throw Error('Selection inspection time budget exceeded');};
+ candidates=await refineElementCandidates(candidates,async id=>{
+  const scratch=createCanvas(width,height);let timer,poll;
+  try{
+   const context=scratch.getContext('2d',{willReadFrequently:true}),task=page.render({canvas:scratch,canvasContext:context,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||index===id});
+   timer=setTimeout(()=>task.cancel(),Math.max(1,Math.min(20000,refinementDeadline-performance.now())));poll=setInterval(()=>{if(cancelled())task.cancel();},25);
+   await task.promise;refinementCheck();return context.getImageData(0,0,width,height);
+  }finally{clearTimeout(timer);clearInterval(poll);scratch.width=scratch.height=0;}
+ },refinementCheck);
  const elements=[],union=new Uint8Array(width*height),crop=createCanvas(width,height),c=crop.getContext('2d',{willReadFrequently:true});
  for(const id of candidates){check();await page.render({canvas:crop,canvasContext:c,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||index===id}).promise;const rgba=c.getImageData(0,0,width,height),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;for(let k=0;k<ink.length;k++)union[k]|=ink[k];elements.push({id,ink,rgba});}
  if(!elements.length||baseline.data.some((v,i)=>v&&!union[i]))throw new Error('This selection contains text or image content; editing currently supports vector paths only');
