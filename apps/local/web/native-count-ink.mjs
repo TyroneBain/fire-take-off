@@ -1,11 +1,12 @@
-// Verified original glyph alpha for explicitly applied, same-page native decisions.
+// Verified original glyph alpha for explicitly applied, page-bound native decisions.
 // Colour is supplied by the existing CSS overlay, never baked into this mask.
-import {vectorReviewAppliesToPage,validVectorReview} from './vector-review-policy.mjs';
+import {vectorReviewAppliesToPage,vectorReviewPage,validVectorReview} from './vector-review-policy.mjs';
 import {preparePdfContourPaints,verifyPdfContourPaints} from './pdf-contour-verification.mjs';
 export function nativeDecisionForMark({mark,example,drawing,pageNumber}){
  const def=example?.example;
- if(!drawing||!mark?.included||mark.origin!=='automatic'||mark.example_id!==example?.id||mark.drawing_id!==drawing.id||mark.page!==pageNumber||!vectorReviewAppliesToPage(def,drawing.id,pageNumber)||def.digest!==drawing.digest||!validVectorReview(def.vectorReview)||!Number.isFinite(mark.x)||!Number.isFinite(mark.y))return null;
- const found=def.vectorReview.decisions.filter(d=>Math.abs(d.x-mark.x)<.5&&Math.abs(d.y-mark.y)<.5);return found.length===1&&found[0].included?found[0]:null;
+ if(!drawing||!mark?.included||mark.origin!=='automatic'||mark.example_id!==example?.id||mark.drawing_id!==drawing.id||mark.page!==pageNumber||!vectorReviewAppliesToPage(def,drawing.id,pageNumber)||!validVectorReview(def.vectorReview)||def.algorithm!==def.vectorReview.version||!Number.isFinite(mark.x)||!Number.isFinite(mark.y))return null;
+ const bundle=vectorReviewPage(def,drawing.id,pageNumber);if(!bundle||bundle.digest!==drawing.digest)return null;
+ const found=bundle.decisions.filter(d=>Math.abs(d.x-mark.x)<.5&&Math.abs(d.y-mark.y)<.5);return found.length===1&&found[0].included?found[0]:null;
 }
 export async function prepareNativeCountInk({pdfjs,drawing,pageNumber,marks,examples,createCanvas,cancelled=()=>false,maxMilliseconds=120000}={}){
  if(!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof createCanvas!=='function'||typeof cancelled!=='function'||!Array.isArray(marks)||marks.length>128||new Set(marks.map(m=>m.id)).size!==marks.length||!Array.isArray(examples)||examples.length>5000||!Number.isInteger(pageNumber)||pageNumber<1||typeof drawing?.id!=='string'||typeof drawing.digest!=='string'||!/^[a-f0-9]{64}$/.test(drawing.digest)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>120000)throw Error('Invalid native glyph batch');

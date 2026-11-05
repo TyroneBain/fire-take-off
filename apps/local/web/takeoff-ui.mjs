@@ -20,8 +20,10 @@ import { inkImage,exampleImage,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,is
 import {APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,isAppearanceAlgorithm} from './appearance-policy.mjs';
 import {appearanceTemplate} from './appearance-template.mjs';
 import {runSavedVectorReview} from './vector-review-runner.mjs';
+import {runSavedVectorPageSetReview} from './vector-page-set-runner.mjs';
+import {vectorReviewTargets} from './vector-page-set-ui.mjs';
 import {setupVectorReview} from './vector-review-ui.mjs';
-import {isVectorReviewAlgorithm} from './vector-review-policy.mjs';
+import {isVectorReviewAlgorithm,isVectorPageReviewAlgorithm} from './vector-review-policy.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
@@ -128,14 +130,17 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     // overlay first so a nested repaint replaces it instead of duplicating it.
     countInk.prepare();
   }
-  async function beginVectorReview(record,elements,sourceLayerScope){
+  async function beginVectorReview(record,elements,sourceLayerScope,scope='saved'){
     if(job)throw Error('Wait for the current count to finish');const c=context(),drawing=c.state.drawings.find(d=>d.id===record.example.drawing_id),item=c.state.countItems.find(i=>i.id===record.item_id);
     if(!drawing||drawing.digest!==record.example.digest||!item)throw Error('Selection source is missing or changed');
-    if(c.state.countMarks.some(m=>m.example_id===record.id&&(m.drawing_id!==drawing.id||m.page!==record.example.page)))throw Error('This selection already counts other pages. Use a separate source-page selection for this preview. Existing counts are unchanged.');
+    const targets=vectorReviewTargets({state:c.state,record,scope}),pageSet=isVectorPageReviewAlgorithm(record.example.algorithm)||targets.length>1||scope==='drawing'||scope==='discipline';
+    if(!pageSet&&c.state.countMarks.some(m=>m.example_id===record.id&&(m.drawing_id!==drawing.id||m.page!==record.example.page)))throw Error('This selection counts other pages. Choose all pages in this drawing or discipline to keep reviewing that scope. Existing counts are unchanged.');
     if(c.drawing?.id!==drawing.id||c.pageNumber!==record.example.page)await c.openDrawing(drawing,record.example.page,'count');
     if(mode!=='count')activate('count');selectedItem=item.id;action=null;
     const snapshot=structuredClone({record,item,drawing,marks:c.state.countMarks,elements}),run={cancelled:false};job=run;$('cancel-match').hidden=false;paint();
-    try{const review=await runSavedVectorReview({pdfjs,drawing,example:record.example,elements,sourceLayerScope,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total})=>{$('count-progress').textContent=`Finding vector matches · ${phase}${total?` ${completed}/${total}`:''}`;}});
+    try{const options={pdfjs,drawing,example:record.example,elements,sourceLayerScope:sourceLayerScope??record.example.vectorReview?.sourceLayerScope??true,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total,pageIndex,pageTotal})=>{$('count-progress').textContent=`Finding vector matches${pageTotal?` · page ${pageIndex}/${pageTotal}`:''} · ${phase}${total?` ${completed}/${total}`:''}`;}};
+      const layerPolicy=sourceLayerScope===undefined?(record.example.vectorReview?.layerPolicy||'all-admitted'):(sourceLayerScope?'same-layer-name':'all-admitted');
+      const review=pageSet?await runSavedVectorPageSetReview({...options,sourceDrawing:drawing,targets,layerPolicy}):await runSavedVectorReview(options);
       if(run.cancelled)throw Error('Matching cancelled; no results saved');nativeReview.show({...snapshot,review});$('count-progress').textContent='Review the drawing, then Apply selection.';
     }finally{if(job===run)job=null;$('cancel-match').hidden=true;paint();}
   }
@@ -216,7 +221,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     if(job)return;const c=context();if(!c.drawing)return;
     if(!confirm(`Recount ${c.drawing.name} using saved selections? Reviewed corrections and manual matches on this drawing are kept. Other drawings stay unchanged.`))return;
     const run={cancelled:false};job=run;$('cancel-match').hidden=false;$('select-example').disabled=$('manual-item').disabled=true;paint();
-    try{const body=await runDrawingRecount({state:c.state,target:c.drawing,pdfjs,run,progress:text=>$('count-progress').textContent=text});if(run.cancelled)throw new Error('Recount cancelled; no results saved');$('cancel-match').hidden=true;const result=await api(`/api/drawings/${c.drawing.id}/recount`,json('POST',body));await reload();const message=`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Review new results.${run.fallbacks?.size?` Raster fallback: ${[...run.fallbacks].join("; ")}.`:""}`;$('count-progress').textContent=message;notice(message);}
+    try{const body=await runDrawingRecount({state:c.state,target:c.drawing,pdfjs,run,progress:text=>$('count-progress').textContent=text});if(run.cancelled)throw new Error('Recount cancelled; no results saved');$('cancel-match').hidden=true;run.committing=true;const result=await api(`/api/drawings/${c.drawing.id}/recount`,json('POST',body));await reload();const message=`${result.added} new matches; ${result.removed} obsolete unchecked matches removed. Review new results.${run.fallbacks?.size?` Raster fallback: ${[...run.fallbacks].join("; ")}.`:""}`;$('count-progress').textContent=message;notice(message);}
     catch(e){const message=run.cancelled?'Recount cancelled; no results saved':e.message;$('count-progress').textContent=message;notice(message,!run.cancelled);}
     finally{if(job===run)job=null;$('cancel-match').hidden=true;$('select-example').disabled=$('manual-item').disabled=false;paint();}
   };

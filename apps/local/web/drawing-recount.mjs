@@ -4,6 +4,9 @@ import {recognizeDrawing} from './recognize-drawing.mjs';
 import {selectionFilter} from './pdf-elements.mjs';
 import {MATCH_IMAGE_PIXELS,createTileBudget,renderMatchSelection,tiledMatchPage,searchMatchTiles} from './pdf-match-tiles.mjs';
 import {runSavedVectorReview} from './vector-review-runner.mjs';
+import {runSavedVectorPageSetReview} from './vector-page-set-runner.mjs';
+import {isVectorPageReviewAlgorithm} from './vector-review-policy.mjs';
+import {vectorReviewTargets,vectorReviewCandidates} from './vector-page-set-ui.mjs';
 import {vectorReviewPayload} from './vector-review-ui.mjs';
 export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  const opened=new Map(),vectors=new Map(),vector=state.countExamples.some(e=>isVectorAlgorithm(e.example.algorithm)&&state.countItems.some(i=>i.id===e.item_id&&i.discipline_id===target.discipline_id)),check=()=>{if(run.cancelled)throw new Error('Recount cancelled; no results saved');};
@@ -20,7 +23,14 @@ export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  }
  function searchRaster(raster,template){return new Promise((resolve,reject)=>{check();const worker=new Worker('/match-worker.mjs',{type:'module'});run.worker=worker;const finish=()=>{clearTimeout(timer);worker.terminate();run.worker=null;},timer=setTimeout(()=>{finish();reject(new Error('Page matching timed out'));},20000);run.cancel=()=>{finish();reject(new Error('Recount cancelled; no results saved'));};worker.onmessage=e=>{finish();if(e.data.fallbackReason)run.fallbacks.add(e.data.fallbackReason);e.data.error?reject(new Error(e.data.error)):resolve(e.data.matches);};worker.onerror=e=>{finish();reject(new Error(e.message||'Matching failed'));};worker.postMessage({rgba:raster.data.buffer,width:raster.width,height:raster.height,template,vectorPage:raster.vectorPage},[raster.data.buffer]);});}
  async function search(raster,template){if(!raster.tiled)return searchRaster(raster,template);if(!template.matchAppearance)run.fallbacks.add(raster.vectorPage.reason);return searchMatchTiles({raster,template,search:searchRaster,cancelled:()=>run.cancelled,budget:tileBudget,progress:(tile,count)=>progress?.(`Searching large drawing · tile ${tile}/${count}…`)});}
- async function reviewVector(record,drawing){
+ async function reviewVector(record,drawing,targetDrawing){
+  if(isVectorPageReviewAlgorithm(record.example.algorithm)){
+   const review=await runSavedVectorPageSetReview({pdfjs,sourceDrawing:drawing,example:record.example,targets:vectorReviewTargets({state,record}),layerPolicy:record.example.vectorReview.layerPolicy,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,pageIndex,pageTotal})=>progress?.(`Recounting vectors · page ${pageIndex}/${pageTotal} · ${phase}`)});check();
+   const payload=vectorReviewPayload({record,item:state.countItems.find(i=>i.id===record.item_id),drawing,marks:state.countMarks,elements:record.example.elements,review,selected:new Set(vectorReviewCandidates(review).flatMap((p,i)=>p.visibility.verified?[i]:[]))});
+   // The drawing-recount endpoint updates only this drawing. Other saved page
+   // bundles remain unchanged, even though source verification is required.
+   payload.matches=payload.matches.filter(m=>m.drawing_id===targetDrawing.id);payload.vectorReview.pages=payload.vectorReview.pages.filter(p=>p.drawing_id===targetDrawing.id);return payload;
+  }
   const review=await runSavedVectorReview({pdfjs,drawing,example:record.example,sourceLayerScope:record.example.vectorReview.sourceLayerScope,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total})=>progress?.(`Recounting original vectors · ${phase}${total?` ${completed}/${total}`:''}`)});check();
   return vectorReviewPayload({record,item:state.countItems.find(i=>i.id===record.item_id),drawing,marks:state.countMarks,elements:record.example.elements,review,selected:new Set(review.result.proposals.flatMap((p,i)=>p.visibility.verified?[i]:[]))});
  }
