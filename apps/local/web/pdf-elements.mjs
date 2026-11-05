@@ -27,17 +27,25 @@ export function editedTemplate(original,filtered,box){
 // PDF.js stores one normalized bbox reader on each page, including after a
 // failed render. Only readers from our successful full-page render are reusable.
 const largeElementMetadata=new WeakMap();
+// Native cleanup must retain faint/subpixel paints too: the geometric matcher
+// still sees them, even when they fall below the legacy binary-ink threshold.
+// Admission is not paint verification; only explicit user exclusions ignore them.
+function nativePaintMask(rgba){
+ const mask=new Uint8Array(rgba.width*rgba.height);
+ for(let i=0;i<mask.length;i++){const p=i*4;mask[i]=rgba.data[p+3]>0&&(rgba.data[p]<255||rgba.data[p+1]<255||rgba.data[p+2]<255)?1:0;}
+ return mask;
+}
 // PDF.js records bounds in 256 bins per page dimension. Those broad-phase
 // bounds can overlap a small selection even when the actual paint does not.
 // Refine oversized inventories using the same isolated-ink test as the editor;
 // this is not visibility approval. The existing downstream guards still apply.
-async function refineElementCandidates(candidates,renderCandidate,check){
+async function refineElementCandidates(candidates,renderCandidate,check,nativeReviewOnly=false){
  if(candidates.length<=128)return candidates;
  if(candidates.length>512)throw Error('Selection exceeds the 512 candidate inspection budget');
  const refined=[];
  for(const id of candidates){
   check();const rgba=await renderCandidate(id);check();
-  if(inkImage(rgba.data,rgba.width,rgba.height).data.some(Boolean)){
+  if((nativeReviewOnly?nativePaintMask(rgba):inkImage(rgba.data,rgba.width,rgba.height).data).some(Boolean)){
    refined.push(id);if(refined.length>128)throw Error('Selection has too many elements to edit');
   }
   await new Promise(resolve=>setTimeout(resolve,0));check();
@@ -74,9 +82,10 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
  let candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*metadata.width>=a[0]&&reader.minX(i)*metadata.width<=b[0]&&reader.maxY(i)*metadata.height>=a[1]&&reader.minY(i)*metadata.height<=b[1]?[i]:[]);
  const cropViewport=viewport.clone({offsetX:(viewport.offsetX||0)-box[0],offsetY:(viewport.offsetY||0)-box[1]});
  async function crop(filter){check();const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});try{await render(canvas,ctx,cropViewport,filter);return ctx.getImageData(0,0,width,height);}finally{canvas.width=canvas.height=0;}}
- candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),check);
+ candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),check,nativeReviewOnly);
  const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height),isolatedPaints=new Map();
- for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
+ const originalNativePaint=nativeReviewOnly?nativePaintMask(original):null;
+ for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),ink=nativeReviewOnly?nativePaintMask(rgba):inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
   if(!nativeReviewOnly){
    // Identical overlaid paints can darken only antialiased edges, making each
    // omission appear to contribute. They remain redundant in legacy cleanup.
@@ -91,10 +100,10 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   for(let i=0;i<ink.length;i++){const p=i*4,different=original.data[p]!==without.data[p]||original.data[p+1]!==without.data[p+1]||original.data[p+2]!==without.data[p+2]||original.data[p+3]!==without.data[p+3];changed||=different;
    // Several light antialiased path edges can combine into dark original ink.
    // Coverage records actual paint contribution, not a second binary cutoff.
-   // Picking still requires visible original ink and an omission difference;
+   // Picking still requires visible original paint and an omission difference;
    // recognition still independently proves every retained original paint.
    covered[i]|=nativeReviewOnly?(rgba.data[p+3]>0&&(rgba.data[p]<255||rgba.data[p+1]<255||rgba.data[p+2]<255)?1:0):ink[i];
-   visible[i]=ink[i]&&different&&(!nativeReviewOnly||baseline.data[i])?1:0;
+   visible[i]=ink[i]&&different&&(!nativeReviewOnly||originalNativePaint[i])?1:0;
   }
   if(!nativeReviewOnly&&(!changed||!visible.some(Boolean)))throw Error('Selection contains hidden or redundant paths; choose a clearer example');
   elements.push({id,ink:visible,rgba});await new Promise(resolve=>setTimeout(resolve,0));check();
