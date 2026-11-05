@@ -30,13 +30,13 @@ function contentState(config){
  * contextIds must come from independently validated explicit source exclusions.
  * The resulting handle is bound to this exact PDF page and layer configuration.
  */
-export async function preparePdfContourPaints({page,OPS,elementIds,contextIds=[],optionalContentConfig,cancelled=()=>false}={}){
+async function prepareAtScale({page,OPS,elementIds,contextIds=[],optionalContentConfig,cancelled=()=>false}={},verificationScale=2){
  try{
   if(typeof cancelled!=='function')fail('Invalid cancellation callback');
   const check=()=>{if(cancelled())fail('Contour preparation cancelled');};check();
   if(!page||typeof page.getOperatorList!=='function'||typeof page.getViewport!=='function'||typeof page.render!=='function'||!checkIds(elementIds)||!elementIds.length||!checkIds(contextIds)||contextIds.length>16||elementIds.length+contextIds.length>128||elementIds.some(id=>contextIds.includes(id)))fail('Invalid page or original paint identities');
   const contentHash=contentState(optionalContentConfig),operatorList=await awaitOperators(page,check);check();
-  const viewportTransform=Array.from(page.getViewport({scale:2,rotation:0}).transform);
+  const viewportTransform=Array.from(page.getViewport({scale:verificationScale,rotation:0}).transform);
   const ids=[...elementIds,...contextIds],raw=extractRawPathProvenance({operatorList,OPS,ids,cancelled,viewportTransform,...(optionalContentConfig?{optionalContentVisible:createOptionalContentVisibilityResolver(optionalContentConfig)}:{})});
   if(raw.reason)fail(raw.reason);
   const byId=new Map(raw.records.map(p=>[p.id,p])),failures=new Map(raw.failures.map(p=>[p.id,p]));
@@ -56,21 +56,37 @@ export async function preparePdfContourPaints({page,OPS,elementIds,contextIds=[]
   const paints=elementIds.map(adapt).sort((a,b)=>a.id-b.id),contextPaints=contextIds.map(adapt).sort((a,b)=>a.id-b.id);check();
   if(contentState(optionalContentConfig)!==contentHash)fail('Drawing layer visibility changed during preparation');
   const result=Object.freeze({supported:true,elementIds:Object.freeze([...elementIds]),contextIds:Object.freeze([...contextIds]),requiresSemanticVerification:true});
-  preparedPages.set(result,{page,paints,contextPaints,optionalContentConfig,contentHash,viewportTransform,clipProofs:raw.records.filter(p=>p.clipRedundancyProof).map(p=>({id:p.id,proof:structuredClone(p.clipRedundancyProof)}))});return result;
+  preparedPages.set(result,{page,paints,contextPaints,optionalContentConfig,contentHash,viewportTransform,verificationScale,operatorCount:operatorList.fnArray.length,clipProofs:raw.records.filter(p=>p.clipRedundancyProof).map(p=>({id:p.id,proof:structuredClone(p.clipRedundancyProof)}))});return result;
  }catch(error){return refuse(error instanceof Error?error.message:'Original paint preparation failed');}
+}
+
+export async function preparePdfContourPaints(args={}){
+ const primary=await prepareAtScale(args),p=preparedPages.get(primary);
+ if(!p||!p.paints.some(paint=>paint.kind==='path'&&paint.style.stroke&&paint.style.width>0&&paint.style.width<.5))return primary;
+ // Prepare both original viewports before any rendering can replace raw path
+ // arrays. Hairlines stay device-dependent and do not trigger this fallback.
+ const alternative=await prepareAtScale(args,8),q=preparedPages.get(alternative);
+ let values=0;const count=value=>{if(args.cancelled?.())fail('Contour preparation cancelled');if(typeof value==='number'){if(++values>32768)fail('Combined thin-paint preparation storage budget exceeded');}else if(Array.isArray(value)){for(const child of value)count(child);}else if(value&&typeof value==='object'){for(const child of Object.values(value))count(child);}};
+ try{
+  if(args.cancelled?.())fail('Contour preparation cancelled');
+  if(contentState(p.optionalContentConfig)!==p.contentHash)fail('Drawing layer visibility changed during preparation');
+  if(q){try{for(const entry of [p,q])count([entry.paints,entry.contextPaints,entry.clipProofs]);p.alternative=alternative;}catch(error){if(args.cancelled?.())throw error;p.alternativeRefusal=error.message;preparedPages.delete(alternative);}}
+  else p.alternativeRefusal=alternative.reason;
+  const result=Object.freeze({...primary,additionalAuditWork:p.operatorCount});preparedPages.set(result,p);preparedPages.delete(primary);return result;
+ }catch(error){preparedPages.delete(primary);preparedPages.delete(alternative);return {...refuse(error.message),additionalAuditWork:p.operatorCount};}
 }
 
 /** Render the unmodified original page into one bounded readback crop. Handles
  * cannot be forged, rebound to another page or reused after a layer change.
  * This deliberately returns no score, coordinates for accepted marks or count.
  */
-export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion,cancelled=()=>false,onRender=()=>{},includeAlphaMask=false}={}){
+async function verifyAtScale({prepared,createCanvas,pdfjsVersion,cancelled=()=>false,onRender=()=>{},includeAlphaMask=false}={}){
  let canvas,task,timer,timedOut=false,executionStage=null;
  try{
   const p=preparedPages.get(prepared);
   if(!p||typeof createCanvas!=='function'||typeof cancelled!=='function'||typeof onRender!=='function'||typeof includeAlphaMask!=='boolean')fail('Invalid prepared paint handle or render callbacks');
   const check=()=>{if(cancelled())fail('Contour verification cancelled');if(contentState(p.optionalContentConfig)!==p.contentHash)fail('Drawing layer visibility changed; prepare again');};check();
-  const viewport=p.page.getViewport({scale:2,rotation:0}),all=[...p.paints,...p.contextPaints],native=[Infinity,Infinity,-Infinity,-Infinity],scale=Math.hypot(viewport.transform[0],viewport.transform[1]);
+  const viewport=p.page.getViewport({scale:p.verificationScale,rotation:0}),all=[...p.paints,...p.contextPaints],native=[Infinity,Infinity,-Infinity,-Infinity],scale=Math.hypot(viewport.transform[0],viewport.transform[1]);
   if(!sameTransform(Array.from(viewport.transform),p.viewportTransform))fail('Drawing viewport changed; prepare again');
   if(!Number.isFinite(scale)||scale<=0)fail('Invalid drawing viewport');
   for(const paint of all){
@@ -89,9 +105,17 @@ export async function verifyPdfContourPaints({prepared,createCanvas,pdfjsVersion
   onRender(task);await task.promise;check();
   executionStage='readback';const image=captureContourRaster({context,left,top,width,height,pdfjsVersion});executionStage=null;
   const proof=verifyContourVisibility({paints:p.paints,contextPaints:p.contextPaints,authorizedContextIds:prepared.contextIds,viewportTransform:Array.from(viewport.transform),image,createCanvas,cancelled,includeAlphaMask});check();
-  return {...proof,crop:{left,top,width,height},redundantClipOperations:p.clipProofs.map(p=>p.id),requiresSemanticVerification:true};
+  return {...proof,crop:{left,top,width,height},redundantClipOperations:p.clipProofs.map(p=>p.id),verificationScale:p.verificationScale,requiresSemanticVerification:true};
  }catch(error){
   if(task){task.cancel();try{await task.promise;}catch{}}
   return {verified:false,proof:null,reason:timedOut?'Original contour render timed out':error instanceof Error?error.message:'Original contour rendering failed',...(executionStage?{executionFailure:executionStage}:{}),requiresSemanticVerification:true};
  }finally{clearTimeout(timer);if(canvas){canvas.width=0;canvas.height=0;}}
+}
+
+export async function verifyPdfContourPaints(args={}){
+ const primary=await verifyAtScale(args),p=preparedPages.get(args.prepared);
+ if(primary.verified||primary.executionFailure||primary.diagnostics?.mismatchedPixels>0||primary.reason!=='Paint has no opaque detail to verify')return primary;
+ if(!p?.alternative)return p?.alternativeRefusal?{...primary,higherResolutionRefusal:p.alternativeRefusal}:primary;
+ const alternative=await verifyAtScale({...args,prepared:p.alternative});
+ return {...alternative,baselineRefusal:{reason:primary.reason,verificationScale:2,diagnostics:primary.diagnostics}};
 }

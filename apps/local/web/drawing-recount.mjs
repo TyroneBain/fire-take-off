@@ -1,7 +1,7 @@
 import {extractVectorPage,resolveVectorTextBounds} from './vector-recognition.mjs';
 import {isVectorAlgorithm} from './matcher.mjs';
 import {recognizeDrawing} from './recognize-drawing.mjs';
-import {selectionFilter} from './pdf-elements.mjs';
+import {preparePdfSelectionFilter} from './pdf-element-operations.mjs';
 import {MATCH_IMAGE_PIXELS,createTileBudget,renderMatchSelection,tiledMatchPage,searchMatchTiles} from './pdf-match-tiles.mjs';
 import {runSavedVectorReview} from './vector-review-runner.mjs';
 import {runSavedVectorPageSetReview} from './vector-page-set-runner.mjs';
@@ -15,9 +15,10 @@ export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  async function render(d,number,elements,sourceBounds){
   check();let entry=opened.get(d.id);if(!entry){const task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});entry={task,doc:null};opened.set(d.id,entry);run.task=task;entry.doc=await task.promise;}check();
   const page=await entry.doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0}),width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);
-  if(width*height>MATCH_IMAGE_PIXELS){const options={page,viewport,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},operationsFilter:elements?selectionFilter(elements):undefined,cancelled:()=>run.cancelled,onRender:task=>{run.cancel=()=>task.cancel();}};return sourceBounds?renderMatchSelection({...options,bounds:sourceBounds}):tiledMatchPage(options);}
-  const key=d.id+':'+number;if(vector&&!vectors.has(key))vectors.set(key,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
-  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true}),recordText=!elements&&vectors.get(key)?.pendingTextBounds===true,task=page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter:elements?selectionFilter(elements):undefined});run.cancel=()=>task.cancel();await task.promise;check();
+  const key=d.id+':'+number;if(width*height<=MATCH_IMAGE_PIXELS&&vector&&!vectors.has(key))vectors.set(key,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
+  const createCanvas=(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},operationsFilter=await preparePdfSelectionFilter({page,OPS:pdfjs.OPS,selection:elements,createCanvas,cancelled:()=>run.cancelled});check();
+  if(width*height>MATCH_IMAGE_PIXELS){const options={page,viewport,createCanvas,operationsFilter,cancelled:()=>run.cancelled,onRender:task=>{run.cancel=()=>task.cancel();}};return sourceBounds?renderMatchSelection({...options,bounds:sourceBounds}):tiledMatchPage(options);}
+  const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true}),recordText=!elements&&vectors.get(key)?.pendingTextBounds===true,task=page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter});run.cancel=()=>task.cancel();await task.promise;check();
   if(recordText)vectors.set(key,resolveVectorTextBounds(vectors.get(key),{reader:page.recordedBBoxes,viewport,width,height}));
   const data=ctx.getImageData(0,0,width,height).data;page.cleanup();return {data,width,height,viewport,vectorPage:vectors.get(key)};
  }

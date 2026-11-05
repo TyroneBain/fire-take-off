@@ -1,6 +1,6 @@
 import {isVectorReviewAlgorithm} from './vector-review-policy.mjs';
 import {includesRotations} from './matcher.mjs';
-import {selectionFilter} from './pdf-elements.mjs';
+import {preparePdfSelectionFilter} from './pdf-element-operations.mjs';
 import {selectionList} from './selection-list.mjs';
 // Normalize native bounds across crop offsets and page rotation.
 export function exampleRectangle(viewport,bounds) {
@@ -22,8 +22,10 @@ export function setupExamplePreviews({pdfjs,context,node,button,openExample,edit
         const doc=await task.promise,page=await doc.getPage(record.example.page);
         const initial=exampleRectangle(page.getViewport({scale:1}),record.example.bounds),scale=Math.min(4,128/Math.max(initial.width,initial.height));
         const viewport=page.getViewport({scale}),rect=exampleRectangle(viewport,record.example.bounds);
+        const operationsFilter=await preparePdfSelectionFilter({page,OPS:pdfjs.OPS,selection:record.example.elements,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},cancelled:()=>!container.isConnected});
+        if(!container.isConnected)continue;
         const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.ceil(rect.width));canvas.height=Math.max(1,Math.ceil(rect.height));
-        await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[1,0,0,1,-rect.left,-rect.top],operationsFilter:selectionFilter(record.example.elements)}).promise;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[1,0,0,1,-rect.left,-rect.top],operationsFilter}).promise;
         const data=canvas.toDataURL('image/png');cache.set(record.id+':'+record.version,data);while(cache.size>100)cache.delete(cache.keys().next().value);
         if(container.isConnected)show(container,data);page.cleanup();
       }catch{if(container.isConnected)container.replaceChildren(node('span','Preview unavailable'));}

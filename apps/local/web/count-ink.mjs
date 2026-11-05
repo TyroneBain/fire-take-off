@@ -1,5 +1,6 @@
 import {inkImage,exampleImage,rotateTemplate,isVectorAlgorithm,includesRotations,includesScales,matchingThreshold} from './matcher.mjs';
-import {editedTemplate,selectionFilter} from './pdf-elements.mjs';
+import {editedTemplate} from './pdf-elements.mjs';
+import {preparePdfSelectionFilter} from './pdf-element-operations.mjs';
 import {extractVectorPage,resolveVectorTextBounds,createVectorTemplate} from './vector-recognition.mjs';
 import {vectorInkMask} from './vector-ink.mjs';
 import {isVectorReviewAlgorithm} from './vector-review-policy.mjs';
@@ -42,17 +43,19 @@ export function setupCountInk({context,pdfjs,onReady,createCanvas=browserCanvas,
  const key=(m,e)=>`${m.drawing_id}:${m.page}:${m.id}:${m.x}:${m.y}:${e.id}:${e.version}`;
  const trim=(map,limit)=>{while(map.size>limit)map.delete(map.keys().next().value);};
  const trimNative=()=>{const entries=[...masks].filter(([,mask])=>mask?.native);let pixels=entries.reduce((sum,[,mask])=>sum+mask.width*mask.height,0);while(entries.length>512||pixels>4000000){const [id,mask]=entries.shift();pixels-=mask.width*mask.height;masks.delete(id);}};
- async function raster(d,number,elements,vector=false){
+ async function raster(d,number,elements,vector=false,cancelled=()=>false){
+  if(cancelled())throw Error('Colour overlay preparation cancelled');
   const id=`${d.digest}:${number}:${JSON.stringify(elements||null)}:${vector}`;if(pages.has(id))return pages.get(id);
   const task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});
   try{const page=await(await task.promise).getPage(number),viewport=page.getViewport({scale:2,rotation:0}),width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);if(width*height>4000000)throw Error('Colour overlay image budget exceeded');
    let vectorPage=vector?extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}):null;
-   const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvas,canvasContext:ctx,viewport,recordOperations:!!vectorPage?.pendingTextBounds,operationsFilter:elements?selectionFilter(elements):undefined}).promise;
+   const operationsFilter=await preparePdfSelectionFilter({page,OPS:pdfjs.OPS,selection:elements,createCanvas,cancelled});if(cancelled())throw Error('Colour overlay preparation cancelled');
+   const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvas,canvasContext:ctx,viewport,recordOperations:!!vectorPage?.pendingTextBounds,operationsFilter}).promise;if(cancelled())throw Error('Colour overlay preparation cancelled');
    if(vectorPage?.pendingTextBounds)vectorPage=resolveVectorTextBounds(vectorPage,{reader:page.recordedBBoxes,viewport,width,height});
    const result={...inkImage(ctx.getImageData(0,0,width,height).data,width,height),viewport,vectorPage,vectorElements:vectorPage?.supported?new Map(vectorPage.elements.map(e=>[e.id,e])):null};pages.set(id,result);trim(pages,3);return result;
   }finally{await task.destroy();}
  }
- async function templateFor(e,state){const id=e.id+':'+e.version;if(templates.has(id))return templates.get(id);const def=e.example,d=state.drawings.find(d=>d.id===def.drawing_id&&d.digest===def.digest);if(!d)throw Error('Selection source missing');const vector=isVectorAlgorithm(def.algorithm),original=await raster(d,def.page,null,vector),b=def.bounds,box=[...original.viewport.convertToViewportPoint(b[0],b[3]),...original.viewport.convertToViewportPoint(b[2],b[1])],base=exampleImage(original,box);const t=def.elements?editedTemplate(original,await raster(d,def.page,def.elements),box):base;
+ async function templateFor(e,state,cancelled){const id=e.id+':'+e.version;if(templates.has(id))return templates.get(id);const def=e.example,d=state.drawings.find(d=>d.id===def.drawing_id&&d.digest===def.digest);if(!d)throw Error('Selection source missing');const vector=isVectorAlgorithm(def.algorithm),original=await raster(d,def.page,null,vector,cancelled),b=def.bounds,box=[...original.viewport.convertToViewportPoint(b[0],b[3]),...original.viewport.convertToViewportPoint(b[2],b[1])],base=exampleImage(original,box);const t=def.elements?editedTemplate(original,await raster(d,def.page,def.elements,false,cancelled),box):base;
   if(vector){const anchor=original.viewport.convertToPdfPoint(base.left+base.width/2,base.top+base.height/2);t.vector=createVectorTemplate(original.vectorPage,{bounds:b,ids:def.elements?.ids,excluded:def.elements?.excluded,anchor});t.matchRotations=includesRotations(def.algorithm);t.matchScales=includesScales(def.algorithm);}
   templates.set(id,t);trim(templates,100);return t;
  }
@@ -80,9 +83,9 @@ export function setupCountInk({context,pdfjs,onReady,createCanvas=browserCanvas,
     }catch{if(!stale())for(const m of batch)masks.set(key(m,examples.get(m.example_id)),null);}trimNative();trim(masks,5000);
    }
    if(stale()||!legacy.length)return;
-   const vector=legacy.some(m=>isVectorAlgorithm(examples.get(m.example_id)?.example.algorithm)),target=await raster(c.drawing,c.pageNumber,null,vector);let completed=0;for(const m of legacy){const e=examples.get(m.example_id);if(!e)continue;const id=key(m,e);if(masks.has(id))continue;
-    try{const t=await templateFor(e,c.state);let mask=null;if(isVectorAlgorithm(e.example.algorithm)){try{mask=await verifiedMask(target,t,e,m,c.drawing.digest);}catch{/* A failed geometric check retains the established raster/outline fallback. */}}
-     if(!mask)mask=alignedInk(target,t,target.viewport.convertToViewportPoint(m.x,m.y),{rotations:includesRotations(e.example.algorithm),threshold:matchingThreshold(e.example.algorithm)});masks.set(id,mask?{...mask,data:undefined,url:maskURL(mask),viewport:target.viewport}:null);}catch{masks.set(id,null);}
+   const vector=legacy.some(m=>isVectorAlgorithm(examples.get(m.example_id)?.example.algorithm)),target=await raster(c.drawing,c.pageNumber,null,vector,stale);let completed=0;for(const m of legacy){const e=examples.get(m.example_id);if(!e)continue;const id=key(m,e);if(masks.has(id))continue;
+    try{const t=await templateFor(e,c.state,stale);if(stale())break;let mask=null;if(isVectorAlgorithm(e.example.algorithm)){try{mask=await verifiedMask(target,t,e,m,c.drawing.digest);}catch{/* A failed geometric check retains the established raster/outline fallback. */}}
+     if(stale())break;if(!mask)mask=alignedInk(target,t,target.viewport.convertToViewportPoint(m.x,m.y),{rotations:includesRotations(e.example.algorithm),threshold:matchingThreshold(e.example.algorithm)});masks.set(id,mask?{...mask,data:undefined,url:maskURL(mask),viewport:target.viewport}:null);}catch{if(!stale())masks.set(id,null);}
     // Yield in bounded batches so large result sets do not lock drawing navigation.
     if(++completed%24===0){await new Promise(r=>setTimeout(r,0));if(context().drawing?.id!==c.drawing.id||context().pageNumber!==c.pageNumber)break;}
    }trim(masks,5000);

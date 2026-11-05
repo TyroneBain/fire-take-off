@@ -10,7 +10,8 @@ import {visibleCountHeadings} from './count-headings.mjs';
 import {setupSelectionMovement} from './selection-movement.mjs';
 import {setupSelectionDeletion} from './selection-deletion.mjs';
 import {setupSelectionEditor} from './selection-editor.mjs';
-import {selectionFilter,editedTemplate} from './pdf-elements.mjs';
+import {editedTemplate} from './pdf-elements.mjs';
+import {preparePdfSelectionFilter} from './pdf-element-operations.mjs';
 import {coverageCircles,appendCoverage} from './coverage.mjs';
 import {coverageInput} from './coverage-input.mjs';
 import {setupMeasurementEditor} from './measurement-editor.mjs';
@@ -240,10 +241,12 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
       let doc=opened.get(d.id);if(!doc){run.task=pdfjs.getDocument({url:`/api/drawings/${d.id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});doc=await run.task.promise;opened.set(d.id,{doc,task:run.task});}else doc=doc.doc;
       const page=await doc.getPage(number),viewport=page.getViewport({scale:2,rotation:0});
       const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);
-      if(width*height>MATCH_IMAGE_PIXELS){const options={page,viewport,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},operationsFilter:elements?selectionFilter(elements):undefined,cancelled:()=>run.cancelled,onRender:task=>{run.cancel=()=>task.cancel();}};return sourceBounds?renderMatchSelection({...options,bounds:sourceBounds}):tiledMatchPage(options);}
-      const vectorKey=d.id+':'+number;if(vector&&!vectors.has(vectorKey))vectors.set(vectorKey,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
+      const vectorKey=d.id+':'+number;if(width*height<=MATCH_IMAGE_PIXELS&&vector&&!vectors.has(vectorKey))vectors.set(vectorKey,extractVectorPage({operatorList:await page.getOperatorList(),OPS:pdfjs.OPS}));
+      const createCanvas=(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},operationsFilter=await preparePdfSelectionFilter({page,OPS:pdfjs.OPS,selection:elements,createCanvas,cancelled:()=>run.cancelled});
+      if(run.cancelled)throw new Error('Matching cancelled; no count saved');
+      if(width*height>MATCH_IMAGE_PIXELS){const options={page,viewport,createCanvas,operationsFilter,cancelled:()=>run.cancelled,onRender:task=>{run.cancel=()=>task.cancel();}};return sourceBounds?renderMatchSelection({...options,bounds:sourceBounds}):tiledMatchPage(options);}
       const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{willReadFrequently:true}),recordText=!elements&&vectors.get(vectorKey)?.pendingTextBounds===true;
-      await page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter:elements?selectionFilter(elements):undefined}).promise;
+      await page.render({canvas,canvasContext:ctx,viewport,recordOperations:recordText,operationsFilter}).promise;
       if(recordText)vectors.set(vectorKey,resolveVectorTextBounds(vectors.get(vectorKey),{reader:page.recordedBBoxes,viewport,width,height}));
       const image=ctx.getImageData(0,0,width,height);page.cleanup();return {image,viewport,width,height,vectorPage:vectors.get(vectorKey)};
     }

@@ -43,6 +43,10 @@ test('review CLI refuses wrong document or element identity and cancellation wit
  await writeFile(f.selectionPath,JSON.stringify(f.example));let cancelled=false;
  await assert.rejects(reviewVectorFile({...f,cancelled:()=>cancelled,progress:({phase})=>{if(phase==='complete')cancelled=true;}}),/cancel/i);await assert.rejects(access(f.outputPath));
 });
-test('thin source with no opaque detail remains unverified and does not publish a report',async t=>{
- const f=await fixture(t,true);await assert.rejects(reviewVectorFile(f),/no opaque detail/);await assert.rejects(access(f.outputPath));
+test('thin source without opaque detail at2x verifies at8x without changing original geometry or inputs',async t=>{
+ const f=await fixture(t,true),before=await readFile(f.selectionPath),report=await reviewVectorFile(f);
+ assert.equal(report.result.source.visibility.verified,true);assert.equal(report.result.source.visibility.verificationScale,8);
+ assert.match(report.result.source.visibility.baselineRefusal.reason,/no opaque detail/);
+ assert.deepEqual(report.result.proposals.map(p=>p.x),[40,100,160]);assert.ok(report.result.proposals.every(p=>p.visibility.verified));
+ assert.deepEqual(await readFile(f.pdfPath),f.bytes);assert.deepEqual(await readFile(f.selectionPath),before);assert.deepEqual(JSON.parse(await readFile(f.outputPath,'utf8')),report);
 });

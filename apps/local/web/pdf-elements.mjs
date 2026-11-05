@@ -1,4 +1,5 @@
 import {inkImage,exampleImage} from './matcher.mjs';
+import {trackPdfPathIdentity,rememberPdfPathIdentity,mappedSelectionFilter} from './pdf-element-operations.mjs';
 export const ELEMENT_RENDERER='pdfjs-6.4.299-paths-1';
 export function validElementSelection(value){
  return !!value&&value.renderer===ELEMENT_RENDERER&&Array.isArray(value.ids)&&value.ids.length>0&&value.ids.length<=128&&value.ids.every((n,i,a)=>Number.isInteger(n)&&n>=0&&n<=1000000&&(i===0||n>a[i-1]))&&Array.isArray(value.excluded)&&value.excluded.length<value.ids.length&&value.excluded.every((n,i,a)=>value.ids.includes(n)&&(i===0||n>a[i-1]));
@@ -63,20 +64,30 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
  let metadata=largeElementMetadata.get(page);
  if(page.recordedBBoxes&&metadata?.reader!==page.recordedBBoxes)throw Error('Selection bounds came from another or incomplete render. Reopen the selection');
  if(!metadata){
+  const identityTracker=trackPdfPathIdentity(ops,OPS);
   const unit=page.getViewport({scale:1,rotation:0}),scale=Math.min(.5,.99*Math.sqrt(1000000/(unit.width*unit.height))),fullViewport=page.getViewport({scale,rotation:0}),w=Math.ceil(fullViewport.width),h=Math.ceil(fullViewport.height);
   if(!Number.isFinite(scale)||scale<=0||w*h>1000000)throw Error('Drawing exceeds the element metadata budget');
   const canvas=createCanvas(w,h);
-  try{await render(canvas,canvas.getContext('2d'),fullViewport,undefined,true);if(!page.recordedBBoxes)throw Error('This PDF renderer cannot inspect selection elements');metadata={reader:page.recordedBBoxes,viewport:fullViewport,width:w,height:h};largeElementMetadata.set(page,metadata);}finally{canvas.width=canvas.height=0;}
+  try{await render(canvas,canvas.getContext('2d'),fullViewport,identityTracker.observe,true);if(!page.recordedBBoxes)throw Error('This PDF renderer cannot inspect selection elements');const identity=identityTracker.finish();rememberPdfPathIdentity(page,identity);metadata={reader:page.recordedBBoxes,viewport:fullViewport,width:w,height:h,identity};largeElementMetadata.set(page,metadata);}finally{canvas.width=canvas.height=0;}
  }
- const a=metadata.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=metadata.viewport.convertToViewportPoint(bounds[2],bounds[1]),reader=metadata.reader;
+ const a=metadata.viewport.convertToViewportPoint(bounds[0],bounds[3]),b=metadata.viewport.convertToViewportPoint(bounds[2],bounds[1]),originalReader=metadata.reader,identity=metadata.identity,reader={isEmpty:id=>originalReader.isEmpty(identity.displayId(id)),maxX:id=>originalReader.maxX(identity.displayId(id)),minX:id=>originalReader.minX(identity.displayId(id)),maxY:id=>originalReader.maxY(identity.displayId(id)),minY:id=>originalReader.minY(identity.displayId(id))};
  let candidates=ops.fnArray.flatMap((op,i)=>op===OPS.constructPath&&eligible.has(ops.argsArray[i][0])&&!reader.isEmpty(i)&&reader.maxX(i)*metadata.width>=a[0]&&reader.minX(i)*metadata.width<=b[0]&&reader.maxY(i)*metadata.height>=a[1]&&reader.minY(i)*metadata.height<=b[1]?[i]:[]);
  const cropViewport=viewport.clone({offsetX:(viewport.offsetX||0)-box[0],offsetY:(viewport.offsetY||0)-box[1]});
  async function crop(filter){check();const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});try{await render(canvas,ctx,cropViewport,filter);return ctx.getImageData(0,0,width,height);}finally{canvas.width=canvas.height=0;}}
- candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||index===id),check);
- const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height);
- for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||index===id),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
+ candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),check);
+ const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height),isolatedPaints=new Map();
+ for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
+  if(!nativeReviewOnly){
+   // Identical overlaid paints can darken only antialiased edges, making each
+   // omission appear to contribute. They remain redundant in legacy cleanup.
+   // Hashing only narrows comparisons; rejection requires exact original RGBA.
+   let hash=2166136261;for(const value of rgba.data)hash=Math.imul(hash^value,16777619);
+   const bucket=isolatedPaints.get(hash)||[];
+   if(bucket.some(prior=>prior.every((value,i)=>value===rgba.data[i])))throw Error('Selection contains redundant identical paths; choose a clearer example');
+   bucket.push(rgba.data);isolatedPaints.set(hash,bucket);
+  }
   if(!nativeReviewOnly&&ink.some((v,i)=>v&&!baseline.data[i]))throw Error('Selection contains obscured paths; choose a clearer example');
-  const without=await crop(index=>index!==id),visible=new Uint8Array(ink.length);let changed=false;
+  const without=await crop((index,list)=>identity.rawId(index,list)!==id),visible=new Uint8Array(ink.length);let changed=false;
   for(let i=0;i<ink.length;i++){const p=i*4,different=original.data[p]!==without.data[p]||original.data[p+1]!==without.data[p+1]||original.data[p+2]!==without.data[p+2]||original.data[p+3]!==without.data[p+3];changed||=different;
    // Several light antialiased path edges can combine into dark original ink.
    // Coverage records actual paint contribution, not a second binary cutoff.
@@ -95,8 +106,8 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   // This model MUST NOT feed legacy raster matching. Retained whole paints
   // still require separate original-PDF verification before native counting.
   if(!elements.length||baseline.data.some((v,i)=>v&&!covered[i]))throw Error('Selection contains unassigned text or image detail; choose a clearer source');
- }else{const joint=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(index)||selected.has(index));if(!elements.length||original.data.some((value,i)=>value!==joint.data[i]))throw Error('This selection contains text, images or obscured content; editing currently supports visible vector paths only');}
- return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(selectionFilter({excluded}));}};
+ }else{const joint=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||selected.has(identity.rawId(index,list)));if(!elements.length||original.data.some((value,i)=>value!==joint.data[i]))throw Error('This selection contains text, images or obscured content; editing currently supports visible vector paths only');}
+ return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(mappedSelectionFilter({excluded},identity));}};
 }
 export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false,nativeReviewOnly=false}){
  if(typeof nativeReviewOnly!=='boolean')throw Error('Invalid native inspection mode');
@@ -104,10 +115,10 @@ export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled
  const viewport=page.getViewport({scale:2,rotation:0}),w=Math.ceil(viewport.width),h=Math.ceil(viewport.height);if(nativeReviewOnly||w*h>4000000)return inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,viewport,nativeReviewOnly});
  const a=viewport.convertToViewportPoint(bounds[0],bounds[3]),b=viewport.convertToViewportPoint(bounds[2],bounds[1]),box=[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])].map(Math.round),width=box[2]-box[0],height=box[3]-box[1];
  if(width<1||height<1||width>256||height>256)throw new Error('Select a symbol no larger than 128 PDF points');
- const canvas=createCanvas(w,h),ctx=canvas.getContext('2d',{willReadFrequently:true});
- await page.render({canvas,canvasContext:ctx,viewport,recordOperations:true}).promise;check();
+ const ops=await page.getOperatorList(),identityTracker=trackPdfPathIdentity(ops,OPS),canvas=createCanvas(w,h),ctx=canvas.getContext('2d',{willReadFrequently:true});
+ await page.render({canvas,canvasContext:ctx,viewport,recordOperations:true,operationsFilter:identityTracker.observe}).promise;check();const identity=identityTracker.finish();rememberPdfPathIdentity(page,identity);
  const baseline=inkImage(ctx.getImageData(box[0],box[1],width,height).data,width,height),original=exampleImage(baseline,[0,0,width,height]);
- const anchor=[original.left+original.width/2,original.top+original.height/2],ops=await page.getOperatorList(),reader=page.recordedBBoxes;
+ const anchor=[original.left+original.width/2,original.top+original.height/2],originalReader=page.recordedBBoxes,reader=originalReader?{isEmpty:id=>originalReader.isEmpty(identity.displayId(id)),maxX:id=>originalReader.maxX(identity.displayId(id)),minX:id=>originalReader.minX(identity.displayId(id)),maxY:id=>originalReader.maxY(identity.displayId(id)),minY:id=>originalReader.minY(identity.displayId(id))}:null;
  if(!reader)throw new Error('This PDF renderer cannot inspect selection elements');
  const unsafe=new Set([OPS.clip,OPS.eoClip,OPS.beginGroup,OPS.beginSMaskGroup]);
  if(ops.fnArray.some((op,i)=>unsafe.has(op)||(op===OPS.setTextRenderingMode&&ops.argsArray[i][0]>=4)))throw new Error('Element editing is not yet supported for clipped or composited drawings');
@@ -118,13 +129,13 @@ export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled
  candidates=await refineElementCandidates(candidates,async id=>{
   const scratch=createCanvas(width,height);let timer,poll;
   try{
-   const context=scratch.getContext('2d',{willReadFrequently:true}),task=page.render({canvas:scratch,canvasContext:context,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||index===id});
+   const context=scratch.getContext('2d',{willReadFrequently:true}),task=page.render({canvas:scratch,canvasContext:context,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||identity.rawId(index,list)===id});
    timer=setTimeout(()=>task.cancel(),Math.max(1,Math.min(20000,refinementDeadline-performance.now())));poll=setInterval(()=>{if(cancelled())task.cancel();},25);
    await task.promise;refinementCheck();return context.getImageData(0,0,width,height);
   }finally{clearTimeout(timer);clearInterval(poll);scratch.width=scratch.height=0;}
  },refinementCheck);
  const elements=[],union=new Uint8Array(width*height),crop=createCanvas(width,height),c=crop.getContext('2d',{willReadFrequently:true});
- for(const id of candidates){check();await page.render({canvas:crop,canvasContext:c,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||index===id}).promise;const rgba=c.getImageData(0,0,width,height),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;for(let k=0;k<ink.length;k++)union[k]|=ink[k];elements.push({id,ink,rgba});}
+ for(const id of candidates){check();await page.render({canvas:crop,canvasContext:c,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:(index,list)=>!paint.has(list.fnArray[index])||identity.rawId(index,list)===id}).promise;const rgba=c.getImageData(0,0,width,height),ink=inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;for(let k=0;k<ink.length;k++)union[k]|=ink[k];elements.push({id,ink,rgba});}
  if(!elements.length||baseline.data.some((v,i)=>v&&!union[i]))throw new Error('This selection contains text or image content; editing currently supports vector paths only');
- return {elements,box,width,height,viewport,anchor,baseline,async render(excluded=[]){check();await page.render({canvas:crop,canvasContext:c,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:selectionFilter({excluded})}).promise;return c.getImageData(0,0,width,height);}};
+ return {elements,box,width,height,viewport,anchor,baseline,async render(excluded=[]){check();await page.render({canvas:crop,canvasContext:c,viewport,transform:[1,0,0,1,-box[0],-box[1]],operationsFilter:mappedSelectionFilter({excluded},identity)}).promise;return c.getImageData(0,0,width,height);}};
 }

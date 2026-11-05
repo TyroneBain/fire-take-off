@@ -41,7 +41,7 @@ export async function runVectorCandidateReview({page,OPS,optionalContentConfig,d
   const textOps=new Set(['showText','showSpacedText','nextLineShowText','nextLineSetSpacingShowText'].map(name=>OPS[name]).filter(Number.isInteger)),imageOps=new Set(Object.entries(OPS).filter(([name])=>name.startsWith('paint')&&name.includes('Image')).map(([,op])=>op)),nonPathContent={textOperations:0,imageOperations:0,shadingOperations:0},paintIds=[];
   for(let id=0;id<operatorList.fnArray.length;id++){if((id&255)===0)check();const op=operatorList.fnArray[id];if(textOps.has(op))nonPathContent.textOperations++;if(imageOps.has(op))nonPathContent.imageOperations++;if(op===OPS.shadingFill)nonPathContent.shadingOperations++;if(op===OPS.constructPath&&operatorList.argsArray[id]?.[0]!==OPS.endPath)paintIds.push(id);if(paintIds.length>MAX_PAINTS)throw Error('Candidate paint inventory budget exceeded');}
   const records=[],elements=[],failures=[],viewportTransform=Array.from(page.getViewport({scale:2,rotation:0}).transform);let storedValues=0,auditWork=0;
-  const chargeAudit=()=>{auditWork+=operatorList.fnArray.length;if(auditWork>MAX_AUDIT_WORK)throw Error('Candidate operator audit work budget exceeded');check();};
+  const chargeAudit=(count=operatorList.fnArray.length)=>{auditWork+=count;if(auditWork>MAX_AUDIT_WORK)throw Error('Candidate operator audit work budget exceeded');check();};
   for(let offset=0;offset<paintIds.length;offset+=128){chargeAudit();const raw=extractRawPathProvenance({operatorList,OPS,ids:paintIds.slice(offset,offset+128),optionalContentVisible,viewportTransform,cancelled:()=>{check();return false;}});check();if(raw.reason)throw Error(raw.reason);failures.push(...raw.failures);
    for(const r of raw.records){check();storedValues+=r.sourceCommands.length+r.pathCommands.length+6*r.transformChain.length;if(storedValues>MAX_VALUES)throw Error('Candidate geometry storage budget exceeded');records.push(r);elements.push(nativeElement(r,OPS));}
    notify('audit',Math.min(offset+128,paintIds.length),paintIds.length);await new Promise(resolve=>setTimeout(resolve,0));check();
@@ -53,12 +53,13 @@ export async function runVectorCandidateReview({page,OPS,optionalContentConfig,d
   const sourceGeometry={supported:true,elements},targetGeometry={supported:true,elements:included?elements.filter(e=>included.has(e.id)):elements},template=createVectorTemplate(sourceGeometry,saved);
   if(!template.supported)throw Error('Source geometry is unavailable: '+template.reason);notify('search',0,1);
   const geometry=findVectorMatches(targetGeometry,template,{cancelled:()=>{check();return false;}});check();if(geometry.length>MAX_CANDIDATES)throw Error('Candidate verification result budget exceeded');notify('search',1,1);
-  const prepare=async elementIds=>{chargeAudit();const handle=await preparePdfContourPaints({page,OPS,elementIds,contextIds:[],optionalContentConfig,cancelled:()=>{check();return false;}});check();return handle;};
+  const prepare=async elementIds=>{chargeAudit();const handle=await preparePdfContourPaints({page,OPS,elementIds,contextIds:[],optionalContentConfig,cancelled:()=>{check();return false;}});chargeAudit(handle.additionalAuditWork??0);check();return handle;};
   const sourceHandle=await prepare(retainedIds);if(!sourceHandle.supported)throw Error('Source paint preparation failed: '+sourceHandle.reason);const prepared=[];notify('prepare',1,geometry.length+1);
   for(const hit of geometry){prepared.push(await prepare(hit.elementIds));notify('prepare',prepared.length+1,geometry.length+1);}
   // All original handles exist before the first render, including the source.
   const verify=async handle=>{check();let timer,poll,operationalFailure;
    try{const proof=handle.supported?await verifyPdfContourPaints({prepared:handle,createCanvas:(width,height)=>{try{return createCanvas(width,height);}catch(error){operationalFailure=error??Error('Canvas allocation failed');throw error;}},pdfjsVersion,cancelled:()=>{check();return false;},onRender:task=>{
+    clearTimeout(timer);clearInterval(poll);
     // Observe rejection without changing the adapter's refusal contract. A
     // failed render is an interrupted job, not an ordinary visibility refusal.
     task.promise.then(undefined,error=>{operationalFailure=error??Error('Original render rejected');});

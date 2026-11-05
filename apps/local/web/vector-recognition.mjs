@@ -1,3 +1,4 @@
+import {classifyCircleElement} from './vector-circle-equivalence.mjs';
 // Original geometry matcher for the pinned PDF.js 6.4.299 DrawOPS representation.
 // Extract BEFORE rendering: PDF.js replaces these numeric arrays with Path2D.
 export const VECTOR_MATCHER_VERSION='vector-elements-1';
@@ -161,7 +162,17 @@ function compatibleCompoundWinding(a,b,collapse){
 const shapeKey=(e,collapse=false)=>styleKey(e)+'|'+e.segments.map(s=>s[0]).sort().join(',')+(e.orderedCompound?'|closed-lines:'+compoundKey(e,collapse):'');
 const centre=e=>[(e.bounds[0]+e.bounds[2])/2,(e.bounds[1]+e.bounds[3])/2];
 function reversed(s){const pairs=[];for(let i=1;i<s.length;i+=2)pairs.push([s[i],s[i+1]]);return [s[0],...pairs.reverse().flat()];}
-function equalElements(a,b,tolerance,budget,collapse=false){
+function circlePair(a,b,circles,tolerance){
+ if(!circles)return null;
+ const aa=circles(a),bb=circles(b);
+ if(!aa||!bb||aa.kind===bb.kind||aa.closure!==bb.closure||styleKey(a)!==styleKey(b)||Math.abs(a.style.width-b.style.width)>1e-6||Math.abs(aa.radius-bb.radius)>tolerance)return null;
+ return [aa,bb];
+}
+const matchingShape=(e,collapse,circles)=>circles?.(e)?styleKey(e)+'|parametric-circle':shapeKey(e,collapse);
+function equalElements(a,b,tolerance,budget,collapse=false,circles=null){
+ const pair=circlePair(a,b,circles,tolerance);
+ if(pair){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');return pair[0].centre.every((v,i)=>Math.abs(v-pair[1].centre[i])<=tolerance);}
+
  if(shapeKey(a,collapse)!==shapeKey(b,collapse)||!compatibleCompoundWinding(a,b,collapse)||Math.abs(a.style.width-b.style.width)>tolerance)return false;
  const ac=centre(a),bc=centre(b);if(Math.abs(ac[0]-bc[0])>tolerance||Math.abs(ac[1]-bc[1])>tolerance)return false;
  // Compound fills must preserve subpath grouping, direction and winding. Do
@@ -177,14 +188,16 @@ function equalElements(a,b,tolerance,budget,collapse=false){
 // coordinates can agree within the existing tolerance at a different common
 // translation. This bounded fallback preserves directed coordinate ordering;
 // ambiguous whole-operation assignments are refused instead of searched.
-function translationInterval(source,target,range,tolerance,budget,check,collapse){
- if(shapeKey(source,collapse)!==shapeKey(target,collapse)||!compatibleCompoundWinding(source,target,collapse)||Math.abs(source.style.width-target.style.width)>tolerance)return null;
+function translationInterval(source,target,range,tolerance,budget,check,collapse,circles=null){
+ const pair=circlePair(source,target,circles,tolerance);
+ if(!pair&&(shapeKey(source,collapse)!==shapeKey(target,collapse)||!compatibleCompoundWinding(source,target,collapse)||Math.abs(source.style.width-target.style.width)>tolerance))return null;
  const next=[...range],point=(sx,sy,tx,ty)=>{
   if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if((budget.comparisons&63)===0)check();
   next[0]=Math.max(next[0],tx-sx-tolerance);next[1]=Math.min(next[1],tx-sx+tolerance);
   next[2]=Math.max(next[2],ty-sy-tolerance);next[3]=Math.min(next[3],ty-sy+tolerance);
   return next[0]<=next[1]&&next[2]<=next[3];
  };
+ if(pair)return point(...pair[0].centre,...pair[1].centre)?next:null;
  if(source.orderedCompound){
   const a=source.pathCommands,b=target.pathCommands;if(a.length!==b.length)return null;
   for(let i=0;i<a.length;){const op=a[i];if(op!==b[i++])return null;if(op!==4){if(!point(a[i],a[i+1],b[i],b[i+1]))return null;i+=2;}}
@@ -194,16 +207,19 @@ function translationInterval(source,target,range,tolerance,budget,check,collapse
  }
  return next;
 }
-function registerTranslation(parts,pivot,candidate,initial,scale,nearby,tolerance,budget,check,collapse){
+function registerTranslation(parts,pivot,candidate,initial,scale,nearby,tolerance,budget,check,collapse,circles=null){
  let range=[initial[0]-tolerance,initial[0]+tolerance,initial[1]-tolerance,initial[1]+tolerance];
  const used=new Set(),pairs=[],ordered=[pivot,...parts.filter(p=>p!==pivot)];
  for(const part of ordered){
   check();const source=transformElement(part,0,[0,0],[0,0],scale),expected=transformElement(source,0,[0,0],initial),options=part===pivot?[candidate]:nearby(expected,tolerance*2);let match,nextRange;
-  for(const target of options){check();if(used.has(target.id))continue;if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const fit=translationInterval(source,target,range,tolerance,budget,check,collapse);if(!fit)continue;if(match)return null;match=target;nextRange=fit;}
+  for(const target of options){check();if(used.has(target.id))continue;if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');const fit=translationInterval(source,target,range,tolerance,budget,check,collapse,circles);if(!fit)continue;if(match)return null;match=target;nextRange=fit;}
   if(!match)return null;range=nextRange;used.add(match.id);pairs.push([source,match]);
  }
+ // Coarsening the index may change the pivot/assignment order. Require an
+ // actual representation change; never re-decide an all-strict ambiguity.
+ if(circles&&!pairs.some(([source,target])=>circlePair(source,target,circles,tolerance)))return null;
  const offset=[(range[0]+range[1])/2,(range[2]+range[3])/2],placed=[];
- for(const [source,target]of pairs){check();const expected=transformElement(source,0,[0,0],offset);if(!equalElements(expected,target,tolerance,budget,collapse))return null;placed.push(expected);}
+ for(const [source,target]of pairs){check();const expected=transformElement(source,0,[0,0],offset);if(!equalElements(expected,target,tolerance,budget,collapse,circles))return null;placed.push(expected);}
  return {offset,used,placed};
 }
 export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false}={}){
@@ -219,17 +235,24 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
  const hits=[],matchedIdentities=new Set();
  // Preserve both prior passes across every orientation before allowing
  // triangle collapse. New poses never replace an already accepted anchor.
- for(const [registration,collapse]of [[false,false],[true,false],[true,true]]){
+ const circleCache=new WeakMap();
+ const circles=e=>{if(!circleCache.has(e))circleCache.set(e,classifyCircleElement(e,{tolerance,consume(){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');}}));return circleCache.get(e);};
+ // Circle/polygon approximation runs last, at original size only. It cannot
+ // steal any strict/collapse pose or discard additional whole paint paths.
+ for(const [registration,collapse,circleMode]of [[false,false,false],[true,false,false],[true,true,false],[true,false,true]]){
+ if(circleMode&&(scaleRange||!template.elements.some(e=>circles(e))))continue;
+ const circleLookup=circleMode?circles:null;
  if(collapse&&!canCollapse)continue;
- const byShape=collapse?collapseShapes:strictShapes;
+ const byShape=circleMode?new Map():collapse?collapseShapes:strictShapes;
+ if(circleMode)for(const e of page.elements){check();const k=matchingShape(e,false,circles);if(!byShape.has(k))byShape.set(k,[]);byShape.get(k).push(e);}
  for(const angle of rotations?[0,90,180,270]:[0]){
   const parts=template.elements.map(e=>transformElement(e,angle,template.anchor));
-  parts.sort((a,b)=>(byShape.get(shapeKey(a,collapse))?.length??0)-(byShape.get(shapeKey(b,collapse))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
+  parts.sort((a,b)=>(byShape.get(matchingShape(a,collapse,circleLookup))?.length??0)-(byShape.get(matchingShape(b,collapse,circleLookup))?.length??0)||b.segments.length-a.segments.length||a.id-b.id);
   const extent=e=>Math.max(e.bounds[2]-e.bounds[0],e.bounds[3]-e.bounds[1]);
   const pivot=scaleRange?parts.find(e=>extent(e)>tolerance*2):parts[0];
   if(!pivot)throw new Error('Vector selection is too small to infer a reliable scale');
-  const pc=centre(pivot),axis=pivot.bounds[2]-pivot.bounds[0]>=pivot.bounds[3]-pivot.bounds[1]?0:1,sourceExtent=pivot.bounds[axis+2]-pivot.bounds[axis];
-  for(const candidate of byShape.get(shapeKey(pivot,collapse))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');
+  const pc=circleLookup?.(pivot)?.centre??centre(pivot),axis=pivot.bounds[2]-pivot.bounds[0]>=pivot.bounds[3]-pivot.bounds[1]?0:1,sourceExtent=pivot.bounds[axis+2]-pivot.bounds[axis];
+  for(const candidate of byShape.get(matchingShape(pivot,collapse,circleLookup))||[]){check();if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');
    let scale=1;
    if(scaleRange){
     scale=(candidate.bounds[axis+2]-candidate.bounds[axis])/sourceExtent;
@@ -238,8 +261,8 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
     if(!Number.isFinite(scale)||scale<scaleRange[0]-1e-6||scale>scaleRange[1]+1e-6)continue;
     scale=Math.max(scaleRange[0],Math.min(scaleRange[1],scale));
    }
-   const cc=centre(candidate);let offset=[cc[0]-pc[0]*scale,cc[1]-pc[1]*scale],used=new Set(),placed=[],valid=true;
-   if(registration){const fit=registerTranslation(parts,pivot,candidate,offset,scale,nearby,tolerance,budget,check,collapse);if(!fit)continue;({offset,used,placed}=fit);}
+   const cc=circleLookup?.(candidate)?.centre??centre(candidate);let offset=[cc[0]-pc[0]*scale,cc[1]-pc[1]*scale],used=new Set(),placed=[],valid=true;
+   if(registration){const fit=registerTranslation(parts,pivot,candidate,offset,scale,nearby,tolerance,budget,check,collapse,circleLookup);if(!fit)continue;({offset,used,placed}=fit);}
    else for(const p of parts){const expected=transformElement(p,0,[0,0],offset,scale),match=nearby(expected).find(e=>!used.has(e.id)&&equalElements(expected,e,tolerance,budget));if(!match){valid=false;break;}used.add(match.id);placed.push(expected);}
    if(!valid)continue;
    // Reject additional whole paths within the symbol envelope. Long crossing pipes
