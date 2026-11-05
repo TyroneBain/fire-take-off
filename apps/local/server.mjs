@@ -145,6 +145,10 @@ export async function startApp({ directory = resolve('.local/app'), port = 4173 
       if(request.method==='PATCH'&&removeMeasure){if(!body||typeof body!=='object'||Array.isArray(body))throw new AppError(400,'JSON object required');return send(200,store.updateMeasure(removeMeasure[1],body));}
       if(request.method==='DELETE'&&removeMeasure){store.deleteMeasure(removeMeasure[1],Number(url.searchParams.get('version')));return send(200,{deleted:true});}
       if (request.method !== 'GET' || url.pathname.startsWith('/api/')) throw new AppError(404, 'Not found');
+      if(url.pathname==='/vendor/polygon-clipping.mjs'){
+        const [source,license,predicatesLicense]=await Promise.all(['polygon-clipping/dist/polygon-clipping.umd.js','polygon-clipping/LICENSE.md','robust-predicates/LICENSE'].map(path=>readFile(new URL('../../node_modules/'+path,import.meta.url),'utf8')));
+        return send(200,'/*\n'+license+'\nBundled robust-predicates:\n'+predicatesLicense+'\n*/\n'+source+'\nexport default globalThis.polygonClipping;\n','text/javascript');
+      }
       const vendor = url.pathname.startsWith('/vendor/');
       const base = vendor ? vendorRoot : publicRoot;
       const relative = vendor ? url.pathname.slice(8) : url.pathname === '/' ? 'index.html' : url.pathname.slice(1);

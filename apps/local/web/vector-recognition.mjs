@@ -222,8 +222,9 @@ function registerTranslation(parts,pivot,candidate,initial,scale,nearby,toleranc
  for(const [source,target]of pairs){check();const expected=transformElement(source,0,[0,0],offset);if(!equalElements(expected,target,tolerance,budget,collapse,circles))return null;placed.push(expected);}
  return {offset,used,placed};
 }
-export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false}={}){
+export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false,resolveExcludedContext}={}){
  if(!page?.supported||!template?.supported)throw new Error('Vector matching requires supported source and target');
+ if(resolveExcludedContext!==undefined&&typeof resolveExcludedContext!=='function')throw Error('Invalid explicit context resolver');
  if(!Number.isFinite(tolerance)||tolerance<=0||tolerance>.25||!Number.isSafeInteger(maxComparisons)||maxComparisons<1)throw new Error('Invalid vector matching tolerance or budget');
  if(scaleRange!==null&&(!finite(scaleRange)||scaleRange.length!==2||scaleRange[0]<.5||scaleRange[0]>1||scaleRange[1]<1||scaleRange[1]>2))throw new Error('Invalid vector scale range');
  const budget={comparisons:0,max:maxComparisons},strictShapes=new Map(),collapseShapes=new Map(),spatial=new Map(),cell=16;
@@ -272,8 +273,9 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
    const visibleEnvelope=[envelope[0]-strokePad,envelope[1]-strokePad,envelope[2]+strokePad,envelope[3]+strokePad];
    if(page.textRegions?.some(region=>{if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');return intersects(region,visibleEnvelope);})){const error=new Error('A geometric candidate overlaps text; use raster matching for this page');error.code='VECTOR_TEXT_OVERLAP';throw error;}
    const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset,scale));
+   let explained;const explainedContext=()=>explained??=(resolveExcludedContext?.({template,ignored,envelope,used,angle,offset,scale,tolerance,page})??new Set());
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
-   for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget,collapse))){valid=false;break;}}
+   for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget,collapse))&&!explainedContext().has(e.id)){valid=false;break;}}
    if(valid){
     // Symmetric geometry can match several poses whose off-centre anchors differ.
     // One original paint set is one instance; retain its first accepted pose.

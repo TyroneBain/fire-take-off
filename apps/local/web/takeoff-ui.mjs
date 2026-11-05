@@ -20,11 +20,10 @@ import { pagePoint,viewPoint } from './coordinates.mjs';
 import { inkImage,exampleImage,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,isVectorAlgorithm,includesRotations,includesScales } from './matcher.mjs';
 import {APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,isAppearanceAlgorithm} from './appearance-policy.mjs';
 import {appearanceTemplate} from './appearance-template.mjs';
-import {runSavedVectorReview} from './vector-review-runner.mjs';
 import {runSavedVectorPageSetReview} from './vector-page-set-runner.mjs';
 import {vectorReviewTargets} from './vector-page-set-ui.mjs';
 import {setupVectorReview} from './vector-review-ui.mjs';
-import {isVectorReviewAlgorithm,isVectorPageReviewAlgorithm} from './vector-review-policy.mjs';
+import {isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,VECTOR_CONTEXT_MATCH_POLICY} from './vector-review-policy.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
@@ -141,7 +140,8 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     const snapshot=structuredClone({record,item,drawing,marks:c.state.countMarks,elements}),run={cancelled:false};job=run;$('cancel-match').hidden=false;paint();
     try{const options={pdfjs,drawing,example:record.example,elements,sourceLayerScope:sourceLayerScope??record.example.vectorReview?.sourceLayerScope??true,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total,pageIndex,pageTotal})=>{$('count-progress').textContent=`Finding vector matches${pageTotal?` · page ${pageIndex}/${pageTotal}`:''} · ${phase}${total?` ${completed}/${total}`:''}`;}};
       const layerPolicy=sourceLayerScope===undefined?(record.example.vectorReview?.layerPolicy||'all-admitted'):(sourceLayerScope?'same-layer-name':'all-admitted');
-      const review=pageSet?await runSavedVectorPageSetReview({...options,sourceDrawing:drawing,targets,layerPolicy}):await runSavedVectorReview(options);
+      // Find is an explicit preview/Apply upgrade; automatic recounts retain their saved policy.
+      const review=await runSavedVectorPageSetReview({...options,sourceDrawing:drawing,targets,layerPolicy,matchPolicy:VECTOR_CONTEXT_MATCH_POLICY});
       if(run.cancelled)throw Error('Matching cancelled; no results saved');nativeReview.show({...snapshot,review});$('count-progress').textContent='Review the drawing, then Apply selection.';
     }finally{if(job===run)job=null;$('cancel-match').hidden=true;paint();}
   }

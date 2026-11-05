@@ -1,4 +1,4 @@
-import {VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,validVectorReview,vectorReviewPages,vectorReviewAppliesToPage} from './web/vector-review-policy.mjs';
+import {VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,validVectorReview,vectorReviewPages,vectorReviewAppliesToPage} from './web/vector-review-policy.mjs';
 import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './web/vector-recognition.mjs';
 import {isVectorAlgorithm,includesRotations,includesScales,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
 import {drawingRecounts} from './drawing-recounts.mjs';
@@ -62,11 +62,12 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION].includes(example.algorithm))fail('Invalid matching example');
     if(isAppearanceAlgorithm(example.algorithm)&&example.elements!==undefined)fail('Colour and fine-detail matching does not support cleaned selections');
     if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
     if(isVectorReviewAlgorithm(example.algorithm)){
       if(!validElementSelection(example.elements)||!validVectorReview(example.vectorReview)||example.vectorReview.version!==example.algorithm)fail('Invalid native vector review metadata');
+      if(example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&(example.vectorReview.sourceContextIds.some(id=>!example.elements.excluded.includes(id))||example.vectorReview.sourceContextIds.length+example.elements.ids.filter(id=>!example.elements.excluded.includes(id)).length>128))fail('Native context must come from explicit source exclusions');
       geometry(example.drawing_id,example.page,'point',[example.vectorReview.anchor]);
       if(!vectorReviewAppliesToPage(example,example.drawing_id,example.page))fail('Native page scope must include the original source page');
       for(const bundle of vectorReviewPages(example)){

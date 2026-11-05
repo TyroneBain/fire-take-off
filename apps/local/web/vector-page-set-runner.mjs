@@ -1,17 +1,20 @@
 // Atomic, read-only review of an explicit set of original PDF pages. Browser
 // bytes use the server's digest-attested source route; injected test bytes are
 // independently hashed. No viewer document, saved matches or layer mutations.
+import {VECTOR_CONTEXT_MATCH_POLICY,VECTOR_CONTEXT_REVIEW_VERSION} from './vector-review-policy.mjs';
 import {renderMatchSelection} from './pdf-match-tiles.mjs';
 import {inkImage,exampleImage} from './matcher.mjs';
 import {validElementSelection} from './pdf-elements.mjs';
 import {prepareVectorPattern,reviewVectorPatternPage,releaseVectorPattern} from './vector-pattern-review.mjs';
 
-export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
+export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',matchPolicy=example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?VECTOR_CONTEXT_MATCH_POLICY:'strict',createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
  const validDrawing=d=>typeof d?.id==='string'&&d.id.length>0&&typeof d.digest==='string'&&/^[a-f0-9]{64}$/.test(d.digest);
- if(!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof pdfjs.version!=='string'||typeof createCanvas!=='function'||typeof progress!=='function'||!run||typeof run!=='object'||!['all-admitted','same-layer-name'].includes(layerPolicy)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>300000)throw Error('Invalid page-set review dependencies or limits');
+ if(!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof pdfjs.version!=='string'||typeof createCanvas!=='function'||typeof progress!=='function'||!run||typeof run!=='object'||!['strict',VECTOR_CONTEXT_MATCH_POLICY].includes(matchPolicy)||!['all-admitted','same-layer-name'].includes(layerPolicy)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>300000)throw Error('Invalid page-set review dependencies or limits');
  if(!validDrawing(sourceDrawing)||example?.drawing_id!==sourceDrawing.id||example.digest!==sourceDrawing.digest)throw Error('Saved selection source is missing or changed');
  if(!Number.isSafeInteger(example.page)||example.page<1||example.page>200||!Array.isArray(example.bounds)||example.bounds.length!==4||!example.bounds.every(Number.isFinite)||example.bounds[2]<=example.bounds[0]||example.bounds[3]<=example.bounds[1]||!validElementSelection(elements))throw Error('Review needs compatible original selection IDs, exclusions, page and bounds');
  if(!Array.isArray(targets)||targets.length<1||targets.length>20)throw Error('Review requires 1 to 20 explicit target pages');
+ if(example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&(example.vectorReview?.matchPolicy!==matchPolicy||!Array.isArray(example.vectorReview.sourceContextIds)))throw Error('Saved context policy cannot change during recount');
+ const contextual=matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,savedContext=example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?structuredClone(example.vectorReview?.sourceContextIds):null;
  const source={drawingId:sourceDrawing.id,digest:sourceDrawing.digest,page:example.page},selection={page:example.page,bounds:[...example.bounds],ids:[...elements.ids],excluded:[...elements.excluded]},drawings=new Map([[source.drawingId,source.digest]]),keys=new Set(),pages=targets.map(t=>{
   if(!validDrawing(t?.drawing)||!Number.isSafeInteger(t.page)||t.page<1||t.page>200)throw Error('Invalid original target drawing or page');
   const drawingId=t.drawing.id,digest=t.drawing.digest,key=JSON.stringify([drawingId,t.page]);if(keys.has(key))throw Error('Target pages must be unique');keys.add(key);
@@ -28,7 +31,7 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
  if(targetData)for(const [id,bytes]of targetData)cloneBytes(id,bytes);
  if(sourceData!==undefined)cloneBytes(source.drawingId,sourceData);
  const getDocument=pdfjs.getDocument.bind(pdfjs),OPS={...pdfjs.OPS},pdfjsVersion=pdfjs.version,deadline=performance.now()+maxMilliseconds,tasks=[],destroyed=new Map(),canvases=[],previousCancel=run.cancel,previousTask=run.task,totals={proposals:0,verifiedElementIds:0,auditWork:0};
- let activeTask,activeRender,taskControl,pattern,report,cleanupFailure;
+ let activeTask,activeRender,taskControl,pattern,report,cleanupFailure,sourceContextIds;
  const check=()=>{if(run.cancelled)throw Error('Page-set review cancelled; no results published');if(performance.now()>=deadline)throw Error('Page-set review timed out; no results published');if(cleanupFailure)throw Error('Original PDF cleanup failed: '+cleanupFailure.message);};
  const notify=p=>{check();progress(p);check();};
  const remaining=()=>{check();return Math.max(1,Math.min(120000,Math.floor(deadline-performance.now())));};
@@ -59,8 +62,8 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
   check();const sourceProof=await open(source,'pattern-open',0);
   try{
    const page=await awaitBounded(sourceProof.doc.getPage(source.page),'Original source proof page'),optionalContentConfig=await awaitBounded(sourceProof.doc.getOptionalContentConfig({intent:'display'}),'Original source layer configuration');
-   const prepared=await prepareVectorPattern({page,OPS,optionalContentConfig,documentSha256:source.digest,selection:{...selection,anchor:[...anchor]},layerPolicy,createCanvas:canvasFactory,pdfjsVersion,cancelled:()=>{check();return false;},progress:stageProgress('source-pattern',source,0),maxMilliseconds:remaining()});
-   pattern=prepared?.pattern;check();if(!prepared?.completed||!pattern)throw Error(prepared?.reason||'Original source pattern did not complete');chargeAudit(prepared.auditWork);
+   const prepared=await prepareVectorPattern({page,OPS,optionalContentConfig,documentSha256:source.digest,selection:{...selection,anchor:[...anchor]},layerPolicy,matchPolicy,createCanvas:canvasFactory,pdfjsVersion,cancelled:()=>{check();return false;},progress:stageProgress('source-pattern',source,0),maxMilliseconds:remaining()});
+   pattern=prepared?.pattern;check();if(!prepared?.completed||!pattern)throw Error(prepared?.reason||'Original source pattern did not complete');chargeAudit(prepared.auditWork);if(contextual){sourceContextIds=[...prepared.source.contextIds];if(savedContext&&JSON.stringify(savedContext)!==JSON.stringify(sourceContextIds))throw Error('Saved source context policy changed');}
   }finally{await destroy(sourceProof.task);activeTask=null;}
   const reviewed=[];
   for(let i=0;i<pages.length;i++){
@@ -72,12 +75,12 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
     if(!result?.completed)throw Error(result?.reason||'Original target page review did not complete');
     if(result.binding?.documentSha256!==identity.digest||result.binding?.pageNumber!==identity.page||!Array.isArray(result.proposals)||result.proposals.length>512)throw Error('Target review identity or per-page result budget changed');
     chargeAudit(result.auditWork);totals.proposals+=result.proposals.length;
-    for(const proposal of result.proposals)if(proposal.visibility?.verified===true){if(!Array.isArray(proposal.elementIds))throw Error('Verified original paint identities are missing');totals.verifiedElementIds+=proposal.elementIds.length;}
+    for(const proposal of result.proposals)if(proposal.visibility?.verified===true){if(!Array.isArray(proposal.elementIds))throw Error('Verified original paint identities are missing');totals.verifiedElementIds+=proposal.elementIds.length+(proposal.contextIds?.length??0);}
     if(totals.proposals>2048||totals.verifiedElementIds>50000)throw Error('Page-set proposal or verified-element budget exceeded');
    }finally{await destroy(target.task);activeTask=null;}
    check();reviewed.push({...identity,result});
   }
-  check();report={completed:true,requiresSemanticReview:true,source:{...source,anchor:[...anchor]},selection:{...selection,anchor:[...anchor]},layerPolicy,pages:reviewed,totals:{...totals}};
+  check();report={completed:true,requiresSemanticReview:true,source:{...source,anchor:[...anchor]},selection:{...selection,anchor:[...anchor]},layerPolicy,...(contextual?{matchPolicy,sourceContextIds}:{}),pages:reviewed,totals:{...totals}};
   notify({stage:'complete',phase:'complete',completed:pages.length,total:pages.length,pageTotal:pages.length});
  }finally{
   activeRender?.cancel();for(const task of tasks)await destroy(task);

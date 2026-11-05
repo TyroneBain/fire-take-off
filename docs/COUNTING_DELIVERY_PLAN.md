@@ -1,3 +1,227 @@
+# Counting delivery plan — research reset, 6 November 2026
+
+**Implementation update,6 November:** owner resumed the build. The first versioned filled-context increment is implemented and independently improves the frozen upright case1→5 TP with0FP;31FN remain. Connected connector subdivision and all four quarter-turns pass original-PDF fixtures. See CURRENT_STATE for exact acceptance and limitations. The research-only pause below is historical. Do not expand this mechanism into arbitrary stroke shifts: a bounded investigation produced no additional real matches. A no-label diagnostic identifies the concealed required filled region as another geometry bottleneck; investigate complete fill-boundary/topology equivalence before integrating safe source/target boundary-pipe paint context. Admission alone would add no instances.
+
+## Decision and scope
+
+**Recommendation: retain the application and strict matcher; add a versioned matcher that recognises local symbol geometry independently of PDF path grouping. Combine indexed vector retrieval, controlled context handling, visible-shape verification and multiple examples per heading.**
+
+The owner requested research and a complete plan, with implementation and testing paused. This phase changes documentation only. Three existing specialists researched competitor workflows, recognition architecture and independent risks; the lead reconciled their findings with current source and prior evidence. No new accuracy, live Countfire experiment or implementation is claimed.
+
+This section supersedes the previous “test another unseen job first” instruction retained below. We already have a demonstrated architectural failure. The next build task is to address that representation failure, not collect another baseline.
+
+The target remains: select → remove unwanted elements → save examples → count selected drawings → colour matches → correct/reclassify → recount without losing decisions → export reconciled quantities. Catalogue, cosmetic redesign, measurement expansion and speculative AI remain deferred.
+
+## 1. Countfire research: evidence and implications
+
+Accessed 6 November 2026. These are official documented behaviours/vendor guidance, not discoveries of proprietary implementation.
+
+| Documented behaviour | Implication for our product |
+| --- | --- |
+| Edit by erasing elements or using erase-all/restore. [Editing selections](https://help.countfire.com/en/articles/89348-editing-selections) | Constituent selection is a first-class recognition input. A working editor alone is not successful counting. |
+| Clean examples retain the body and distinguishing reference while excluding unrelated geometry. Excess detail reduces matches; oversimplification increases false positives. [Clean selections](https://help.countfire.com/en/articles/108485-making-clean-selections) | Neither identical surrounding pipework nor a generic circle alone is an adequate general recognition rule. |
+| Matching is fuzzy; different appearances, widths, colours and element constructions can need additional examples. The guide suggests four or five selections per heading on average. [Multiple selections](https://help.countfire.com/en/articles/118318-making-multiple-selections) | An example library is part of the target workflow. Measure single-example and assisted results separately. The stated average is vendor guidance, not a guarantee. |
+| Selections 2.0 documents automatic rotations and movable references; references can be configured. [Selections 2.0](https://feedback.countfire.com/changelog/selections-20), [Floating references](https://help.countfire.com/en/articles/10134063-floating-references) | Separate fitting body from reference. Older/mixed guidance still describes rotated misses; numeric angle and scale support remains unknown. |
+| Additional selections of competing types can resolve similar-symbol false positives. [False positives](https://help.countfire.com/en/articles/64550-false-positives) | Our recommendation is class-aware assignment, not independent yes/no matchers with no conflict handling. This is an inference from the workflow. |
+| Real text contributes character/font information; outlined text contributes shapes. [Text representations](https://help.countfire.com/en/articles/400649-real-text-and-text-like-elements) | Preserve reference semantics where present; do not discard every text-overlapping location. |
+| Background definitions use properties such as colour and size, apply across a discipline and can accidentally hide useful content. [Background definitions](https://help.countfire.com/en/articles/431480-customising-drawing-backgrounds) | Background filtering must be explicit, reversible and scoped. Do not silently ignore all grey or black geometry. |
+| Image-only symbols cannot be selected for automatic counting; manual counting is advised. Mixed PDFs can contain usable text over an image. [Image PDFs](https://help.countfire.com/en/articles/228982-pdfs-that-are-actually-images) | Prioritise structured/vector PDFs for this milestone. Preserve our raster fallback without making scanned-plan improvements the critical path. |
+| Elements partly determine matches; selections sharing an unintended element can clash. [Elements](https://help.countfire.com/en/articles/89849-elements) | Assignment matters. “Element” is not publicly specified as exactly one PDF operator or CAD object. |
+| Four checking stages, grouped check sheets and drawing/zone Excel breakdowns support the final takeoff. [Four checks](https://help.countfire.com/en/articles/364279-the-4-stages-of-checking), [Check sheets](https://help.countfire.com/en/articles/114653-check-sheets), [Excel](https://help.countfire.com/en/articles/114655-excel-spreadsheet) | Competitive performance is a correct reviewed takeoff with low preparation/correction effort, not unreviewed automatic totals. |
+
+**Layers clarification:** named PDF layers are optional-content groups, distinct from vector drawing content. Public Countfire guidance does not establish an OCG-layer prerequisite. Cabramatta contains usable vector paths but no OCGs. [PDF Association terminology](https://pdfa.org/glossary-of-pdf-terms/)
+
+**Unknowns:** Countfire's descriptors, indexes, thresholds, split/merge rules, pixel verification, white-paint/clipping/transparency handling, numeric rotation/scale coverage and accuracy on our inputs. No competitor code, hidden APIs or assets were inspected. Prior owner-visible white-element removal is recorded workflow evidence, not knowledge of its algorithm. No live account was used in this research phase.
+
+Bluebeam explicitly documents sensitivity, rotation, colour, fine-detail and outside-selection vector controls. They are useful comparison options, not Countfire features or a proven solution for us. [Revu VisualSearch](https://support.bluebeam.com/online-help/revu20/Content/RevuHelp/Menus/Window/Panels/Search/Searching-PDFs--TV.htm)
+
+## 2. What is actually wrong with our engine
+
+The repository already contains vector extraction, selected-element editing, registration, bounded circle equivalence, native paint verification and multi-page counting. It is no longer only a raster matcher. Rebuilding everything would waste working functionality.
+
+Prior results, not rerun in this phase:
+
+| Case | Observed result | Meaning |
+| --- | --- | --- |
+| Gymea, four sheets, one family | 65 TP / 0 FP / 2 FN; two manual additions produce 67 reconciled quantities | One construction family works through the complete workflow. |
+| Cabramatta upright | Editor repair moved 0/36 to 1 TP / 0 FP / 35 FN | Source editing improved, but matching remains inadequate. |
+| Cabramatta concealed | Source verification blocked before target search; 36 instances unserved | Separate admission failure, not a completed classifier benchmark. |
+| Prior regression suite | 478 passed | Preservation evidence; not real-drawing accuracy. |
+| Padstow saved Countfire work | Matching original F03/P2, marked PDF, workbook and check SVG; 290 saved marks | Comparator evidence, not automatic accuracy or correction-time evidence. |
+
+Current source confirms these mechanisms:
+
+- In apps/local/web/vector-recognition.mjs, retained components are assigned to whole operations. Extra interior operations are allowed when they match equivalent erased source operations. Different connector subdivision/grouping therefore rejects otherwise matching rings.
+- In apps/local/web/vector-pattern-review.mjs and vector-candidate-search.mjs, paint preparation receives empty context-ID lists. The adapter already supports explicit context. Cabramatta's concealed source verifies in a private diagnostic when the relevant excluded pipe paint is supplied; this is not an integrated fix.
+- Original-paint verification protects extraction provenance. Isolated-paint agreement is not a complete definition of symbol presence when later drawing content overlaps it.
+- A text-overlapping candidate can currently trigger a page-level fallback. Local ambiguity must not silently remove otherwise supported candidates.
+- Native page-set runs are limited to 20 explicit pages, with separate element/proposal/audit budgets. Discipline-wide work requires explicit batching and completion accounting.
+- Previous private cyclic/collinear, restricted-union and convex-containment experiments did not improve the whole Cabramatta count. Repeating these as isolated exceptions is not a new architecture.
+
+**Diagnosis:** operation grouping and erased surrounding geometry influence identity too strongly. We need a representation of the required symbol and its distinguishing details, with separately justified context.
+
+## 3. Approach selection
+
+| Approach | Strength | Limitation here | Decision |
+| --- | --- | --- | --- |
+| More whole-operation exceptions | Small changes, known cases retained | Exporter-specific patch cycle | Keep strict matcher as fast path; stop treating it as the general solution. |
+| Whole-page graph matching | Structural relations | Crossings and segmentation remain ambiguous; potentially expensive search | Use small local relations after retrieval. |
+| Local canonical geometry + visible-shape verification | Retains vector editing/provenance while tolerating construction differences | Context and distinguishing detail need explicit rules | **Primary recommendation.** |
+| Raster/contour query-by-example | Independent of PDF operation subdivision; no training set | Tiny details, clutter and rings inside other symbols cause confusion | Local verifier and bounded alternative; not sole class decision. |
+| Learned CAD model | Promising grouping/context | Training, domain shift, licences, deployment and unknown-class issues | Defer from critical path. |
+| Commercial SDK | Could shorten work if capabilities fit | No evaluated product currently proves our full requirements | Contingency requiring a concrete demonstration before procurement. |
+
+Relevant research:
+
+- Architectural symbol spotting research separates description/retrieval from verification and addresses clutter. This supports the architecture, not a prediction of our accuracy. [Rezvanifar et al., 2019](https://link.springer.com/article/10.1186/s41074-019-0055-1)
+- Directional chamfer matching uses contour orientation and efficient distance calculations. Use it to corroborate local shape, not accept a class solely because part of its outline matches. [Liu et al., CVPR 2010](https://merl.com/publications/TR2010-045)
+- Generalized Hough can propose location, scale and angle. Consider it only where indexed vector anchors cannot retrieve useful candidates; avoid exhaustive full-page pose search. [OpenCV](https://docs.opencv.org/4.12.0/d3/d20/classcv_1_1GeneralizedHoughGuil.html)
+- CADTransformer and SymPoint use graphical primitives/points. Their published CAD tasks do not establish arbitrary-example PDF sprinkler accuracy. [CADTransformer](https://openaccess.thecvf.com/content/CVPR2022/html/Fan_CADTransformer_Panoptic_Symbol_Spotting_Transformer_for_CAD_Drawings_CVPR_2022_paper.html), [SymPoint](https://arxiv.org/abs/2401.10556)
+
+## 4. Proposed engine contract
+
+### Original paint and derived geometry remain separate
+
+Preserve document hash, page, native coordinates, raw operation IDs, transforms, paint order, styles, clipping, visibility and renderer version. PDF bytes remain immutable. Reuse PDF.js 6.4.299 and the existing operation-mapping/provenance modules. Operator lists describe graphics, not semantic symbol objects. [PDF.js API](https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFPageProxy.html)
+
+Derive local comparison fragments: lines, curves, contours, filled regions/holes, stroke support and text. One logical shape may span several operations; one operation may contain several pieces. Every fragment records contributing original paint plus subpath/segment or curve-parameter coverage and a reproducible support mask; operation-ID lists alone cannot safely colour part of a shared operation. Derived IDs must not replace persisted original identities.
+
+Normalise translation and harmless segmentation/order differences while retaining meaningful endpoints, holes, fill rules, width, caps/joins, colour and paint order. Bound curve approximation in PDF units relative to the smallest distinguishing feature. Do not blindly inflate hairlines or globally union a page.
+
+Use a proven fill-rule-aware geometry kernel for bounded local self-intersecting fills rather than inventing polygon booleans. Clipper2 supports relevant fill rules; its original upstream now points to PolyClipping. It still requires a pinned audited source/build, numerical error budget, licence notices and an evaluated worker/WASM bridge. No package is adopted by this plan. A kernel is a contingent local implementation choice, not a prerequisite universal-normalization or WASM project. [Capabilities](https://angusj.com/clipper2/Docs/Overview.htm), [official successor](https://github.com/PolyClipping/Clipper2)
+
+The installed polygon-clipping package is not a direct interpreter of arbitrary PDF compound-fill semantics. Do not replace its input contract with unchecked assumptions; preserve winding and paint interpretation before any union. [Official API](https://github.com/mfogel/polygon-clipping)
+
+### A query contains body, discriminators, context and references
+
+Store five separate concepts:
+
+1. Required retained symbol geometry.
+2. Distinguishing detail: fill, holes, dots, bars, spokes, text and relationships. Absence is evidence only where it is actually visible.
+3. Explicitly excluded context, with bounded rules for interference rather than an unrestricted ignore mask.
+4. Associated references that may move relative to the body when supported.
+5. Example identity, heading, original source, scope, permitted transformations and policy version.
+
+The user still selects, erases/restores, adds examples and counts. Internal model fields should not become mandatory technical settings.
+
+White paint is not blank paper. It can be backing, a defining hole or a later knockout. Expose original white-object identity where supported; retain compositing semantics. Never convert all erased white into wildcard space or automatically count a hidden symbol revealed by removing a covering object.
+
+### Candidate retrieval comes before expensive comparison
+
+Retain strict matches first. Index primitive bounds and distinctive geometric features. Use a few anchors and local relations to propose locations; retrieve only nearby fragments. Start with translation and existing quarter turns.
+
+Allow bounded many-to-many fragment correspondence, not arbitrary subset search across a sheet. Cap neighbourhood size, alternative assignments, edges/intersections, crop pixels and elapsed work. A budget overflow is incomplete coverage, not a successful empty result.
+
+Add arbitrary-angle pose estimation and controlled uniform scale after the representation works. Do not silently introduce reflections/nonuniform deformation. Different widths/colours can use separate examples rather than broadening every class.
+
+### Verify the symbol separately from its surroundings
+
+Each candidate must establish required-body coverage, discriminating detail, justified context and support in the original visible drawing.
+
+A connector may have a different number of fills or a different length without invalidating the same head. But an erased source mark does not authorise ignoring an arbitrary target dot. Use local continuation, paint relationships and rival examples; unresolved interior evidence remains review-required.
+
+Replay original target paint with independently justified context for provenance. Separately compare selected shape and visible support. Directional contour comparison must be accompanied by fill/topology and extra-detail checks; one-sided outline matching accepts a ring inside a different symbol.
+
+Do not loosen the existing strict pixel thresholds globally. Introduce a separate, versioned contextual assessment. Context must not fabricate evidence for a missing body part.
+
+Some distinctions cannot be inferred from a crop: a pipe endpoint versus an intrinsic dot, an obscured centre, or identical glyphs used for different items. Use another example, a reference/legend/scope rule or human classification. Unknown is not absent.
+
+### Classes, duplicates and uncertainty have explicit rules
+
+Combine examples under one heading while retaining which examples support each instance. Compare relevant rival headings; do not classify by whichever search runs first. Ties need review.
+
+Deduplicate symmetric poses and multiple examples by physical support and constrained location, preserving nearby distinct symbols. Avoid allocating the same physical instance twice. A compound operation can contain pieces belonging to distinct items; raw operation sharing alone is not a sufficient universal conflict rule.
+
+Return verified, uncertain and rejected outcomes with reasons. Uncertain candidates do not silently become verified/export-ready quantities. Scores are not calibrated probabilities.
+
+### Preserve the existing count ledger
+
+Version recognition policy/evidence; leave old saved selections readable and reproducible. Reuse headings, colours, manual marks, review/apply, zones, multipliers and workbook calculations.
+
+Link new proposals to existing instances using document/page identity and constrained geometry, with explicit conflict handling. Do not replace accepted/rejected/reclassified decisions because extraction IDs changed. Preview before atomic Apply; cancellation, stale sources and incomplete scans cannot partially replace saved totals. A partial scan cannot replace a previous complete ledger. If later offered at all, verified additions from partial coverage require an explicit limited scope, with unserved coverage visible and uncertain candidates excluded from automatic totals.
+
+Revisions retain old snapshots and expose deltas. New PDF revisions are not old operation IDs silently reused. Store enough target evidence to reproduce coloured glyphs without colouring unrelated pieces of a compound operation.
+
+## 5. Ordered implementation plan
+
+Implementation and test runs remain paused for this research turn. The table defines the next build sequence.
+
+| Increment | Ownership | Concrete outcome |
+| --- | --- | --- |
+| 1. Local body/context equivalence | Vector engineer; bounded new helper beside existing matcher | One cleaned upright source can match equivalent heads despite split/overlapping connector fills, with required body/provenance retained. |
+| 2. Context-aware source and target proof | Vector engineer, reviewed by integrity specialist | Concealed source can be processed with justified pipe context; missing/wrong defining detail is still refused or reviewed. |
+| 3. Integrated preview, Apply and correction preservation | Lead/integration + integrity | Actual coloured results, saved selection, correct/recount/reopen; not another preview-only milestone. |
+| 4. Example library and competing classes | Vector engineer + estimator-workflow specialist | Additional examples improve a heading's coverage; rival types remain distinguishable; no duplicates or repeated corrections. |
+| 5. Remaining selection/identity capabilities | Vector engineer + workflow specialist, one feature at a time | Explicit white cleanup; real/outlined text and floating references; arbitrary rotation and controlled scale where required. |
+| 6. Whole-discipline execution | Performance specialist + lead | Cached indexes, bounded verification, progress/cancel and all requested pages accounted for; explicit batching beyond 20 pages. |
+| 7. Reviewed output and real comparison | QA + integrity/Excel after code freeze | Complete counts and reconciled exports on development jobs, submitted comparisons and independent whole-job holdouts. |
+| 8. Readiness decision | Lead with estimator review | State supported input/workflow scope and whether comparison evidence supports competitiveness; otherwise identify the remaining blocker. |
+
+Before increment 1, define the shared body/context/provenance evidence contract. The first increment must not become a universal geometry-framework rewrite. Begin with one connector construction family, including differently split/self-touching fills, and preserve genuine extra-dot/bar/hole and competing-class distinctions from the start. Full example-library interaction comes later, but class safety does not. Geometry-only proposals remain provisional until contextual visibility is supported in increment 2; increment 3 integrates only that declared scope. When validation resumes, evaluate this contract and then reuse the existing Cabramatta/Gymea cases. More candidates without correct classes and visible support are not completion.
+
+Proposed boundaries: reuse vector-paint-provenance.mjs, vector-page-audit.mjs and operation mapping; add local geometry/context helpers; dispatch the versioned matcher through vector-pattern-review.mjs; deliberately pass context through pdf-contour-verification.mjs; integrate policy/ink/store adapters only after the evidence contract is stable. QA owns independent fixtures, not matcher code. One writer per module.
+
+Nested forms/transforms, clip rules, opacity/blend states, dashes, caps/joins, nonzero page origins, thin/faint paint and text must remain in the input-capability matrix. Implement unsupported semantics individually where necessary; never relabel a fallback as full vector support.
+
+## 6. Use submitted quotes correctly
+
+Recognition input is always the original tender PDF. Saved Countfire outputs are comparison evidence.
+
+Padstow F03/P2 is verified: workbook 27 Below + 263 EXPOSED = 290 saved marks, matching 290 sheet entries in its check SVG. Those totals do not reveal automatic accuracy or manual corrections.
+
+Align revision, scope, drawings, class identity, legends/details, zones and multipliers. Preserve distinct rows with identical names. Original and marked PDFs have different coordinate origins; SVG positions are integer percentages and need visual adjudication. Equal totals can hide cancelling false positives and misses.
+
+Independently label originals before showing the labeler comparison totals. Padstow is development/comparison material, not a sealed holdout because its totals are already known. UNSW needs visual revision verification; Mount Druitt scope/revision remains unresolved. Skip St Ives.
+
+Never use marked or symbol-removed .rem.pdf outputs as recognition input. Keep customer drawings/exports out of GitHub and external inference services. No fresh competitor account is required for this architecture work.
+
+## 7. Completion evidence after implementation resumes
+
+The owner has paused tests for this phase. Later validation should verify delivered increments, not substitute for development.
+
+- Report first-example accuracy separately from added-example coverage and manually corrected final quantities. Count source attempts, cleanup actions and extra examples.
+- Account for every declared page/family: completed, partial or blocked, with reasons. Blocked searches have no classifier precision but leave instances unserved in overall task coverage.
+- Report TP/FP/FN, duplicates and wrong classes per sheet/family/job; show the worst job rather than hiding it in an aggregate.
+- Use five representative jobs and at least two whole-job/export-source holdouts as an initial engineering gate. These sample counts are not proof of a population accuracy rate. Replace a holdout once it informs a change.
+- The existing 98% precision/recall floor is a proposed development target, not Countfire parity. Small families require raw counts; no failed family disappears into an average.
+- Correct reviewed quantities and low estimator effort are the business outcome. Saved exports cannot establish comparable automatic accuracy or task time; equivalent timed authorised workflows are needed for that claim.
+- Require zero lost explicit corrections and exact mark/heading/zone/multiplier/Excel reconciliation, including save/reopen/recount, overlapping zones and cancellation.
+- Declare supported page/input limits, cold/warm processing time, memory accounting and responsiveness. Sampled JS heap is not peak process memory.
+- Run focused checks during a coherent implementation increment, then full regression/browser/integrity validation at integration. Repeat broad runs only for changed code, failures or an unresolved concern.
+
+## 8. Budget and decision discipline
+
+The lead owns architecture, scope and stop/go decisions. Each mechanism gets one owner, a stated hypothesis, a bounded work allocation and a concrete intended result.
+
+**At most two implementation attempts at the same mechanism** before changing representation, choosing a bounded contour alternative, or exposing an assisted/review limitation. Do not continue a non-improving approach because more tests pass. No threshold-tuning loop on one drawing or hidden widening of acceptance.
+
+For the first connector-equivalence feasibility decision, the proposed cap per attempt is 90 minutes of cumulative lead/vector implementation work plus 30 minutes of independent review/verification: at most four active team-hours across two attempts. Log actual effort and tool/runtime waits separately; do not multiply this allowance by spawning more agents or restarting the same hypothesis under a new name. This is a spending-control proposal, not a completion estimate or a dollar-cost prediction. Production integration is a separately scoped increment only after useful evidence; reaching the cap requires a reported go/change/no-go decision, not silent extension.
+
+Report progress as genuine additional instances found, new wrong counts, remaining unserved instances, user effort and whether the complete workflow works. Regression totals are secondary.
+
+There is no evidence-backed completion date yet. The first two increments determine whether this approach removes the demonstrated bottleneck. If not, the lead must present a bounded alternative or a specialist/SDK feasibility decision promptly, rather than an open-ended patch queue. Paid external procurement would require a separate concrete decision.
+
+## 9. Strongest objections and remaining risks
+
+| Risk | Required response |
+| --- | --- |
+| A dot may be a connector or a class-defining feature | Require observable discriminators, another example/reference or review; do not invent hidden detail. |
+| Canonicalization removes a tiny meaningful feature | Explicit approximation error budget; preserve holes, fill and paint semantics. |
+| Context masks hide wrong/missing body geometry | Narrow context authorisation plus independent visible body evidence. |
+| Some PDF semantics cannot be represented faithfully | Original renderer remains authoritative for visible pixels/compositing, not semantic class identity; explicit local fallback/coverage status. |
+| Local graphs/unions still explode in complexity | Fixed edge/intersection/assignment budgets; no full-page boolean arrangement. |
+| Example overlap causes duplicate/conflicting quantities | Class-aware instance assignment and reversible explicit decisions. |
+| New fragments invalidate saved corrections/colour | Separate derived identities from stored paint/mark identity; versioned atomic migration. |
+| New geometry dependency is difficult to build or maintain | Pin upstream/adapter, licence and numerical behaviour; avoid speculative package swaps. |
+| Competitor exports use different scope or contain corrections | Align revisions/scope and compare instances; distinguish saved outcomes from automation. |
+| Development-job success does not generalise | Per-job/family reporting and untouched whole-job holdouts. |
+
+**Next build action after this research phase:** implement the bounded local body/context representation for connector variation, preserving raw provenance and the strict matcher. Specify concealed source/target compositing separately. Do not restart broad baseline testing, cosmetics or AI training before this concrete recognition increment exists.
+
+---
+
+# Historical plan — preserved below
+
 # Counting delivery plan — updated 6 November 2026
 
 ## Active plan: reliable counts across real jobs

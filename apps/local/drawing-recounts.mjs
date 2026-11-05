@@ -21,6 +21,7 @@ export function drawingRecounts(db,{drawing,item,exampleJSON,validateMark,insert
       if(!savedPages.length){if(request.matches.length||request.vectorReview!==undefined)fail('Native vector review cannot recount an undeclared drawing');definitions.set(e.id,source);continue;}
       const review=request.vectorReview;
       if(!validVectorReview(review,request.matches.length)||review.version!==source.algorithm||review.layerPolicy!==source.vectorReview.layerPolicy||review.anchor.some((v,k)=>v!==source.vectorReview.anchor[k])||review.pages.some(p=>p.drawing_id!==target.id||!savedPages.some(old=>old.page===p.page&&old.digest===p.digest)))fail('Native page recount requires explicitly declared target pages and unchanged review policy');
+      if(review.matchPolicy!==source.vectorReview.matchPolicy||JSON.stringify(review.sourceContextIds)!==JSON.stringify(source.vectorReview.sourceContextIds))fail('Native page recount cannot change the saved context policy');
       const refreshed=new Map(review.pages.map(p=>[p.page,p]));
       definition={...source,vectorReview:{...source.vectorReview,pages:vectorReviewPages(source).map(p=>p.drawing_id===target.id&&refreshed.has(p.page)?refreshed.get(p.page):p)}};
       exampleJSON(target.discipline_id,definition);operation={...source,vectorReview:review};validateNativeResults(operation,request.matches);

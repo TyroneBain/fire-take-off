@@ -1,6 +1,14 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+### 2026-11-06 bounded local filled-context increment
+
+Same frozen upright source, exclusions and36-label whole-layout denominator:5TP/0FP/31FN (13.89%recall), up from1/0/35. Four new true matches independently scored; all five original-paint proofs have0mismatches. Final report SHA256 `de7ddffb9c00706a64f6a53b8d28905d000e6bc236af1ec2436625650623d0e9`; QA assessment `32b1b4a4173930c013eff20990cf38a8d0f646e358408454be27bea7920f7671`. Exact original code/dependency hashes and source identities frozen. Node12.005s under concurrent regression,531,364KiB process high-water RSS; neither a fair speed comparison nor isolated matcher memory. All3 documents/13 canvases released.
+
+The original strict pass keeps priority; bounded local fill-region comparison explains only explicitly erased source-context equivalents. Complete-operation connected expansion fixes the independent boundary-crossing split-stem case; no cropped tails, extra-dot/bar acceptance, colour blanket or tolerance change. Added context/pose provenance is review evidence; final semantic decisions remain human-reviewed. Four quarter-turns pass on an original asymmetric fixture. Source/target paint context remains empty in this increment, so concealed admission is still blocked.
+
+Independent9 targeted tests cover actual-PDF positives/negatives, cancellation and v3 correction/persistence/export. Final500/500 regression passed in39,874.87969ms. ActualChrome42.958s:25UI checks plus129 independent audit checks, five applied colouredglyphs, rejection/manual correction preserved exactly through recount/reload, sixledger rows/five quantities reconciled in independently reopenedExcel; this is a subset workflow, not wholefamily correction. Details and hashes in CURRENT_STATE. Coverage retains74 unsupported white paints,220text/3image operations. Concealed36 unserved and31 upright misses remain; no parity. A separate whole-stroke independent-translation diagnostic gave zero added complete matches and was not implemented. A separate no-label concealed geometry diagnostic yields only source under both policies: required red fill39-segment polygon is the bottleneck; corresponding outline halves are abundant. Next: required fill-boundary/topology equivalence, then safe boundary-pipe context. A source-proof-only patch would add no instances.
+
 ### 2026-11-06 unseen second quoting job — failure retained, native editor fixed
 
 Cabramatta original PDF SHA256 `bb304568913a2923dc015e87a0f8a63671729f3e459af1247795d452442f656d`,4pages, full layoutpage3, negative native origin. Independent QA/root tallies agree36 upright rings+36 concealed discs; original-only labels frozen before matching (`qa-cabramatta-label-freeze.json`, SHA256 `a889905e3db589db9e4f5d3549cc3f1e3e8abe84bdc69d87875a9d933237b661`). No estimator certification or unseen-holdout claim after diagnosis.
