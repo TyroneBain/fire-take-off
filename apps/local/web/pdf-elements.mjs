@@ -57,7 +57,7 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
  const check=()=>{if(cancelled())throw Error('Selection loading cancelled');if(performance.now()>deadline)throw Error('Selection inspection time budget exceeded');};check();
  const corners=[[bounds[0],bounds[1]],[bounds[0],bounds[3]],[bounds[2],bounds[1]],[bounds[2],bounds[3]]].map(p=>viewport.convertToViewportPoint(...p)),box=[Math.min(...corners.map(p=>p[0])),Math.min(...corners.map(p=>p[1])),Math.max(...corners.map(p=>p[0])),Math.max(...corners.map(p=>p[1]))].map(Math.round),width=box[2]-box[0],height=box[3]-box[1];
  if(!box.every(Number.isSafeInteger)||width<1||height<1||width>256||height>256||box[0]<0||box[1]<0||box[2]>Math.ceil(viewport.width)||box[3]>Math.ceil(viewport.height))throw Error('Select a symbol no larger than 128 PDF points inside the drawing');
- const ops=await page.getOperatorList();check();if(ops.fnArray.length>1000000)throw Error('Drawing exceeds the element operation budget');
+ const ops=await page.getOperatorList();check();if(ops.fnArray.length>1000000)throw Error(nativeReviewOnly?`This drawing is too complex for vector selection yet (${ops.fnArray.length.toLocaleString('en-US')} PDF operations; current limit 1,000,000). No selection was saved.`:'Drawing exceeds the element operation budget');
  const eligible=new Set([OPS.stroke,OPS.closeStroke,OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]),structural=new Set(),unsafe=new Set([OPS.beginGroup,OPS.beginSMaskGroup,OPS.paintFormXObjectBegin,OPS.shadingFill]);
  for(let i=0;i<ops.fnArray.length;i++){const op=ops.fnArray[i],args=ops.argsArray[i];
   if(unsafe.has(op)||op===OPS.setTextRenderingMode&&args[0]>=4)throw Error('Element editing is not yet supported for composited drawings or clipping text');
@@ -106,7 +106,11 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
    // Picking still requires visible original paint and an omission difference;
    // recognition still independently proves every retained original paint.
    covered[i]|=nativeReviewOnly?(rgba.data[p+3]>0&&(rgba.data[p]<255||rgba.data[p+1]<255||rgba.data[p+2]<255)?1:0):ink[i];
-   visible[i]=ink[i]&&different&&(!nativeReviewOnly||originalNativePaint[i])?1:0;
+   // Coincident same-colour strokes can both leave the pixel unchanged
+   // when omitted. Original-colour equality admits that visible intersection
+   // for picking, without exposing a differently coloured/white-covered path.
+   const coincident=nativeReviewOnly&&rgba.data[p]===original.data[p]&&rgba.data[p+1]===original.data[p+1]&&rgba.data[p+2]===original.data[p+2]&&rgba.data[p+3]===original.data[p+3];
+   visible[i]=ink[i]&&(different||coincident)&&(!nativeReviewOnly||originalNativePaint[i])?1:0;
   }
   if(!nativeReviewOnly&&(!changed||!visible.some(Boolean)))throw Error('Selection contains hidden or redundant paths; choose a clearer example');
   elements.push({id,ink:visible,rgba});await new Promise(resolve=>setTimeout(resolve,0));check();

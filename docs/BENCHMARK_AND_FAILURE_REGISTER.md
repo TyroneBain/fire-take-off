@@ -2,6 +2,13 @@
 2026-10-30. No real-world benchmark is implied by this template.
 
 
+
+### 2026-11-06 actual preview selection/erasing failures
+
+D1-F-109 latest user upload has1,218,070 operators,1,030,162 paths. Native selection refuses its1M capacity gate. The bounded region-filter/compact-mapper attempt exceeded120s and was reverted; document remains unsupported, not a recognition benchmark success. FS102 source32paths can be erased/restored; actual external browser32→31→32, no save.
+
+Fixed two separate native hit-testing bugs: equal-colour overlapping paths had zero omission masks; a newly revealed different-colour path remained unpickable using its original mask. Independent5 pointer tests now pass, plus1 capacity refusal test; full539/539 regression passes37,590.827041ms. Matcher/proof/quantity policies unchanged. Restore at originally hidden points remains limited. Exact evidence, hashes and unchanged preview state in CURRENT_STATE; no accuracy/parity improvement claimed.
+
 ### 2026-11-06 native-first creation defect fixed
 
 New Count selections previously entered raster matching before native editing. They now open an unsaved vector-element draft directly, preserve original path identity/exclusions and use a geometry midpoint anchor; saved v4 anchors remain unchanged. Native faint-path admission no longer depends on binary ink. Independent browser acceptance proves zero pixel workers/template/anchor extraction calls through create/add/recount/reopen; 208 checks, 85 stable source hashes, seven ledger rows/six included quantities and independently reconciled Excel. Draft cancellation writes nothing, stale targets fail safely, reviewed creation is atomic and old corrections survive. Full532/532 regression passes. All nine preview and116 regular-app marks preserved byte-identically during backed-up restarts. Exact reports/hashes in CURRENT_STATE.

@@ -52,7 +52,25 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
   $('selection-native-review').disabled=saving||!preview?.ready(excluded)||excluded.size===model.elements.length;$('selection-native-layer').disabled=saving;if($('selection-native-scope'))$('selection-native-scope').disabled=saving;$('selection-done').textContent=native?'Review matches':'Done';
  }
  const point=e=>{const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height];};
- function touch(p){if(!model||saving)return;const restore=shift||mode==='restore',candidates=model.elements.filter(e=>excluded.has(e.id)===restore),id=elementAt(candidates,...p,model.width,model.height);if(id===null)return;restore?excluded.delete(id):excluded.add(id);preview.update(excluded);paint();}
+ function touch(p){
+  if(!model||saving)return;
+  const restore=shift||mode==='restore',candidates=model.elements.filter(e=>excluded.has(e.id)===restore);
+  let id=elementAt(candidates,...p,model.width,model.height);
+  // After an erase the current PDF render can expose a previously covered
+  // path. Pick its original operation from the visible colour, rather than
+  // continuing to rely solely on masks from the unedited selection. Restore
+  // still uses the original ghost masks; no path or saved identity is invented.
+  if(!restore&&nativeInspection&&previewImage&&preview?.ready(excluded)){
+   const x=Math.floor(p[0]),y=Math.floor(p[1]);id=null;
+   if(x>=0&&y>=0&&x<model.width&&y<model.height){
+    const pixel=y*model.width+x,at=pixel*4,paint=previewImage.data;
+    if(paint[at+3]&&(paint[at]<255||paint[at+1]<255||paint[at+2]<255)){
+     id=candidates.findLast(e=>e.ink[pixel]||e.rgba?.data[at+3]>0&&e.rgba.data[at]===paint[at]&&e.rgba.data[at+1]===paint[at+1]&&e.rgba.data[at+2]===paint[at+2]&&e.rgba.data[at+3]===paint[at+3])?.id??null;
+    }
+   }
+  }
+  if(id===null)return;restore?excluded.delete(id):excluded.add(id);preview.update(excluded);paint();
+ }
  canvas.addEventListener('pointerdown',e=>{if(!model||saving||e.button!==0)return;e.preventDefault();drag=point(e);touch(drag);try{canvas.setPointerCapture(e.pointerId);}catch{}});
  canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e),steps=Math.max(1,Math.ceil(Math.hypot(p[0]-drag[0],p[1]-drag[1])));for(let i=1;i<=steps;i++)touch([drag[0]+(p[0]-drag[0])*i/steps,drag[1]+(p[1]-drag[1])*i/steps]);drag=p;});
  for(const type of ['pointerup','pointercancel'])canvas.addEventListener(type,()=>{drag=null;});
