@@ -11,7 +11,9 @@ export const VECTOR_SELECTED_PATTERN_VERSION='vector-pattern-review-3';
 const SELECTED_GEOMETRY_POLICY='selected-geometry-1';
 const patterns=new WeakMap(),digest=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v),finite=a=>Array.isArray(a)&&a.every(Number.isFinite);
 const base={version:VECTOR_PATTERN_REVIEW_VERSION,requiresSemanticReview:true,requiresSemanticVerification:true};
-const refused=error=>({...base,completed:false,reason:error instanceof Error?error.message:String(error),proposals:[]});
+const boundaryIssue=value=>value?.code==='VECTOR_SOURCE_BOUNDARY'&&Array.isArray(value.crossingElementIds)&&value.crossingElementIds.length>0&&value.crossingElementIds.length<=128&&value.crossingElementIds.every(id=>Number.isSafeInteger(id)&&id>=0)&&new Set(value.crossingElementIds).size===value.crossingElementIds.length?{code:value.code,crossingElementIds:[...value.crossingElementIds]}:{};
+const paintIssue=value=>value?.code==='VECTOR_SOURCE_PAINT'&&Array.isArray(value.unverifiedElementIds)&&value.unverifiedElementIds.length>0&&value.unverifiedElementIds.length<=128&&value.unverifiedElementIds.every(id=>Number.isSafeInteger(id)&&id>=0)&&new Set(value.unverifiedElementIds).size===value.unverifiedElementIds.length?{code:value.code,unverifiedElementIds:[...value.unverifiedElementIds]}:{};
+const refused=error=>({...base,completed:false,reason:error instanceof Error?error.message:String(error),proposals:[],...boundaryIssue(error),...paintIssue(error)});
 function budget({page,OPS,optionalContentConfig,documentSha256,createCanvas,pdfjsVersion,cancelled=()=>false,progress=()=>{},maxMilliseconds=120000,maxAuditWork=50000000},sourceCheck=()=>{}){
  if(!page||!Number.isSafeInteger(page.pageNumber)||page.pageNumber<1||typeof page.getOperatorList!=='function'||typeof page.getViewport!=='function'||typeof page.render!=='function'||!digest(documentSha256))throw Error('Fresh original page and document identity required');
  if(!OPS||!Number.isInteger(OPS.constructPath)||typeof createCanvas!=='function'||typeof pdfjsVersion!=='string'||typeof cancelled!=='function'||typeof progress!=='function'||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>120000||!Number.isSafeInteger(maxAuditWork)||maxAuditWork<1||maxAuditWork>50000000)throw Error('Invalid pattern review callbacks or budgets');
@@ -53,14 +55,34 @@ export async function prepareVectorPattern(args={}){
   const list=await awaitNativeOperators(page,b.check);validateNativeOperators(list);b.chargeAudit(list.fnArray.length);
   const raw=extractRawPathProvenance({operatorList:list,OPS,ids:saved.ids,optionalContentVisible:b.visible,viewportTransform:Array.from(page.getViewport({scale:2,rotation:0}).transform),cancelled:()=>{b.check();return false;}});
   if(raw.reason||raw.failures.length)throw Error('Source geometry is unavailable: '+(raw.reason??raw.failures[0].reason));
-  const geometry={supported:true,elements:raw.records.map(r=>nativeElementFromPaint(r,OPS))},template=createVectorTemplate(geometry,saved);if(!template.supported)throw Error('Source geometry is unavailable: '+template.reason);
+  const geometry={supported:true,elements:raw.records.map(r=>nativeElementFromPaint(r,OPS))},template=createVectorTemplate(geometry,saved);if(!template.supported)throw Object.assign(Error('Source geometry is unavailable: '+template.reason),boundaryIssue(template));
   let sourceLayer=null;if(layerPolicy==='same-layer-name'){
    const scopes=retained.map(id=>singleScope(raw.records.find(r=>r.id===id)));if(scopes.some(s=>!s)||scopes.some(s=>s.id!==scopes[0].id))throw Error('Every retained source operation needs the same single visible PDF layer');
    sourceLayer=uniqueLayer(optionalContentConfig,optionalContentConfig.getGroup(scopes[0].id)?.name,b.visible,b.check);if(sourceLayer.ocgId!==scopes[0].id)throw Error('Source layer identity changed');
   }
   b.notify('source-audit',1,1);b.chargeAudit(list.fnArray.length);
   const handle=await preparePdfContourPaints({page,OPS,elementIds:retained,contextIds:[],optionalContentConfig,cancelled:()=>{b.check();return false;}});b.chargeAudit(handle.additionalAuditWork??0);b.check();if(!handle.supported)throw Error('Source paint preparation failed: '+handle.reason);
-  const visibility=await verify(handle,args,b);if(!visibility.verified)throw Error('Original source paint does not verify: '+visibility.reason);
+  const visibility=await verify(handle,args,b);
+  if(!visibility.verified){
+   const error=Error('Original source paint does not verify: '+visibility.reason);
+   if(visibility.diagnostics?.mismatchedPixels>0){
+    // Diagnose, never waive, a failed original-source proof. The editor may
+    // offer these exact retained IDs for explicit exclusion with undo. A
+    // partial/cancelled/over-budget diagnosis exposes no repair IDs.
+    const unverifiedElementIds=[];
+    for(let i=0;i<retained.length;i++){
+     b.notify('source-paint-diagnosis',i,retained.length);b.chargeAudit(list.fnArray.length);
+     const individual=await preparePdfContourPaints({page,OPS,elementIds:[retained[i]],contextIds:[],optionalContentConfig,cancelled:()=>{b.check();return false;}});
+     b.chargeAudit(individual.additionalAuditWork??0);b.check();
+     if(!individual.supported)throw Error('Source paint diagnosis is unavailable: '+individual.reason);
+     const proof=await verify(individual,args,b);
+     if(!proof.verified&&proof.diagnostics?.mismatchedPixels>0)unverifiedElementIds.push(retained[i]);
+    }
+    b.notify('source-paint-diagnosis',retained.length,retained.length);
+    if(unverifiedElementIds.length)Object.assign(error,{code:'VECTOR_SOURCE_PAINT',unverifiedElementIds});
+   }
+   throw error;
+  }
   const source={elementIds:[...retained],excludedIds:[...saved.excluded],anchor:[...saved.anchor],visibility,...(contextual?{contextIds:[]}: {})},sourceBinding={documentSha256,pageNumber:page.pageNumber,configurationHash:b.hash};
   b.notify('source-complete',1,1);b.check();const pattern=Object.freeze({version:policyBase.version});patterns.set(pattern,{template:structuredClone(template),source:structuredClone(source),sourceRecords:contextual?structuredClone(raw.records):null,matchPolicy,sourceBinding,sourceLayer,layerPolicy,config:optionalContentConfig,hash:b.hash});
   return {...policyBase,completed:true,pattern,source,sourceBinding,sourceLayer:sourceLayer?{...sourceLayer}:null,auditWork:b.auditWork};

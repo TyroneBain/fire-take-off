@@ -121,7 +121,8 @@ export function createVectorTemplate(page,{bounds,ids,excluded=[],anchor}={}){
  const selected=ids?new Set(ids):null,erased=new Set(excluded),elements=page.elements.filter(e=>(selected?selected.has(e.id):strokeMayTouchSelection(e,bounds))&&!erased.has(e.id));
  if(selected&&ids.some(id=>!page.elements.some(e=>e.id===id)))return unsupported('Saved selection contains unavailable vector paths');
  if(!elements.length||elements.length>128)return unsupported('Select between 1 and 128 vector paths');
- if(elements.some(e=>!inside(e.bounds,bounds,.01)))return unsupported('Selection cuts a vector path; remove crossing linework or enlarge selection');
+ const crossingElementIds=elements.filter(e=>!inside(e.bounds,bounds,.01)).map(e=>e.id).sort((a,b)=>a-b);
+ if(crossingElementIds.length)return {...unsupported('Selection cuts a vector path; remove crossing linework or enlarge selection'),code:'VECTOR_SOURCE_BOUNDARY',crossingElementIds};
  const total=elements.reduce((n,e)=>n+e.segments.length,0);if(total<2||total>4096)return unsupported('Vector selection needs more detail or exceeds the segment budget');
  return {supported:true,elements:structuredClone(elements),bounds:[...bounds],anchor:[...anchor],excludedElements:page.elements.filter(e=>erased.has(e.id)).map(e=>structuredClone(e))};
 }

@@ -31,9 +31,11 @@ test('runner cancellation at source, proof and final publication boundaries rele
  for(const phase of ['source-anchor','proof-open','complete']){const f=await fixture();await assert.rejects(runSavedVectorReview({...f.args,progress:p=>{if(p.phase===phase)f.run.cancel();}}),/cancel/i);assert.equal(f.events.filter(e=>e.kind==='destroy').length,f.events.filter(e=>e.kind==='open').length);assert.ok(f.canvases.every(c=>c.width===0&&c.height===0));assert.equal(f.run.cancel,undefined);assert.equal(f.run.task,undefined);}
 });
 test('stalled PDF opening is bounded and cancel destroys the owned loading task once',async()=>{
- const f=await fixture();let destroyed=0;const stalled={OPS,version,getDocument:()=>({promise:new Promise(()=>{}),destroy:async()=>{destroyed++;}})};
- await assert.rejects(runSavedVectorReview({...f.args,pdfjs:stalled,maxMilliseconds:30}),/timed out/);assert.equal(destroyed,1);assert.equal(f.run.task,undefined);
- const g=await fixture();destroyed=0;const cancelLoad={OPS,version,getDocument:()=>{setTimeout(()=>g.run.cancel(),5);return{promise:new Promise(()=>{}),destroy:async()=>{destroyed++;}};}};await assert.rejects(runSavedVectorReview({...g.args,pdfjs:cancelLoad}),/cancel/i);assert.equal(destroyed,1);
+ // Isolate opening timeout from asynchronous injected-byte digest verification.
+ // The browser route opens the deliberately stalled task before any await.
+ const f=await fixture(),lifecycle=[],stalled={OPS,version,getDocument:options=>{lifecycle.push('open');assert.equal(options.url,'/api/drawings/owned-drawing/source');return{promise:new Promise(()=>{}),destroy:async()=>{lifecycle.push('destroy');}};}};
+ await assert.rejects(runSavedVectorReview({...f.args,sourceData:undefined,pdfjs:stalled,maxMilliseconds:250}),/timed out/);assert.deepEqual(lifecycle,['open','destroy']);assert.equal(f.run.task,undefined);assert.equal(f.run.cancel,undefined);
+ const g=await fixture();let destroyed=0;const cancelLoad={OPS,version,getDocument:()=>{setTimeout(()=>g.run.cancel(),5);return{promise:new Promise(()=>{}),destroy:async()=>{destroyed++;}};}};await assert.rejects(runSavedVectorReview({...g.args,pdfjs:cancelLoad}),/cancel/i);assert.equal(destroyed,1);
 });
 test('source cleanup failure cannot publish a review or start the proof document',async()=>{
  const f=await fixture(),original=f.args.pdfjs.getDocument,pdfjs={...f.args.pdfjs,getDocument:options=>{const task=original(options);return{...task,destroy:async()=>{await task.destroy();throw Error('Owned teardown failure');}};}};

@@ -134,7 +134,35 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   try{await render(canvas,ctx,cropViewport,mappedSelectionFilter({excluded},identity),false,[displayWidth/width,0,0,displayHeight/height,0,0]);return ctx.getImageData(0,0,displayWidth,displayHeight);}
   finally{canvas.width=canvas.height=0;}
  }
- return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true,renderDisplay}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(mappedSelectionFilter({excluded},identity));}};
+ // Resolve pointer hits at the same device-pixel scale as the visible preview.
+ // Low-resolution masks only narrow the search; they never choose an ID here.
+ // Full-original omission preserves white covers and other unselected context.
+ async function pickDisplayElement({x,y,width:displayWidth,height:displayHeight,excluded=[],candidateIds}={}){
+  if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0||x>=1||y>=1)return null;
+  if(!Number.isSafeInteger(displayWidth)||!Number.isSafeInteger(displayHeight)||displayWidth<1||displayHeight<1||displayWidth>2048||displayHeight>2048||displayWidth*displayHeight>1000000)throw Error('Selection display exceeds its pixel budget');
+  if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id))||new Set(excluded).size!==excluded.length||candidateIds!==undefined&&(!Array.isArray(candidateIds)||candidateIds.length>128||candidateIds.some(id=>!selected.has(id))||new Set(candidateIds).size!==candidateIds.length))throw Error('Invalid selection picking identities');
+  const stop=performance.now()+20000;deadline=stop;
+  const pickCheck=()=>{check();if(performance.now()>stop)throw Error('Selection picking time budget exceeded');},hidden=new Set(excluded),allowed=candidateIds===undefined?null:new Set(candidateIds),px=Math.floor(x*displayWidth),py=Math.floor(y*displayHeight),bx=Math.floor(x*width),by=Math.floor(y*height);
+  const hasPaint=data=>data[3]>0&&(data[0]<255||data[1]<255||data[2]<255),equal=(a,b)=>a.every((v,i)=>v===b[i]);
+  // A one-inspection-pixel margin includes antialiased detail that moves across
+  // a low-resolution pixel boundary when the original vectors are enlarged.
+  const nearby=elements.filter(e=>!hidden.has(e.id)&&(!allowed||allowed.has(e.id))&&Array.from({length:9},(_,i)=>[bx+i%3-1,by+Math.floor(i/3)-1]).some(([xx,yy])=>xx>=0&&yy>=0&&xx<width&&yy<height&&hasPaint(e.rgba.data.subarray((yy*width+xx)*4,(yy*width+xx)*4+4)))).reverse();
+  if(!nearby.length)return null;
+  async function pixel(filter){
+   pickCheck();const canvas=createCanvas(1,1),ctx=canvas.getContext('2d',{willReadFrequently:true});
+   try{await render(canvas,ctx,cropViewport,filter,false,[displayWidth/width,0,0,displayHeight/height,-px,-py]);pickCheck();return ctx.getImageData(0,0,1,1).data;}
+   finally{canvas.width=canvas.height=0;}
+  }
+  const current=await pixel(mappedSelectionFilter({excluded},identity));if(!hasPaint(current))return null;
+  for(const e of nearby){
+   pickCheck();const isolated=await pixel((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===e.id);
+   if(!hasPaint(isolated))continue;
+   const without=await pixel(mappedSelectionFilter({excluded:[...excluded,e.id]},identity));
+   if(!equal(current,without)||equal(current,isolated))return e.id;
+  }
+  return null;
+ }
+ return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true,renderDisplay,pickDisplayElement}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(mappedSelectionFilter({excluded},identity));}};
 }
 export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false,nativeReviewOnly=false}){
  if(typeof nativeReviewOnly!=='boolean')throw Error('Invalid native inspection mode');

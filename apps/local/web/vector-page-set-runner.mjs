@@ -82,7 +82,14 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
   try{
    const page=await awaitBounded(sourceProof.doc.getPage(source.page),'Original source proof page'),optionalContentConfig=await awaitBounded(sourceProof.doc.getOptionalContentConfig({intent:'display'}),'Original source layer configuration');
    const prepared=await prepareVectorPattern({page,OPS,optionalContentConfig,documentSha256:source.digest,selection:{...selection,anchor:[...anchor]},layerPolicy,matchPolicy,createCanvas:canvasFactory,pdfjsVersion,cancelled:()=>{check();return false;},progress:stageProgress('source-pattern',source,0),maxMilliseconds:remaining()});
-   pattern=prepared?.pattern;check();if(!prepared?.completed||!pattern)throw Error(prepared?.reason||'Original source pattern did not complete');chargeAudit(prepared.auditWork);if(contextual){sourceContextIds=[...prepared.source.contextIds];if(savedContext&&JSON.stringify(savedContext)!==JSON.stringify(sourceContextIds))throw Error('Saved source context policy changed');}
+   pattern=prepared?.pattern;check();if(!prepared?.completed||!pattern){
+    const error=Error(prepared?.reason||'Original source pattern did not complete'),ids=prepared?.crossingElementIds;
+    // Only source-retained original IDs may reach the editor's explicit repair.
+    if(prepared?.code==='VECTOR_SOURCE_BOUNDARY'&&Array.isArray(ids)&&ids.length>0&&ids.length<=128&&new Set(ids).size===ids.length&&ids.every(id=>Number.isSafeInteger(id)&&selection.ids.includes(id)&&!selection.excluded.includes(id)))Object.assign(error,{code:prepared.code,crossingElementIds:[...ids]});
+    const unverified=prepared?.unverifiedElementIds;
+    if(prepared?.code==='VECTOR_SOURCE_PAINT'&&Array.isArray(unverified)&&unverified.length>0&&unverified.length<=128&&new Set(unverified).size===unverified.length&&unverified.every(id=>Number.isSafeInteger(id)&&selection.ids.includes(id)&&!selection.excluded.includes(id)))Object.assign(error,{code:prepared.code,unverifiedElementIds:[...unverified]});
+    throw error;
+   }chargeAudit(prepared.auditWork);if(contextual){sourceContextIds=[...prepared.source.contextIds];if(savedContext&&JSON.stringify(savedContext)!==JSON.stringify(sourceContextIds))throw Error('Saved source context policy changed');}
   }finally{await destroy(sourceProof.task);activeTask=null;}
   const reviewed=[];
   for(let i=0;i<pages.length;i++){

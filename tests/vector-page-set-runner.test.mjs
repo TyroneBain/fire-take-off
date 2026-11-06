@@ -58,7 +58,9 @@ test('cancellation after an earlier page and at final publication is atomic and 
 });
 
 test('stalled PDF opening and source cleanup failure cannot publish or start target review',async()=>{
- const f=await fixture();let destroyed=0;await assert.rejects(runSavedVectorPageSetReview({...f.args,pdfjs:{OPS,version,getDocument:()=>({promise:new Promise(()=>{}),destroy:async()=>{destroyed++;}})},maxMilliseconds:30}),/timed out/);assert.equal(destroyed,1);assert.equal(f.run.task,undefined);
+ // Use the browser route so unrelated asynchronous digest verification cannot
+ // consume the opening deadline before the deliberately stalled task exists.
+ const f=await fixture(),lifecycle=[];await assert.rejects(runSavedVectorPageSetReview({...f.args,sourceData:undefined,targetData:undefined,pdfjs:{OPS,version,getDocument:options=>{lifecycle.push('open');assert.equal(options.url,'/api/drawings/drawing-a/source');return {promise:new Promise(()=>{}),destroy:async()=>{lifecycle.push('destroy');}};}},maxMilliseconds:250}),/timed out/);assert.deepEqual(lifecycle,['open','destroy']);assert.equal(f.run.task,undefined);assert.equal(f.run.cancel,undefined);
  const g=await fixture(),original=g.args.pdfjs.getDocument;await assert.rejects(runSavedVectorPageSetReview({...g.args,pdfjs:{...g.args.pdfjs,getDocument:options=>{const task=original(options);return {...task,destroy:async()=>{await task.destroy();throw Error('Owned cleanup failure');}};}}}),/cleanup failed/);assert.equal(g.events.filter(e=>e.kind==='open').length,1);assert.ok(g.canvases.every(c=>c.width===0&&c.height===0));
 });
 
