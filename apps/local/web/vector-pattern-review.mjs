@@ -4,6 +4,7 @@ import {preparePdfContourPaints,verifyPdfContourPaints} from './pdf-contour-veri
 import {awaitNativeOperators,validateNativeOperators,nativeElementFromPaint,auditNativePage} from './vector-page-audit.mjs';
 import {createLocalContextResolver,loadContextGeometry} from './vector-context-match.mjs';
 import {VECTOR_CONTEXT_MATCH_POLICY} from './vector-review-policy.mjs';
+import {findFillEquivalentMatches} from './vector-fill-equivalence.mjs';
 
 export const VECTOR_PATTERN_REVIEW_VERSION='vector-pattern-review-1';
 export const VECTOR_CONTEXT_PATTERN_VERSION='vector-pattern-review-2';
@@ -113,6 +114,15 @@ export async function reviewVectorPatternPage(args={}){
    const keys=new Set(geometry.map(h=>JSON.stringify([...h.elementIds].sort((a,b)=>a-b))));
    for(const hit of findVectorMatches(target,pattern.template,{...searchOptions,selectedGeometryOnly:true})){
     const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));if(!keys.has(key)&&!geometry.some(h=>Math.hypot(h.x-hit.x,h.y-hit.y)<=.05)){keys.add(key);geometry.push(hit);}
+   }
+   // Equivalent native fill regions may have different PDF operation counts.
+   // These candidates supplement existing evidence; they never replace a saved
+   // body's IDs/anchor, bypass original paint proof, or become automatic counts.
+   for(const hit of findFillEquivalentMatches(target,pattern.template,{...searchOptions,polygonBoolean:await loadContextGeometry()})){
+    const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));
+    if(!keys.has(key)&&!geometry.some(h=>Math.abs(h.x-hit.x)<.5&&Math.abs(h.y-hit.y)<.5)){
+     keys.add(key);geometry.push({...hit,requiresExplicitReview:true});
+    }
    }
    geometry.sort((a,b)=>a.y-b.y||a.x-b.x);
   }
