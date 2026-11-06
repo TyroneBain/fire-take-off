@@ -41,3 +41,10 @@ Countfire user workflows can be observed through permitted normal UI access, but
 
 ## Maintenance
 Check Apple's HIG change log and links before major design decisions; record the review date and any changed guidance. Apple's HIG evolves; this file is a working source index and implementation checklist, not 'all Apple information'.
+
+## Owner design decision — 2026-11-06
+- Official Apple Design Resources: https://developer.apple.com/design/resources/ — primary visual reference for future Fire Take Off UI/UX proposals, alongside the live HIG.
+- Owner prefers an original Apple-inspired **dark-mode** desktop interface: dark graphite navigation and tool surfaces, a white/legible PDF drawing canvas, restrained amber count highlights, compact clear toolbars, and a drawing-first workspace. The owner approved this *direction as a concept*, not any production implementation.
+- Avoid Countfire's distinctive appearance. Use original components, artwork and icons; verify licensing before using Apple design-kit assets, templates or SF Symbols in a commercial cross-platform web product.
+- Designer/UX agents must review the resource page and relevant current HIG before proposing UI changes, record the review date, and test 1280×800, 1440×900 and 1920×1080, including contrast, focus, keyboard use and PDF legibility.
+- This is a retained design preference, **not** authorisation to interrupt P0 vector recognition, change counting behaviour or begin a broad production redesign. Keep recognition, corrections, zones and exports untouched until a separate UI implementation task is approved.
