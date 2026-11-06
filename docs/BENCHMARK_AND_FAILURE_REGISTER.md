@@ -3,6 +3,14 @@
 
 
 
+### 2026-11-06 FS102 original-first full-layout verification
+
+Independent QA froze44 ring-with-solid-centre locations from original-only full-layout tiles before reading matcher results; root visual tally agrees (4/18/11/0/1/10 across six tiles). Region[430,440,1660,1110] excludes title/notes; paired solid discs, hollow rings and sidewall symbols are separate classes. Frozen labels SHA256 `ee921942d093c183565ed6a421037f6a406c2597ed4265b6ad6958dce5f3eaec`. These are independent AI visual labels, not estimator certification or a Countfire comparison.
+
+Existing19path cleaned source produces44TP/0FP/0FN, all44 original-paint verified, no out-of-region proposals. Original retained ring centres reconcile with visual labels within0.473PDFpoints under the predeclared2point tolerance; original source-selection anchors remain unchanged. This newly establishes real-drawing evidence for the EXISTING matcher on this one family/sheet, not a newly increased count or broader parity. Customer PDF, labels and score reports remain ignored locally.
+
+Isolated real-source workflow verified44 total:43 explicitly reviewed native instances plus one intentionally withheld true location added manually. Rejection/manual addition survive fresh recount; restoration survives another recount.43 original native glyph masks verify. Overlapping zones reconcile17west+27remainder, seven overlapping locations allocated once; Count instances and Quantity detail both export44. Reopen preserves the entire state and selected colour. The pending case was deliberately injected to exercise manual correction; it is not an observed recognition miss. No live saved data changed. Composite-grouping improvement/regressions are recorded separately in CURRENT_STATE.
+
 ### 2026-11-06 actual preview selection/erasing failures
 
 D1-F-109 latest user upload has1,218,070 operators,1,030,162 paths. Native selection refuses its1M capacity gate. The bounded region-filter/compact-mapper attempt exceeded120s and was reverted; document remains unsupported, not a recognition benchmark success. FS102 source32paths can be erased/restored; actual external browser32→31→32, no save.

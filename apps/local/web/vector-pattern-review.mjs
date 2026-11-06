@@ -5,6 +5,7 @@ import {awaitNativeOperators,validateNativeOperators,nativeElementFromPaint,audi
 import {createLocalContextResolver,loadContextGeometry} from './vector-context-match.mjs';
 import {VECTOR_CONTEXT_MATCH_POLICY} from './vector-review-policy.mjs';
 import {findFillEquivalentMatches} from './vector-fill-equivalence.mjs';
+import {findCompositeEquivalentMatches} from './vector-composite-equivalence.mjs';
 
 export const VECTOR_PATTERN_REVIEW_VERSION='vector-pattern-review-1';
 export const VECTOR_CONTEXT_PATTERN_VERSION='vector-pattern-review-2';
@@ -119,6 +120,14 @@ export async function reviewVectorPatternPage(args={}){
    // These candidates supplement existing evidence; they never replace a saved
    // body's IDs/anchor, bypass original paint proof, or become automatic counts.
    for(const hit of findFillEquivalentMatches(target,pattern.template,{...searchOptions,polygonBoolean:await loadContextGeometry()})){
+    const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));
+    if(!keys.has(key)&&!geometry.some(h=>Math.abs(h.x-hit.x)<.5&&Math.abs(h.y-hit.y)<.5)){
+     keys.add(key);geometry.push({...hit,requiresExplicitReview:true});
+    }
+   }
+   // Regrouped fill/stroke subpaths retain every original paint contribution.
+   // Existing identities win; broader composite proposals remain review-only.
+   for(const hit of findCompositeEquivalentMatches(target,pattern.template,{...searchOptions,polygonBoolean:await loadContextGeometry()})){
     const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));
     if(!keys.has(key)&&!geometry.some(h=>Math.abs(h.x-hit.x)<.5&&Math.abs(h.y-hit.y)<.5)){
      keys.add(key);geometry.push({...hit,requiresExplicitReview:true});
