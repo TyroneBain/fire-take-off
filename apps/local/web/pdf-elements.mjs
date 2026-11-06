@@ -65,8 +65,8 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   if(op===OPS.clip||op===OPS.eoClip){if(ops.fnArray[i+1]!==OPS.constructPath||ops.argsArray[i+1]?.[0]!==OPS.endPath)throw Error('Element editing does not support combined clipping and painted paths');structural.add(i+1);}
  }
  const paint=new Set(Object.entries(OPS).filter(([k])=>k==='constructPath'||k.startsWith('paint')||['showText','showSpacedText','nextLineShowText','nextLineSetSpacingShowText','shadingFill'].includes(k)).map(([,v])=>v));
- async function render(canvas,ctx,renderViewport,operationsFilter,recordOperations=false){
-  check();const task=page.render({canvas,canvasContext:ctx,viewport:renderViewport,operationsFilter,recordOperations}),timer=setTimeout(()=>task.cancel(),Math.max(1,Math.min(20000,deadline-performance.now()))),poll=setInterval(()=>{if(cancelled())task.cancel();},25);
+ async function render(canvas,ctx,renderViewport,operationsFilter,recordOperations=false,transform){
+  check();const task=page.render({canvas,canvasContext:ctx,viewport:renderViewport,operationsFilter,recordOperations,transform}),timer=setTimeout(()=>task.cancel(),Math.max(1,Math.min(20000,deadline-performance.now()))),poll=setInterval(()=>{if(cancelled())task.cancel();},25);
   try{await task.promise;check();}finally{clearTimeout(timer);clearInterval(poll);}
  }
  let metadata=largeElementMetadata.get(page);
@@ -123,7 +123,18 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
   // still require separate original-PDF verification before native counting.
   if(!elements.length||baseline.data.some((v,i)=>v&&!covered[i]))throw Error('Selection contains unassigned text or image detail; choose a clearer source');
  }else{const joint=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||selected.has(identity.rawId(index,list)));if(!elements.length||original.data.some((value,i)=>value!==joint.data[i]))throw Error('This selection contains text, images or obscured content; editing currently supports visible vector paths only');}
- return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(mappedSelectionFilter({excluded},identity));}};
+ // Display output is independently rendered from the original PDF at screen
+ // resolution. The fixed inspection masks and recognition coordinates above
+ // remain untouched; no low-resolution image is enlarged or used as geometry.
+ async function renderDisplay(excluded=[],{width:displayWidth,height:displayHeight}={}){
+  if(!Number.isSafeInteger(displayWidth)||!Number.isSafeInteger(displayHeight)||displayWidth<1||displayHeight<1||displayWidth>2048||displayHeight>2048||displayWidth*displayHeight>1000000)throw Error('Selection display exceeds its pixel budget');
+  if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');
+  deadline=performance.now()+20000;check();
+  const canvas=createCanvas(displayWidth,displayHeight),ctx=canvas.getContext('2d',{willReadFrequently:true});
+  try{await render(canvas,ctx,cropViewport,mappedSelectionFilter({excluded},identity),false,[displayWidth/width,0,0,displayHeight/height,0,0]);return ctx.getImageData(0,0,displayWidth,displayHeight);}
+  finally{canvas.width=canvas.height=0;}
+ }
+ return {elements,box,width,height,viewport,anchor,baseline,...(nativeReviewOnly?{nativeReviewOnly:true,renderDisplay}:{}),async render(excluded=[]){deadline=performance.now()+20000;if(!Array.isArray(excluded)||excluded.some(id=>!selected.has(id)))throw Error('Invalid excluded selection element');return crop(mappedSelectionFilter({excluded},identity));}};
 }
 export async function inspectPdfElements({page,OPS,bounds,createCanvas,cancelled=()=>false,nativeReviewOnly=false}){
  if(typeof nativeReviewOnly!=='boolean')throw Error('Invalid native inspection mode');

@@ -16,12 +16,24 @@ export function createSelectionPreview({render,onPending,onReady,onError,delay=4
   catch(error){if(!disposed&&request===current){settled=null;onError(error);}}
   finally{running=false;if(!disposed&&request!==current&&timer===null)timer=setTimeout(drain,0);}
  }
- return {update(ids){if(disposed)return;const value=key(ids);if(request?.key===value)return;request={ids:[...ids].sort((a,b)=>a-b),key:value,sequence:++sequence};settled=null;onPending();clearTimeout(timer);timer=setTimeout(drain,delay);},ready(ids){return !disposed&&settled!==null&&settled===key(ids)&&request?.key===settled;},dispose(){disposed=true;request=null;settled=null;clearTimeout(timer);timer=null;}};
+ return {update(ids,{force=false}={}){if(disposed)return;const value=key(ids);if(request?.key===value&&!force)return;request={ids:[...ids].sort((a,b)=>a-b),key:value,sequence:++sequence};settled=null;onPending();clearTimeout(timer);timer=setTimeout(drain,delay);},ready(ids){return !disposed&&settled!==null&&settled===key(ids)&&request?.key===settled;},dispose(){disposed=true;request=null;settled=null;clearTimeout(timer);timer=null;}};
 }
 export function selectionPreviewPixels(model,excluded,image){
  const pixels=new Uint8ClampedArray(model.width*model.height*4);
  for(const element of model.elements)if(excluded.has(element.id))for(let i=0;i<element.ink.length;i++)if(element.ink[i]){pixels[i*4]=pixels[i*4+1]=pixels[i*4+2]=150;pixels[i*4+3]=85;}
  if(image){if(image.width!==model.width||image.height!==model.height||image.data.length!==pixels.length)throw Error('Selection preview dimensions changed');for(let i=0;i<pixels.length;i+=4)if(image.data[i+3]&&(image.data[i]!==255||image.data[i+1]!==255||image.data[i+2]!==255))pixels.set(image.data.subarray(i,i+4),i);}
+ return pixels;
+}
+// Transparent excluded-path ghosts behind the current original-PDF display.
+// Both images are fresh renders at the same displayed resolution, not enlarged
+// inspection masks. Retained paint always wins over a ghost.
+export function selectionDisplayPixels(original,current){
+ if(original.width!==current.width||original.height!==current.height||original.data.length!==current.data.length)throw Error('Selection display dimensions changed');
+ const pixels=new Uint8ClampedArray(current.data.length);
+ for(let p=0;p<pixels.length;p+=4){
+  if(original.data[p+3]&&(original.data[p]<255||original.data[p+1]<255||original.data[p+2]<255)){pixels[p]=pixels[p+1]=pixels[p+2]=150;pixels[p+3]=85;}
+  if(current.data[p+3]&&(current.data[p]<255||current.data[p+1]<255||current.data[p+2]<255))pixels.set(current.data.subarray(p,p+4),p);
+ }
  return pixels;
 }
 export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,reviewVector,rasterFallback}){
@@ -45,16 +57,18 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
   fallbackButton.textContent=`Use image matching in this ${record.draft.scope==='discipline'?'discipline':'drawing'}`;fallbackButton.hidden=false;
  }
  function close(){if(saving){cancelMatching();return;}epoch++;preview?.dispose();preview=null;previewImage=null;task?.destroy().catch(()=>{});task=null;model=null;record=null;dialog.close();}
+ function displayFit(){return Math.max(.01,Math.min((canvas.parentElement.clientWidth-24)/model.width,280/model.height));}
+ function displaySize(){const fit=displayFit(),ratio=Math.max(1,Math.min(2,window.devicePixelRatio||1));return {width:Math.max(1,Math.ceil(model.width*fit*ratio)),height:Math.max(1,Math.ceil(model.height*fit*ratio))};}
  function paint(){
-  if(!model)return;const {width,height,elements}=model;canvas.width=width;canvas.height=height;const fit=Math.min((canvas.parentElement.clientWidth-24)/width,280/height);canvas.style.width=width*fit+'px';canvas.style.height=height*fit+'px';const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(width,height);
-  pixels.data.set(selectionPreviewPixels(model,excluded,previewImage));
+  if(!model)return;const {width,height,elements}=model,display=previewImage?.display;canvas.width=display?.width||width;canvas.height=display?.height||height;const fit=displayFit();canvas.style.width=width*fit+'px';canvas.style.height=height*fit+'px';const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(canvas.width,canvas.height);
+  pixels.data.set(display?selectionDisplayPixels(previewImage.displayOriginal,display):selectionPreviewPixels(model,excluded,previewImage));
   ctx.putImageData(pixels,0,0);$('selection-elements').textContent=String(elements.length-excluded.size);$('selection-erase').classList.toggle('selected',!shift&&mode==='erase');$('selection-restore').classList.toggle('selected',shift||mode==='restore');
   const native=nativeInspection||isVectorReviewAlgorithm(record?.example.algorithm);$('selection-vector').disabled=saving||native;$('selection-scales').disabled=saving||native||!$('selection-vector').checked;$('selection-done').disabled=saving||!preview?.ready(excluded)||!!record?.draft&&excluded.size===elements.length;$('selection-erase-all').disabled=saving;canvas.classList.toggle('restoring',shift||mode==='restore');
   if(native)$('selection-vector').checked=true;if($('selection-legacy-options'))$('selection-legacy-options').hidden=native;
   if(record?.draft)draftName.disabled=draftColor.disabled=saving||!!record.draft.targetItemId;
   $('selection-native-review').disabled=saving||!preview?.ready(excluded)||excluded.size===model.elements.length;$('selection-native-layer').disabled=saving;if($('selection-native-scope'))$('selection-native-scope').disabled=saving;$('selection-done').textContent=native?'Review matches':'Done';
  }
- const point=e=>{const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height];};
+ const point=e=>{const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*model.width/r.width,(e.clientY-r.top)*model.height/r.height];};
  function touch(p){
   if(!model||saving)return;
   const restore=shift||mode==='restore',candidates=model.elements.filter(e=>excluded.has(e.id)===restore);
@@ -104,8 +118,18 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
   const loading=pdfjs.getDocument({url:`/api/drawings/${next.example.drawing_id}/source`,isEvalSupported:false,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/'});task=loading;
   try{const pdf=await loading.promise,page=await pdf.getPage(next.example.page),result=await inspectPdfElements({page,OPS:pdfjs.OPS,bounds:next.example.bounds,createCanvas:(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;},nativeReviewOnly:nativeInspection,cancelled:()=>generation!==epoch});if(generation!==epoch)return;
    if(next.example.elements&&(next.example.elements.renderer!==ELEMENT_RENDERER||JSON.stringify(next.example.elements.ids)!==JSON.stringify(result.elements.map(e=>e.id))))throw new Error('Selection element identity changed; this source needs review');
-   model=result;preview=createSelectionPreview({render:ids=>result.render(ids),onPending(){previewImage=null;$('selection-error').textContent='Updating preview…';paint();},onReady(image){previewImage=image;$('selection-error').textContent='';paint();},onError(error){previewImage=null;$('selection-error').textContent=error.message;paint();}});preview.update(excluded);paint();
+   model=result;let originalDisplay=null,originalDisplayKey=null;
+   preview=createSelectionPreview({render:async ids=>{
+    const image=await result.render(ids);if(generation!==epoch)throw Error('Selection preview cancelled');
+    if(!nativeInspection||!result.renderDisplay)return image;
+    const size=displaySize(),key=size.width+':'+size.height;
+    if(originalDisplayKey!==key){originalDisplay=await result.renderDisplay([],size);originalDisplayKey=key;}
+    if(generation!==epoch)throw Error('Selection preview cancelled');
+    const display=ids.length?await result.renderDisplay(ids,size):originalDisplay;
+    return {width:image.width,height:image.height,data:image.data,display,displayOriginal:originalDisplay};
+   },onPending(){previewImage=null;$('selection-error').textContent='Updating preview…';paint();},onReady(image){previewImage=image;$('selection-error').textContent='';paint();},onError(error){previewImage=null;$('selection-error').textContent=error.message;paint();}});preview.update(excluded);paint();
   }catch(error){if(generation===epoch){$('selection-error').textContent=error.message;nativeRetry=!nativeInspection&&typeof reviewVector==='function'&&/obscured|hidden or redundant|text, images|clipped or composited drawings/.test(error.message);$('selection-native-review').disabled=!nativeRetry;if(nativeRetry)$('selection-native-review').textContent='Inspect visible vector elements';offerFallback();}}
  }
+ window.addEventListener('resize',()=>{if(model&&dialog.open&&!saving&&nativeInspection)preview?.update(excluded,{force:true});});
  return {open,close};
 }
