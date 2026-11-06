@@ -1,20 +1,21 @@
 // Atomic, read-only review of an explicit set of original PDF pages. Browser
 // bytes use the server's digest-attested source route; injected test bytes are
 // independently hashed. No viewer document, saved matches or layer mutations.
-import {VECTOR_CONTEXT_MATCH_POLICY,VECTOR_CONTEXT_REVIEW_VERSION} from './vector-review-policy.mjs';
+import {VECTOR_CONTEXT_MATCH_POLICY,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_MATCH_POLICY,VECTOR_SELECTED_REVIEW_VERSION} from './vector-review-policy.mjs';
 import {renderMatchSelection} from './pdf-match-tiles.mjs';
 import {inkImage,exampleImage} from './matcher.mjs';
 import {validElementSelection} from './pdf-elements.mjs';
 import {prepareVectorPattern,reviewVectorPatternPage,releaseVectorPattern} from './vector-pattern-review.mjs';
 
-export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',matchPolicy=example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?VECTOR_CONTEXT_MATCH_POLICY:'strict',createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
+export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',matchPolicy=example?.algorithm===VECTOR_SELECTED_REVIEW_VERSION?VECTOR_SELECTED_MATCH_POLICY:example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?VECTOR_CONTEXT_MATCH_POLICY:'strict',allowPolicyUpgrade=false,createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
  const validDrawing=d=>typeof d?.id==='string'&&d.id.length>0&&typeof d.digest==='string'&&/^[a-f0-9]{64}$/.test(d.digest);
- if(!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof pdfjs.version!=='string'||typeof createCanvas!=='function'||typeof progress!=='function'||!run||typeof run!=='object'||!['strict',VECTOR_CONTEXT_MATCH_POLICY].includes(matchPolicy)||!['all-admitted','same-layer-name'].includes(layerPolicy)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>300000)throw Error('Invalid page-set review dependencies or limits');
+ if(typeof allowPolicyUpgrade!=='boolean'||!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof pdfjs.version!=='string'||typeof createCanvas!=='function'||typeof progress!=='function'||!run||typeof run!=='object'||!['strict',VECTOR_CONTEXT_MATCH_POLICY,VECTOR_SELECTED_MATCH_POLICY].includes(matchPolicy)||!['all-admitted','same-layer-name'].includes(layerPolicy)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>300000)throw Error('Invalid page-set review dependencies or limits');
  if(!validDrawing(sourceDrawing)||example?.drawing_id!==sourceDrawing.id||example.digest!==sourceDrawing.digest)throw Error('Saved selection source is missing or changed');
  if(!Number.isSafeInteger(example.page)||example.page<1||example.page>200||!Array.isArray(example.bounds)||example.bounds.length!==4||!example.bounds.every(Number.isFinite)||example.bounds[2]<=example.bounds[0]||example.bounds[3]<=example.bounds[1]||!validElementSelection(elements))throw Error('Review needs compatible original selection IDs, exclusions, page and bounds');
  if(!Array.isArray(targets)||targets.length<1||targets.length>20)throw Error('Review requires 1 to 20 explicit target pages');
- if(example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&(example.vectorReview?.matchPolicy!==matchPolicy||!Array.isArray(example.vectorReview.sourceContextIds)))throw Error('Saved context policy cannot change during recount');
- const contextual=matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,savedContext=example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?structuredClone(example.vectorReview?.sourceContextIds):null;
+ const policyUpgrade=allowPolicyUpgrade&&example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&matchPolicy===VECTOR_SELECTED_MATCH_POLICY;
+ if([VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example.algorithm)&&!policyUpgrade&&(example.vectorReview?.matchPolicy!==matchPolicy||!Array.isArray(example.vectorReview.sourceContextIds)))throw Error('Saved context policy cannot change during recount');
+ const contextual=[VECTOR_CONTEXT_MATCH_POLICY,VECTOR_SELECTED_MATCH_POLICY].includes(matchPolicy),savedContext=[VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example?.algorithm)?structuredClone(example.vectorReview?.sourceContextIds):null;
  const source={drawingId:sourceDrawing.id,digest:sourceDrawing.digest,page:example.page},selection={page:example.page,bounds:[...example.bounds],ids:[...elements.ids],excluded:[...elements.excluded]},drawings=new Map([[source.drawingId,source.digest]]),keys=new Set(),pages=targets.map(t=>{
   if(!validDrawing(t?.drawing)||!Number.isSafeInteger(t.page)||t.page<1||t.page>200)throw Error('Invalid original target drawing or page');
   const drawingId=t.drawing.id,digest=t.drawing.digest,key=JSON.stringify([drawingId,t.page]);if(keys.has(key))throw Error('Target pages must be unique');keys.add(key);

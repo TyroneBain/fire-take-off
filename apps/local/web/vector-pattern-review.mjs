@@ -7,6 +7,8 @@ import {VECTOR_CONTEXT_MATCH_POLICY} from './vector-review-policy.mjs';
 
 export const VECTOR_PATTERN_REVIEW_VERSION='vector-pattern-review-1';
 export const VECTOR_CONTEXT_PATTERN_VERSION='vector-pattern-review-2';
+export const VECTOR_SELECTED_PATTERN_VERSION='vector-pattern-review-3';
+const SELECTED_GEOMETRY_POLICY='selected-geometry-1';
 const patterns=new WeakMap(),digest=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v),finite=a=>Array.isArray(a)&&a.every(Number.isFinite);
 const base={version:VECTOR_PATTERN_REVIEW_VERSION,requiresSemanticReview:true,requiresSemanticVerification:true};
 const refused=error=>({...base,completed:false,reason:error instanceof Error?error.message:String(error),proposals:[]});
@@ -44,8 +46,8 @@ async function verify(handle,args,b){
 export async function prepareVectorPattern(args={}){
  try{
   const b=budget(args),{selection,layerPolicy='all-admitted',matchPolicy='strict',page,OPS,optionalContentConfig,documentSha256}=args;
-  if(!['strict',VECTOR_CONTEXT_MATCH_POLICY].includes(matchPolicy))throw Error('Unknown vector pattern policy');
-  const contextual=matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,policyBase=contextual?{...base,version:VECTOR_CONTEXT_PATTERN_VERSION}:base;
+  if(!['strict',VECTOR_CONTEXT_MATCH_POLICY,SELECTED_GEOMETRY_POLICY].includes(matchPolicy))throw Error('Unknown vector pattern policy');
+  const selectedGeometry=matchPolicy===SELECTED_GEOMETRY_POLICY,contextual=selectedGeometry||matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,policyBase=selectedGeometry?{...base,version:VECTOR_SELECTED_PATTERN_VERSION}:contextual?{...base,version:VECTOR_CONTEXT_PATTERN_VERSION}:base;
   if(!['all-admitted','same-layer-name'].includes(layerPolicy)||selection?.page!==page.pageNumber||!finite(selection.bounds)||selection.bounds.length!==4||selection.bounds[2]<=selection.bounds[0]||selection.bounds[3]<=selection.bounds[1]||!finite(selection.anchor)||selection.anchor.length!==2||!Array.isArray(selection.ids)||!selection.ids.length||selection.ids.length>128||selection.ids.some(id=>!Number.isSafeInteger(id)||id<0)||new Set(selection.ids).size!==selection.ids.length||!Array.isArray(selection.excluded??[])||(selection.excluded??[]).some(id=>!selection.ids.includes(id))||new Set(selection.excluded??[]).size!==(selection.excluded??[]).length||(selection.excluded??[]).length===selection.ids.length)throw Error('Invalid original source selection or explicit layer policy');
   const saved=structuredClone({...selection,excluded:selection.excluded??[]}),retained=saved.ids.filter(id=>!saved.excluded.includes(id));b.notify('source-audit',0,1);
   const list=await awaitNativeOperators(page,b.check);validateNativeOperators(list);b.chargeAudit(list.fnArray.length);
@@ -68,7 +70,7 @@ export function releaseVectorPattern(pattern){return patterns.delete(pattern);}
 export async function reviewVectorPatternPage(args={}){
  try{
   const pattern=patterns.get(args.pattern);if(!pattern)throw Error('An original verified source pattern is required');
-  const contextual=pattern.matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,policyBase=contextual?{...base,version:VECTOR_CONTEXT_PATTERN_VERSION}:base;
+  const selectedGeometry=pattern.matchPolicy===SELECTED_GEOMETRY_POLICY,contextual=selectedGeometry||pattern.matchPolicy===VECTOR_CONTEXT_MATCH_POLICY,policyBase=selectedGeometry?{...base,version:VECTOR_SELECTED_PATTERN_VERSION}:contextual?{...base,version:VECTOR_CONTEXT_PATTERN_VERSION}:base;
   const sourceCheck=()=>{if(patterns.get(args.pattern)!==pattern||pattern.config.getHash()!==pattern.hash)throw Error('Original source pattern or layer configuration changed');};
   const b=budget(args,sourceCheck),{page,OPS,optionalContentConfig,documentSha256}=args;b.notify('audit',0,0);
   const layerScope=pattern.layerPolicy==='same-layer-name'?uniqueLayer(optionalContentConfig,pattern.sourceLayer.name,b.visible,b.check):{mode:'all-admitted'};
@@ -83,9 +85,18 @@ export async function reviewVectorPatternPage(args={}){
   if(resolver){const keys=new Set(geometry.map(h=>JSON.stringify([...h.elementIds].sort((a,b)=>a-b))));for(const hit of findVectorMatches(target,pattern.template,{...searchOptions,resolveExcludedContext:resolver.resolve})){
    const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));if(!keys.has(key)&&!geometry.some(h=>Math.hypot(h.x-hit.x,h.y-hit.y)<=.05)){keys.add(key);geometry.push(hit);}
   }geometry.sort((a,b)=>a.y-b.y||a.x-b.x);}
+  if(selectedGeometry){
+   // Finish both established policies first. Retained-only candidates cannot
+   // replace an existing strict/local body's identity, pose or anchor.
+   const keys=new Set(geometry.map(h=>JSON.stringify([...h.elementIds].sort((a,b)=>a-b))));
+   for(const hit of findVectorMatches(target,pattern.template,{...searchOptions,selectedGeometryOnly:true})){
+    const key=JSON.stringify([...hit.elementIds].sort((a,b)=>a-b));if(!keys.has(key)&&!geometry.some(h=>Math.hypot(h.x-hit.x,h.y-hit.y)<=.05)){keys.add(key);geometry.push(hit);}
+   }
+   geometry.sort((a,b)=>a.y-b.y||a.x-b.x);
+  }
   b.check();if(geometry.length>512)throw Error('Page candidate verification budget exceeded');b.notify('search',1,1);
   const prepared=[];for(const hit of geometry){b.chargeAudit(audit.operatorCount);const handle=await preparePdfContourPaints({page,OPS,elementIds:hit.elementIds,contextIds:[],optionalContentConfig,cancelled:()=>{b.check();return false;}});b.chargeAudit(handle.additionalAuditWork??0);prepared.push(handle);b.notify('prepare',prepared.length,geometry.length);}
-  const proposals=[];for(let i=0;i<geometry.length;i++){const hit=geometry[i],visibility=await verify(prepared[i],args,b),geometryContext=resolver?.evidence(hit);proposals.push({...(geometryContext?{geometryContext}:{}),x:hit.x,y:hit.y,rotation:hit.rotation,elementIds:[...hit.elementIds],...(contextual?{contextIds:[]}:{}),wholeOperations:true,requiresSemanticVerification:true,visibility});b.notify('verify',i+1,geometry.length);}
+  const proposals=[];for(let i=0;i<geometry.length;i++){const hit=geometry[i],visibility=await verify(prepared[i],args,b),geometryContext=resolver?.evidence(hit);proposals.push({...(geometryContext?{geometryContext}:{}),x:hit.x,y:hit.y,rotation:hit.rotation,elementIds:[...hit.elementIds],...(contextual?{contextIds:[]}:{}),...(selectedGeometry?{requiresExplicitReview:hit.requiresExplicitReview===true}:{}),wholeOperations:true,requiresSemanticVerification:true,visibility});b.notify('verify',i+1,geometry.length);}
   const coverage={complete:false,requestedPaints:audit.requestedPaints,admittedPaints:audit.records.length,candidateInventoryPaints:target.elements.length,unknown,excluded,nonPathContent:audit.nonPathContent,scope:layerScope.mode==='all-admitted'?'all-admitted-paints':'explicit-unique-visible-ocg-name'};
   const result={...policyBase,completed:true,binding:{documentSha256,pageNumber:page.pageNumber,configurationHash:b.hash},sourceBinding:{...pattern.sourceBinding},source:structuredClone(pattern.source),layerScope,proposals,coverage,...(resolver?{contextDiagnostics:{...resolver.diagnostics}}:{}),allHandlesPreparedBeforeRendering:true,auditWork:b.auditWork,elapsedMs:performance.now()-b.started};b.notify('complete',proposals.length,proposals.length);b.check();return result;
  }catch(error){return refused(error);}

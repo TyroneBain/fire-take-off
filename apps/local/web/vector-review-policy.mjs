@@ -4,20 +4,23 @@ export const VECTOR_REVIEW_VERSION='vector-paint-review-1';
 export const VECTOR_PAGE_REVIEW_VERSION='vector-paint-review-2';
 export const VECTOR_CONTEXT_REVIEW_VERSION='vector-paint-review-3';
 export const VECTOR_CONTEXT_MATCH_POLICY='local-context-1';
-export const isVectorPageReviewAlgorithm=algorithm=>algorithm===VECTOR_PAGE_REVIEW_VERSION||algorithm===VECTOR_CONTEXT_REVIEW_VERSION;
+export const VECTOR_SELECTED_REVIEW_VERSION='vector-paint-review-4';
+export const VECTOR_SELECTED_MATCH_POLICY='selected-geometry-1';
+export const isVectorPageReviewAlgorithm=algorithm=>algorithm===VECTOR_PAGE_REVIEW_VERSION||algorithm===VECTOR_CONTEXT_REVIEW_VERSION||algorithm===VECTOR_SELECTED_REVIEW_VERSION;
 export const isVectorReviewAlgorithm=algorithm=>algorithm===VECTOR_REVIEW_VERSION||isVectorPageReviewAlgorithm(algorithm);
 const object=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const keys=(value,allowed)=>object(value)&&Object.keys(value).every(k=>allowed.includes(k));
 const counts=['requestedPaints','admittedPaints','unknownCount','excludedCount','proposalCount','verifiedCount','selectedCount'];
-function validProvenance(p,engine,limit,layered){
- return keys(p,['engine','visibility',...counts])&&p.engine===engine&&p.visibility==='contour-paint-visibility-4'&&counts.every(k=>Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=50000)&&p.admittedPaints<=p.requestedPaints&&p.unknownCount<=p.requestedPaints&&p.excludedCount<=p.admittedPaints&&p.proposalCount<=limit&&p.verifiedCount<=p.proposalCount&&p.selectedCount<=p.verifiedCount&&(layered||p.excludedCount===0);
+function validProvenance(p,engine,limit,layered,selectedGeometry=false){
+ return keys(p,['engine','visibility',...counts,...(selectedGeometry?['pendingCount']:[])])&&(!selectedGeometry||Number.isSafeInteger(p.pendingCount)&&p.pendingCount>=0&&p.pendingCount<=p.verifiedCount)&&p.engine===engine&&p.visibility==='contour-paint-visibility-4'&&counts.every(k=>Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=50000)&&p.admittedPaints<=p.requestedPaints&&p.unknownCount<=p.requestedPaints&&p.excludedCount<=p.admittedPaints&&p.proposalCount<=limit&&p.verifiedCount<=p.proposalCount&&p.selectedCount<=p.verifiedCount&&(layered||p.excludedCount===0);
 }
 const validContextIds=ids=>Array.isArray(ids)&&ids.length<=16&&ids.every((id,i)=>Number.isSafeInteger(id)&&id>=0&&id<=1000000&&(!i||id>ids[i-1]));
-function validDecisions(decisions,p,limit,budget,contextual=false){
- if(!Array.isArray(decisions)||decisions.length!==p.verifiedCount||decisions.length>limit)return false;
- budget.decisions+=decisions.length;if(budget.decisions>2048)return false;
+function validDecisions(decisions,p,limit,budget,contextual=false,selectedGeometry=false){
+ if(!Array.isArray(decisions)||decisions.length+(selectedGeometry?p.pendingCount:0)!==p.verifiedCount||decisions.length>limit)return false;
+ budget.decisions+=selectedGeometry?p.verifiedCount:decisions.length;if(budget.decisions>2048)return false;
  for(let i=0;i<decisions.length;i++){
-  const d=decisions[i];if(!keys(d,['x','y','rotation','elementIds','included',...(contextual?['contextIds']:[])])||!Number.isFinite(d.x)||!Number.isFinite(d.y)||Math.abs(d.x)>1e8||Math.abs(d.y)>1e8||![0,90,180,270].includes(d.rotation)||typeof d.included!=='boolean'||!Array.isArray(d.elementIds)||!d.elementIds.length||d.elementIds.length>128||d.elementIds.some((n,k)=>!Number.isSafeInteger(n)||n<0||n>1000000||k>0&&n<=d.elementIds[k-1]))return false;
+  const d=decisions[i];if(!keys(d,['x','y','rotation','elementIds','included',...(contextual?['contextIds']:[]),...(selectedGeometry?['reviewed']:[])])||!Number.isFinite(d.x)||!Number.isFinite(d.y)||Math.abs(d.x)>1e8||Math.abs(d.y)>1e8||![0,90,180,270].includes(d.rotation)||typeof d.included!=='boolean'||!Array.isArray(d.elementIds)||!d.elementIds.length||d.elementIds.length>128||d.elementIds.some((n,k)=>!Number.isSafeInteger(n)||n<0||n>1000000||k>0&&n<=d.elementIds[k-1]))return false;
+  if(selectedGeometry&&typeof d.reviewed!=='boolean')return false;
   if(contextual&&(!validContextIds(d.contextIds)||d.elementIds.length+d.contextIds.length>128||d.contextIds.some(id=>d.elementIds.includes(id))))return false;
   budget.elementIds+=d.elementIds.length+(contextual?d.contextIds.length:0);if(budget.elementIds>50000)return false;
   if(decisions.slice(0,i).some(other=>Math.abs(other.x-d.x)<.5&&Math.abs(other.y-d.y)<.5))return false;
@@ -35,18 +38,30 @@ export function validVectorReview(value,selectedCount){
   if(!keys(value,['version','scope','sourceLayerScope','anchor','decision','provenance','decisions'])||value.scope!=='source-page'||typeof value.sourceLayerScope!=='boolean'||!validProvenance(value.provenance,'vector-candidate-review-1',128,value.sourceLayerScope)||!validDecisions(value.decisions,value.provenance,128,budget))return false;
   return selectedCount===undefined||value.provenance.selectedCount===selectedCount;
  }
- const contextual=value.version===VECTOR_CONTEXT_REVIEW_VERSION;
- if(!isVectorPageReviewAlgorithm(value.version)||!keys(value,['version','scope','layerPolicy','anchor','decision','pages',...(contextual?['matchPolicy','sourceContextIds']:[])])||value.scope!=='explicit-pages'||!['all-admitted','same-layer-name'].includes(value.layerPolicy)||!Array.isArray(value.pages)||!value.pages.length||value.pages.length>20)return false;
- if(contextual){if(value.matchPolicy!==VECTOR_CONTEXT_MATCH_POLICY||!validContextIds(value.sourceContextIds))return false;budget.elementIds+=value.sourceContextIds.length;}
+ const selectedGeometry=value.version===VECTOR_SELECTED_REVIEW_VERSION,contextual=value.version===VECTOR_CONTEXT_REVIEW_VERSION||selectedGeometry;
+ if(!isVectorPageReviewAlgorithm(value.version)||!keys(value,['version','scope','layerPolicy','anchor','decision','pages',...(contextual?['matchPolicy','sourceContextIds']:[]),...(selectedGeometry?['retainedPages']:[])])||value.scope!=='explicit-pages'||!['all-admitted','same-layer-name'].includes(value.layerPolicy)||!Array.isArray(value.pages)||!value.pages.length||value.pages.length>20)return false;
+ if(contextual){if(value.matchPolicy!==(selectedGeometry?VECTOR_SELECTED_MATCH_POLICY:VECTOR_CONTEXT_MATCH_POLICY)||!validContextIds(value.sourceContextIds))return false;budget.elementIds+=value.sourceContextIds.length;}
  const seen=new Set();let selected=0,layerName;
  for(const p of value.pages){
-  if(!keys(p,['drawing_id','page','digest','layerScope','provenance','decisions'])||typeof p.drawing_id!=='string'||!p.drawing_id.length||p.drawing_id.length>256||!Number.isSafeInteger(p.page)||p.page<1||p.page>100000||typeof p.digest!=='string'||!/^[a-f0-9]{64}$/.test(p.digest)||!validLayerScope(p.layerScope,value.layerPolicy)||!validProvenance(p.provenance,contextual?'vector-pattern-review-2':'vector-pattern-review-1',512,value.layerPolicy==='same-layer-name')||!validDecisions(p.decisions,p.provenance,512,budget,contextual))return false;
+  if(!keys(p,['drawing_id','page','digest','layerScope','provenance','decisions'])||typeof p.drawing_id!=='string'||!p.drawing_id.length||p.drawing_id.length>256||!Number.isSafeInteger(p.page)||p.page<1||p.page>100000||typeof p.digest!=='string'||!/^[a-f0-9]{64}$/.test(p.digest)||!validLayerScope(p.layerScope,value.layerPolicy)||!validProvenance(p.provenance,selectedGeometry?'vector-pattern-review-3':contextual?'vector-pattern-review-2':'vector-pattern-review-1',512,value.layerPolicy==='same-layer-name',selectedGeometry)||!validDecisions(p.decisions,p.provenance,512,budget,contextual,selectedGeometry))return false;
   const key=JSON.stringify([p.drawing_id,p.page]);if(seen.has(key))return false;seen.add(key);
   // Original IDs are page-local. One complete paint set cannot represent two
   // distinct marks on the same page; reuse on another page is valid.
   if(new Set(p.decisions.map(d=>JSON.stringify(d.elementIds))).size!==p.decisions.length)return false;
   if(value.layerPolicy==='same-layer-name'){if(layerName!==undefined&&layerName!==p.layerScope.name)return false;layerName=p.layerScope.name;}
   selected+=p.provenance.selectedCount;
+ }
+ if(selectedGeometry&&value.retainedPages!==undefined){
+  if(!Array.isArray(value.retainedPages)||value.retainedPages.length>20)return false;
+  const retainedSeen=new Set();
+  for(const p of value.retainedPages){
+   if(!keys(p,['drawing_id','page','digest','decisions'])||typeof p.drawing_id!=='string'||!p.drawing_id.length||p.drawing_id.length>256||!Number.isSafeInteger(p.page)||p.page<1||p.page>100000||typeof p.digest!=='string'||!/^[a-f0-9]{64}$/.test(p.digest)||!Array.isArray(p.decisions))return false;
+   const key=JSON.stringify([p.drawing_id,p.page]);if(retainedSeen.has(key))return false;retainedSeen.add(key);
+   if(!validDecisions(p.decisions,{verifiedCount:p.decisions.length,pendingCount:0,selectedCount:p.decisions.filter(d=>d?.included).length},2048,budget,true,true))return false;
+   const current=value.pages.find(q=>q.drawing_id===p.drawing_id&&q.page===p.page);if(current&&current.digest!==p.digest)return false;
+   const combined=[...(current?.decisions??[]),...p.decisions];
+   if(new Set(combined.map(d=>JSON.stringify(d.elementIds))).size!==combined.length||combined.some((d,i)=>combined.slice(0,i).some(q=>Math.abs(q.x-d.x)<.5&&Math.abs(q.y-d.y)<.5)))return false;
+  }
  }
  return selectedCount===undefined||selected===selectedCount;
 }

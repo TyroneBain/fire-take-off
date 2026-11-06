@@ -1,6 +1,10 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+### 2026-11-06 retained-element review candidates
+
+Same frozen upright36 labels and43→1 source: production selected-geometry review yields35TP/0FP/1FN raw proposals,28TP/0FP/8FN after unchanged paint proof. Five baseline plus23 additional explicitly reviewed candidates; seven paint refusals. This is candidate recall (97.22%/77.78%), not automatic class accuracy. Four unchanged original wrong-detail negatives also pass broader geometry/paint and remain pending by default. Missing-quadrant control stays rejected. Full515/515 regression passed; actualChrome35-row preview→explicit oneInclude/oneReject→seven ledger rows/six quantities, nativeglyphs/recount/reopen/Excel preserved. Full receipts, hashes, timings and limits in CURRENT_STATE. No Countfire parity; concealed family and independent cross-project validation outstanding.
+
 ### 2026-11-06 bounded local filled-context increment
 
 Same frozen upright source, exclusions and36-label whole-layout denominator:5TP/0FP/31FN (13.89%recall), up from1/0/35. Four new true matches independently scored; all five original-paint proofs have0mismatches. Final report SHA256 `de7ddffb9c00706a64f6a53b8d28905d000e6bc236af1ec2436625650623d0e9`; QA assessment `32b1b4a4173930c013eff20990cf38a8d0f646e358408454be27bea7920f7671`. Exact original code/dependency hashes and source identities frozen. Node12.005s under concurrent regression,531,364KiB process high-water RSS; neither a fair speed comparison nor isolated matcher memory. All3 documents/13 canvases released.

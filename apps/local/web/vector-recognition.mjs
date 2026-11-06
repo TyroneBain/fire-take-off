@@ -222,9 +222,10 @@ function registerTranslation(parts,pivot,candidate,initial,scale,nearby,toleranc
  for(const [source,target]of pairs){check();const expected=transformElement(source,0,[0,0],offset);if(!equalElements(expected,target,tolerance,budget,collapse,circles))return null;placed.push(expected);}
  return {offset,used,placed};
 }
-export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false,resolveExcludedContext}={}){
+export function findVectorMatches(page,template,{rotations=true,scaleRange=null,tolerance=.05,maxComparisons=2000000,cancelled=()=>false,resolveExcludedContext,selectedGeometryOnly=false}={}){
  if(!page?.supported||!template?.supported)throw new Error('Vector matching requires supported source and target');
  if(resolveExcludedContext!==undefined&&typeof resolveExcludedContext!=='function')throw Error('Invalid explicit context resolver');
+ if(typeof selectedGeometryOnly!=='boolean'||selectedGeometryOnly&&resolveExcludedContext!==undefined)throw Error('Invalid selected-geometry review option');
  if(!Number.isFinite(tolerance)||tolerance<=0||tolerance>.25||!Number.isSafeInteger(maxComparisons)||maxComparisons<1)throw new Error('Invalid vector matching tolerance or budget');
  if(scaleRange!==null&&(!finite(scaleRange)||scaleRange.length!==2||scaleRange[0]<.5||scaleRange[0]>1||scaleRange[1]<1||scaleRange[1]>2))throw new Error('Invalid vector scale range');
  const budget={comparisons:0,max:maxComparisons},strictShapes=new Map(),collapseShapes=new Map(),spatial=new Map(),cell=16;
@@ -275,12 +276,14 @@ export function findVectorMatches(page,template,{rotations=true,scaleRange=null,
    const ignored=template.excludedElements.map(e=>transformElement(e,angle,template.anchor,offset,scale));
    let explained;const explainedContext=()=>explained??=(resolveExcludedContext?.({template,ignored,envelope,used,angle,offset,scale,tolerance,page})??new Set());
    const x0=Math.floor(envelope[0]/cell),x1=Math.floor(envelope[2]/cell),y0=Math.floor(envelope[1]/cell),y1=Math.floor(envelope[3]/cell);
-   for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget,collapse))&&!explainedContext().has(e.id)){valid=false;break;}}
+   // Explicit review mode asks only whether retained geometry exists. Extra
+   // interior detail stays unresolved even when original paint proof passes.
+   if(!selectedGeometryOnly)for(let y=y0;y<=y1&&valid;y++)for(let x=x0;x<=x1&&valid;x++)for(const e of spatial.get(x+','+y)||[]){if(++budget.comparisons>budget.max)throw new Error('Vector matching budget exceeded');if(used.has(e.id)||!inside(e.bounds,envelope,-tolerance))continue;if(!ignored.some(q=>equalElements(q,e,tolerance,budget,collapse))&&!explainedContext().has(e.id)){valid=false;break;}}
    if(valid){
     // Symmetric geometry can match several poses whose off-centre anchors differ.
     // One original paint set is one instance; retain its first accepted pose.
     const elementIds=[...used].sort((a,b)=>a-b),identityKey=elementIds.join(',');
-    if(!matchedIdentities.has(identityKey)&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){matchedIdentities.add(identityKey);hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),score:1,elementIds});if(hits.length>5000)throw new Error('Too many vector matches');}
+    if(!matchedIdentities.has(identityKey)&&!hits.some(h=>Math.hypot(h.x-offset[0],h.y-offset[1])<=tolerance)){matchedIdentities.add(identityKey);hits.push({x:offset[0],y:offset[1],rotation:angle,...(scaleRange?{scale}:{}),...(selectedGeometryOnly?{requiresExplicitReview:true}:{}),score:1,elementIds});if(hits.length>5000)throw new Error('Too many vector matches');}
    }
   }
  }

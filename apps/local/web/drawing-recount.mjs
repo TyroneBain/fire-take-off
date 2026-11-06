@@ -1,3 +1,4 @@
+import {restrictSelectedRecount} from './vector-selected-decisions.mjs';
 import {extractVectorPage,resolveVectorTextBounds} from './vector-recognition.mjs';
 import {isVectorAlgorithm} from './matcher.mjs';
 import {recognizeDrawing} from './recognize-drawing.mjs';
@@ -27,9 +28,10 @@ export async function runDrawingRecount({state,target,pdfjs,run,progress}){
  async function reviewVector(record,drawing,targetDrawing){
   if(isVectorPageReviewAlgorithm(record.example.algorithm)){
    const review=await runSavedVectorPageSetReview({pdfjs,sourceDrawing:drawing,example:record.example,targets:vectorReviewTargets({state,record}),layerPolicy:record.example.vectorReview.layerPolicy,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,pageIndex,pageTotal})=>progress?.(`Recounting vectors · page ${pageIndex}/${pageTotal} · ${phase}`)});check();
-   const payload=vectorReviewPayload({record,item:state.countItems.find(i=>i.id===record.item_id),drawing,marks:state.countMarks,elements:record.example.elements,review,selected:new Set(vectorReviewCandidates(review).flatMap((p,i)=>p.visibility.verified?[i]:[]))});
+   const payload=vectorReviewPayload({record,item:state.countItems.find(i=>i.id===record.item_id),drawing,marks:state.countMarks,elements:record.example.elements,review,decided:new Set(vectorReviewCandidates(review).flatMap((p,i)=>p.visibility.verified?[i]:[])),selected:new Set(vectorReviewCandidates(review).flatMap((p,i)=>p.visibility.verified?[i]:[]))});
    // The drawing-recount endpoint updates only this drawing. Other saved page
    // bundles remain unchanged, even though source verification is required.
+   restrictSelectedRecount(payload,record.example);
    payload.matches=payload.matches.filter(m=>m.drawing_id===targetDrawing.id);payload.vectorReview.pages=payload.vectorReview.pages.filter(p=>p.drawing_id===targetDrawing.id);return payload;
   }
   const review=await runSavedVectorReview({pdfjs,drawing,example:record.example,sourceLayerScope:record.example.vectorReview.sourceLayerScope,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total})=>progress?.(`Recounting original vectors · ${phase}${total?` ${completed}/${total}`:''}`)});check();

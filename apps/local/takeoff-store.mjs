@@ -1,4 +1,5 @@
-import {VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,validVectorReview,vectorReviewPages,vectorReviewAppliesToPage} from './web/vector-review-policy.mjs';
+import {retainSelectedEvidence} from './web/vector-selected-decisions.mjs';
+import {VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION,isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,validVectorReview,vectorReviewPages,vectorReviewAppliesToPage} from './web/vector-review-policy.mjs';
 import {VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION} from './web/vector-recognition.mjs';
 import {isVectorAlgorithm,includesRotations,includesScales,ROTATION_ELEMENTS_VERSION,ROTATION_MATCHER_VERSION,EXACT_MATCHER_VERSION} from './web/matcher.mjs';
 import {drawingRecounts} from './drawing-recounts.mjs';
@@ -62,15 +63,15 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
   function exampleJSON(disciplineId,example) {
     if(!example||!Array.isArray(example.bounds)||example.bounds.length!==4||!(example.bounds[2]>example.bounds[0])||!(example.bounds[3]>example.bounds[1]))fail('Invalid example rectangle');
     const d=geometry(example.drawing_id,example.page,'length',[[example.bounds[0],example.bounds[1]],[example.bounds[2],example.bounds[3]]]);
-    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION].includes(example.algorithm))fail('Invalid matching example');
+    if(d.discipline_id!==disciplineId||d.digest!==example.digest||!['binary-overlap-1','binary-elements-1','binary-elements-2',EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION,ROTATION_ELEMENTS_VERSION,VECTOR_MATCHER_VERSION,VECTOR_FIXED_VERSION,VECTOR_SCALE_VERSION,VECTOR_SCALE_FIXED_VERSION,APPEARANCE_MATCHER_VERSION,APPEARANCE_FIXED_VERSION,VECTOR_REVIEW_VERSION,VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example.algorithm))fail('Invalid matching example');
     if(isAppearanceAlgorithm(example.algorithm)&&example.elements!==undefined)fail('Colour and fine-detail matching does not support cleaned selections');
     if((example.algorithm.startsWith('binary-elements-')||example.elements!==undefined)&&!validElementSelection(example.elements))fail('Invalid source element selection');
     if(isVectorReviewAlgorithm(example.algorithm)){
       if(!validElementSelection(example.elements)||!validVectorReview(example.vectorReview)||example.vectorReview.version!==example.algorithm)fail('Invalid native vector review metadata');
-      if(example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&(example.vectorReview.sourceContextIds.some(id=>!example.elements.excluded.includes(id))||example.vectorReview.sourceContextIds.length+example.elements.ids.filter(id=>!example.elements.excluded.includes(id)).length>128))fail('Native context must come from explicit source exclusions');
+      if([VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example.algorithm)&&(example.vectorReview.sourceContextIds.some(id=>!example.elements.excluded.includes(id))||example.vectorReview.sourceContextIds.length+example.elements.ids.filter(id=>!example.elements.excluded.includes(id)).length>128))fail('Native context must come from explicit source exclusions');
       geometry(example.drawing_id,example.page,'point',[example.vectorReview.anchor]);
       if(!vectorReviewAppliesToPage(example,example.drawing_id,example.page))fail('Native page scope must include the original source page');
-      for(const bundle of vectorReviewPages(example)){
+      for(const bundle of [...vectorReviewPages(example),...(example.vectorReview.retainedPages??[])]){
         const target=drawing(bundle.drawing_id);if(target.discipline_id!==disciplineId||target.digest!==bundle.digest)fail('Native target drawing changed or belongs to another discipline',409);
         if(!Number.isInteger(bundle.page)||bundle.page<1||bundle.page>target.pages.length)fail('Invalid native target page');
         for(const decision of bundle.decisions)geometry(target.id,bundle.page,'point',[[decision.x,decision.y]]);
@@ -156,6 +157,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     },
     createCount(disciplineId,{name:value,color='#168a90',example=null,matches=[]}={}){
       requireEntity(disciplineId,'discipline');const label=name(value);
+      if(example?.vectorReview?.retainedPages!==undefined)fail('Retained evidence is server managed');
       if(!/^#[0-9a-f]{6}$/i.test(color))fail('Invalid item colour');
       if(!Array.isArray(matches)||matches.length>5000)fail('Too many match results');
       const encoded=example?exampleJSON(disciplineId,example):null;
@@ -168,6 +170,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     },
     addCountExample(itemId,{version,example,matches}={}) {
       const i=item(itemId);if(version!==i.version)fail('Heading changed. Reload before adding an example.',409);
+      if(example?.vectorReview?.retainedPages!==undefined)fail('Retained evidence is server managed');
       const encoded=exampleJSON(i.discipline_id,example);
       if(!Array.isArray(matches)||matches.length>5000)fail('Invalid match results');
       validateNativeResults(example,matches);
@@ -194,6 +197,8 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       const e=db.prepare('SELECT * FROM count_examples WHERE id=?').get(exampleId);if(!e)fail('Selection not found',404);
       if(e.version!==version)fail('Selection changed. Reload before editing.',409);
       const source=JSON.parse(e.example),i=item(e.item_id),native=vectorReview!==undefined,pageSet=native&&isVectorPageReviewAlgorithm(vectorReview?.version);
+      if(source.algorithm===VECTOR_SELECTED_REVIEW_VERSION&&vectorReview?.version!==VECTOR_SELECTED_REVIEW_VERSION)fail('Selected-geometry review cannot downgrade its saved policy');
+      if(vectorReview?.retainedPages!==undefined)fail('Retained evidence is server managed');
       if(isVectorReviewAlgorithm(source.algorithm)&&!native)fail('Native vector reviews require an explicit Apply decision');
       if(native){
         if(item_version!==i.version)fail('Heading changed. Reload before applying vector review.',409);
@@ -215,7 +220,8 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       if(useAppearance&&(elements!==undefined||useVector||scale))fail('Colour and fine-detail matching requires an uncleaned selection at its original size');
       if(scale&&!useVector)fail('Scaled symbols require vector geometry');
       const algorithm=native?vectorReview.version:useAppearance?(rotate?APPEARANCE_MATCHER_VERSION:APPEARANCE_FIXED_VERSION):useVector?(scale?(rotate?VECTOR_SCALE_VERSION:VECTOR_SCALE_FIXED_VERSION):(rotate?VECTOR_MATCHER_VERSION:VECTOR_FIXED_VERSION)):elements?(rotate?ROTATION_ELEMENTS_VERSION:'binary-elements-2'):(rotate?ROTATION_MATCHER_VERSION:EXACT_MATCHER_VERSION);
-      const definition={...source,algorithm,...(elements?{elements}:{}),...(native?{vectorReview}:{} )},encodedDefinition=exampleJSON(i.discipline_id,definition);
+      const operation={...source,algorithm,...(elements?{elements}:{}),...(native?{vectorReview}:{} )};
+      const definition=algorithm===VECTOR_SELECTED_REVIEW_VERSION?{...operation,vectorReview:retainSelectedEvidence(source,vectorReview)}:operation,encodedDefinition=exampleJSON(i.discipline_id,definition);
       if(db.prepare('SELECT id FROM count_examples WHERE item_id=? AND example=? AND id<>?').get(i.id,encodedDefinition,exampleId))fail('Another saved selection already uses these matching settings',409);
       if(!Array.isArray(scope)||!scope.length||scope.length>20||scope.some(d=>!d||typeof d.id!=='string'||typeof d.digest!=='string')||new Set(scope.map(d=>d.id)).size!==scope.length)fail('Invalid matching scope');
       if(native&&!pageSet&&(scope.length!==1||scope[0].id!==source.drawing_id))fail('Native vector review scope must be the original source page');
@@ -237,13 +243,13 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       for(const m of matches){validateMark(i.discipline_id,m,'automatic');if(!ids.has(m.drawing_id))fail('Result outside matching scope');}
       const near=(a,b)=>a.drawing_id===b.drawing_id&&a.page===b.page&&Math.abs(a.x-b.x)<.5&&Math.abs(a.y-b.y)<.5;
       const decisionMarks=native?nativeDecisionMarks(definition):matches;
-      const obsolete=previous.filter(m=>(!pageSet||scopedPages.has(JSON.stringify([m.drawing_id,m.page])))&&(!native||m.origin==='automatic')&&!m.reviewed&&m.included&&m.item_id===e.item_id&&!decisionMarks.some(n=>near(m,n)));
+      const obsolete=previous.filter(m=>algorithm!==VECTOR_SELECTED_REVIEW_VERSION&&(!pageSet||scopedPages.has(JSON.stringify([m.drawing_id,m.page])))&&(!native||m.origin==='automatic')&&!m.reviewed&&m.included&&m.item_id===e.item_id&&!decisionMarks.some(n=>near(m,n)));
       assertAppearanceCorrections(i.id,definition,decisionMarks,exampleId,new Set(obsolete.map(m=>m.id)));
       let added=0,skipped=0,rejected=0;db.exec('BEGIN');
       try{
         for(const m of obsolete)db.prepare('DELETE FROM count_marks WHERE id=?').run(m.id);
         const encoded=encodedDefinition;db.prepare('UPDATE count_examples SET example=?,version=version+1 WHERE id=?').run(encoded,exampleId);
-        for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,exampleId,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}insertMark(i.id,i.discipline_id,m,'automatic',exampleId);added++;}
+        for(const m of matches){const existing=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(i.id,i.id,exampleId,m.drawing_id,m.page,m.x,m.y);if(existing){skipped++;continue;}const created=insertMark(i.id,i.discipline_id,m,'automatic',exampleId);if(algorithm===VECTOR_SELECTED_REVIEW_VERSION&&vectorReview.pages.some(p=>p.drawing_id===m.drawing_id&&p.page===m.page&&p.decisions.some(d=>d.x===m.x&&d.y===m.y&&d.included&&d.reviewed)))updateMark(created.id,{included:true,reviewed:true,version:created.version});added++;}
         rejected=applyNativeRejections(i.id,i.discipline_id,definition,exampleId);
         db.prepare('UPDATE count_items SET example=CASE WHEN example=? THEN ? ELSE example END,version=version+1 WHERE id=?').run(e.example,encoded,i.id);
         db.prepare('INSERT INTO count_selection_events VALUES (?,?,?,?,?)').run(randomUUID(),exampleId,JSON.stringify({example:source,version:e.version,marks:previous}),JSON.stringify({example:JSON.parse(encoded),version:e.version+1,scope,added,...(native?{rejected}:{}),removed:obsolete.map(m=>m.id),retained_corrections:previous.filter(m=>m.reviewed||!m.included||m.item_id!==i.id).map(m=>m.id)}),new Date().toISOString());

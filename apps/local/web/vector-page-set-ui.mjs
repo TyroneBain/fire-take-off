@@ -1,4 +1,4 @@
-import {VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_CONTEXT_MATCH_POLICY,validVectorReview,isVectorPageReviewAlgorithm} from './vector-review-policy.mjs';
+import {VECTOR_PAGE_REVIEW_VERSION,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_CONTEXT_MATCH_POLICY,VECTOR_SELECTED_MATCH_POLICY,VECTOR_SELECTED_REVIEW_VERSION,validVectorReview,isVectorPageReviewAlgorithm} from './vector-review-policy.mjs';
 
 // Resolve scope from the current snapshot; never silently drop changed or
 // unavailable drawings from a saved search.
@@ -19,21 +19,21 @@ export function vectorReviewTargets({state,record,scope='saved'}){
 
 export const vectorReviewCandidates=review=>review.pages?review.pages.flatMap(p=>p.result.proposals.map(candidate=>({...candidate,drawingId:p.drawingId,digest:p.digest,page:p.page}))):review.result.proposals.map(p=>({...p,drawingId:review.drawingId,digest:review.documentSha256,page:review.page}));
 
-export function vectorPageSetPayload({record,item,drawing,marks,elements,review,selected}){
+export function vectorPageSetPayload({record,item,drawing,marks,elements,review,selected,decided=new Set()}){
  if(!review?.completed||!Array.isArray(review.pages)||!(selected instanceof Set)||review.source?.drawingId!==drawing.id||review.source.digest!==drawing.digest||review.source.page!==record.example.page)throw Error('Complete vector page review required');
- const contextual=review.matchPolicy===VECTOR_CONTEXT_MATCH_POLICY;if(review.matchPolicy!==undefined&&!contextual)throw Error('Unknown review context policy');
+ const selectedGeometry=review.matchPolicy===VECTOR_SELECTED_MATCH_POLICY,contextual=review.matchPolicy===VECTOR_CONTEXT_MATCH_POLICY||selectedGeometry;if(review.matchPolicy!==undefined&&!contextual)throw Error('Unknown review context policy');
  if(contextual&&(!Array.isArray(review.sourceContextIds)||review.sourceContextIds.some(id=>!elements.excluded.includes(id))))throw Error('Source context must be explicitly excluded');
- const candidates=vectorReviewCandidates(review);for(const i of selected)if(!Number.isInteger(i)||candidates[i]?.visibility?.verified!==true)throw Error('Unverified proposals cannot be included');
+ const candidates=vectorReviewCandidates(review);if(!(decided instanceof Set))throw Error('Explicit candidate decisions required');for(const i of decided)if(!Number.isInteger(i)||candidates[i]?.visibility?.verified!==true)throw Error('Unverified proposals cannot be decided');if(selectedGeometry&&candidates.some(p=>typeof p.requiresExplicitReview!=='boolean'))throw Error('Explicit review classification is missing');for(const i of selected)if(!Number.isInteger(i)||candidates[i]?.visibility?.verified!==true)throw Error('Unverified proposals cannot be included');if(selectedGeometry)for(const i of selected)if(candidates[i].requiresExplicitReview&&!decided.has(i))throw Error('Broader candidates need an explicit Include decision');
  let offset=0;const scope=[],pages=review.pages.map(p=>{
   const r=p.result;if(!r?.completed||r.source?.visibility?.verified!==true||r.binding?.documentSha256!==p.digest||r.binding?.pageNumber!==p.page||r.sourceBinding?.documentSha256!==drawing.digest||r.sourceBinding?.pageNumber!==record.example.page)throw Error('Review page identity changed');
   if(contextual&&r.proposals.some(v=>v.visibility.verified&&!Array.isArray(v.contextIds)))throw Error('Verified context decisions are missing');
-  const decisions=r.proposals.flatMap((v,i)=>v.visibility.verified?[{x:v.x,y:v.y,rotation:v.rotation,elementIds:[...v.elementIds].sort((a,b)=>a-b),included:selected.has(offset+i),...(contextual?{contextIds:[...v.contextIds].sort((a,b)=>a-b)}:{})}]:[]);offset+=r.proposals.length;
+  const verifiedCount=r.proposals.filter(v=>v.visibility.verified).length;const decisions=r.proposals.flatMap((v,i)=>v.visibility.verified&&(!selectedGeometry||!v.requiresExplicitReview||decided.has(offset+i))?[{x:v.x,y:v.y,rotation:v.rotation,elementIds:[...v.elementIds].sort((a,b)=>a-b),included:selected.has(offset+i),...(selectedGeometry?{reviewed:decided.has(offset+i)}:{}),...(contextual?{contextIds:[...v.contextIds].sort((a,b)=>a-b)}:{})}]:[]);offset+=r.proposals.length;
   let entry=scope.find(s=>s.id===p.drawingId);if(!entry){entry={id:p.drawingId,digest:p.digest,pages:[]};scope.push(entry);}if(entry.digest!==p.digest)throw Error('Review drawing digest changed');entry.pages.push(p.page);
-  return{drawing_id:p.drawingId,page:p.page,digest:p.digest,layerScope:structuredClone(r.layerScope),decisions,provenance:{engine:r.version,visibility:r.source.visibility.proof,requestedPaints:r.coverage.requestedPaints,admittedPaints:r.coverage.admittedPaints,unknownCount:r.coverage.unknown.length,excludedCount:r.coverage.excluded.length,proposalCount:r.proposals.length,verifiedCount:decisions.length,selectedCount:decisions.filter(d=>d.included).length}};
+  return{drawing_id:p.drawingId,page:p.page,digest:p.digest,layerScope:structuredClone(r.layerScope),decisions,provenance:{engine:r.version,visibility:r.source.visibility.proof,requestedPaints:r.coverage.requestedPaints,admittedPaints:r.coverage.admittedPaints,unknownCount:r.coverage.unknown.length,excludedCount:r.coverage.excluded.length,proposalCount:r.proposals.length,verifiedCount,...(selectedGeometry?{pendingCount:verifiedCount-decisions.length}:{}),selectedCount:decisions.filter(d=>d.included).length}};
  });
  if(!pages.some(p=>p.drawing_id===drawing.id&&p.page===record.example.page))throw Error('Review must include the source page');
  for(const s of scope)s.pages.sort((a,b)=>a-b);
- const vectorReview={version:contextual?VECTOR_CONTEXT_REVIEW_VERSION:VECTOR_PAGE_REVIEW_VERSION,...(contextual?{matchPolicy:review.matchPolicy,sourceContextIds:[...review.sourceContextIds]}:{}),scope:'explicit-pages',anchor:[...review.source.anchor],decision:'apply',layerPolicy:review.layerPolicy,pages};
+ const vectorReview={version:selectedGeometry?VECTOR_SELECTED_REVIEW_VERSION:contextual?VECTOR_CONTEXT_REVIEW_VERSION:VECTOR_PAGE_REVIEW_VERSION,...(contextual?{matchPolicy:review.matchPolicy,sourceContextIds:[...review.sourceContextIds]}:{}),scope:'explicit-pages',anchor:[...review.source.anchor],decision:'apply',layerPolicy:review.layerPolicy,pages};
  const matches=pages.flatMap(p=>p.decisions.filter(d=>d.included).map(d=>({drawing_id:p.drawing_id,page:p.page,digest:p.digest,x:d.x,y:d.y,score:1})));
  if(!validVectorReview(vectorReview,matches.length))throw Error('Invalid or incomplete vector page decisions');
  return{version:record.version,item_version:item.version,elements:structuredClone(elements),matches,scope,expected_marks:marks.filter(m=>m.example_id===record.id).map(m=>({id:m.id,version:m.version})),vectorReview};
