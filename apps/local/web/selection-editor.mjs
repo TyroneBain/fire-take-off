@@ -21,15 +21,34 @@ export function selectionPreviewPixels(model,excluded,image){
  if(image){if(image.width!==model.width||image.height!==model.height||image.data.length!==pixels.length)throw Error('Selection preview dimensions changed');for(let i=0;i<pixels.length;i+=4)if(image.data[i+3]&&(image.data[i]!==255||image.data[i+1]!==255||image.data[i+2]!==255))pixels.set(image.data.subarray(i,i+4),i);}
  return pixels;
 }
-export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,reviewVector}){
+export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,reviewVector,rasterFallback}){
  let model=null,record=null,task=null,epoch=0,excluded=new Set(),mode='erase',shift=false,drag=null,saving=false,preview=null,previewImage=null,nativeInspection=false,nativeRetry=false;
  const dialog=$('selection-dialog'),canvas=$('selection-canvas');
+ let draftControls=null,draftName=null,draftColor=null,fallbackButton=null;
+ function configureDraft(){
+  if(record?.draft&&!draftControls){
+   draftControls=document.createElement('div');draftControls.id='selection-draft-controls';
+   const nameLabel=document.createElement('label');nameLabel.textContent='Symbol name';draftName=document.createElement('input');draftName.id='selection-draft-name';draftName.maxLength=160;nameLabel.append(draftName);
+   const colorLabel=document.createElement('label');colorLabel.textContent='Colour';draftColor=document.createElement('input');draftColor.id='selection-draft-color';draftColor.type='color';colorLabel.append(draftColor);draftControls.append(nameLabel,colorLabel);dialog.insertBefore(draftControls,dialog.firstChild);
+   draftName.oninput=()=>{if(record?.draft&&!record.draft.targetItemId)record.draft.itemName=draftName.value;};draftColor.oninput=()=>{if(record?.draft&&!record.draft.targetItemId)record.draft.color=draftColor.value;};
+  }
+  if(draftControls)draftControls.hidden=!record?.draft;
+  if(record?.draft){draftName.value=record.draft.itemName;draftColor.value=record.draft.color;draftName.disabled=draftColor.disabled=!!record.draft.targetItemId;}
+  if(fallbackButton)fallbackButton.hidden=true;
+ }
+ function offerFallback(){
+  if(!record?.draft||typeof rasterFallback!=='function')return;
+  if(!fallbackButton){fallbackButton=document.createElement('button');fallbackButton.id='selection-raster-fallback';fallbackButton.type='button';dialog.append(fallbackButton);fallbackButton.onclick=async()=>{if(!record?.draft||saving)return;const draft=record;close();try{await rasterFallback(draft);}catch(error){const target=$('count-progress');if(target)target.textContent=error.message;}};}
+  fallbackButton.textContent=`Use image matching in this ${record.draft.scope==='discipline'?'discipline':'drawing'}`;fallbackButton.hidden=false;
+ }
  function close(){if(saving){cancelMatching();return;}epoch++;preview?.dispose();preview=null;previewImage=null;task?.destroy().catch(()=>{});task=null;model=null;record=null;dialog.close();}
  function paint(){
   if(!model)return;const {width,height,elements}=model;canvas.width=width;canvas.height=height;const fit=Math.min((canvas.parentElement.clientWidth-24)/width,280/height);canvas.style.width=width*fit+'px';canvas.style.height=height*fit+'px';const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(width,height);
   pixels.data.set(selectionPreviewPixels(model,excluded,previewImage));
   ctx.putImageData(pixels,0,0);$('selection-elements').textContent=String(elements.length-excluded.size);$('selection-erase').classList.toggle('selected',!shift&&mode==='erase');$('selection-restore').classList.toggle('selected',shift||mode==='restore');
-  const native=nativeInspection||isVectorReviewAlgorithm(record?.example.algorithm);$('selection-vector').disabled=saving||native;$('selection-scales').disabled=saving||native||!$('selection-vector').checked;$('selection-done').disabled=saving||!preview?.ready(excluded);$('selection-erase-all').disabled=saving;canvas.classList.toggle('restoring',shift||mode==='restore');
+  const native=nativeInspection||isVectorReviewAlgorithm(record?.example.algorithm);$('selection-vector').disabled=saving||native;$('selection-scales').disabled=saving||native||!$('selection-vector').checked;$('selection-done').disabled=saving||!preview?.ready(excluded)||!!record?.draft&&excluded.size===elements.length;$('selection-erase-all').disabled=saving;canvas.classList.toggle('restoring',shift||mode==='restore');
+  if(native)$('selection-vector').checked=true;if($('selection-legacy-options'))$('selection-legacy-options').hidden=native;
+  if(record?.draft)draftName.disabled=draftColor.disabled=saving||!!record.draft.targetItemId;
   $('selection-native-review').disabled=saving||!preview?.ready(excluded)||excluded.size===model.elements.length;$('selection-native-layer').disabled=saving;if($('selection-native-scope'))$('selection-native-scope').disabled=saving;$('selection-done').textContent=native?'Review matches':'Done';
  }
  const point=e=>{const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height];};
@@ -44,18 +63,19 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
  dialog.addEventListener('keyup',e=>{if(e.key==='Shift'){shift=false;paint();}});window.addEventListener('blur',()=>{shift=false;drag=null;if(dialog.open)paint();});
  async function nativePreview(){if(!model&&nativeRetry&&!saving)return open(record,{nativeReviewOnly:true});if(!reviewVector||!model||saving||!preview?.ready(excluded)||excluded.size===model.elements.length)return;saving=true;paint();$('selection-error').textContent='Finding vector matches…';
   try{await reviewVector(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},$('selection-native-layer').checked,$('selection-native-scope')?.value||'source');saving=false;close();}
-  catch(error){$('selection-error').textContent=error.message;}finally{saving=false;if(dialog.open)paint();}
+  catch(error){if(record?.draft&&/cancel/i.test(error.message)){saving=false;close();}else{$('selection-error').textContent=error.message;offerFallback();}}finally{saving=false;if(dialog.open)paint();}
  }
  $('selection-native-review').onclick=nativePreview;
- function paintScope(){const scope=$('selection-native-scope')?.value||'source',multi=scope!=='source';if(!nativeRetry)$('selection-native-review').textContent=multi?'Find across pages':'Find on this page';if($('selection-native-layer-label'))$('selection-native-layer-label').textContent=multi?'Use the same named PDF layer on each page':'Use this symbol’s PDF layer';}
+ function paintScope(){const scope=$('selection-native-scope')?.value||'source',multi=scope!=='source';if(record?.draft&&['source','drawing','discipline'].includes(scope))record.draft.scope=scope;if(!nativeRetry)$('selection-native-review').textContent=multi?'Find across pages':'Find on this page';if($('selection-native-layer-label'))$('selection-native-layer-label').textContent=multi?'Use the same named PDF layer on each page':'Use this symbol’s PDF layer';}
  if($('selection-native-scope'))$('selection-native-scope').onchange=paintScope;
  $('selection-done').onclick=async event=>{if((nativeInspection||isVectorReviewAlgorithm(record?.example.algorithm))&&excluded.size!==model?.elements.length)return nativePreview();if(!model||saving||!preview?.ready(excluded))return;saving=true;paint();const empty=excluded.size===model.elements.length;$('selection-error').textContent=empty?'Delete selection or cancel to keep editing.':'Recounting drawings…';
-  try{if(empty){const deleted=await remove(record,{skipConfirmation:!!event?.shiftKey});saving=false;if(deleted)close();return;}await apply(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},{vector:$('selection-vector').checked,scales:$('selection-vector').checked&&$('selection-scales').checked});saving=false;close();}
+  try{if(empty){if(record?.draft){saving=false;return;}const deleted=await remove(record,{skipConfirmation:!!event?.shiftKey});saving=false;if(deleted)close();return;}await apply(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},{vector:$('selection-vector').checked,scales:$('selection-vector').checked&&$('selection-scales').checked});saving=false;close();}
   catch(error){$('selection-error').textContent=error.message;}finally{saving=false;if(dialog.open)paint();}
  };
- async function open(next,{nativeReviewOnly=isVectorReviewAlgorithm(next.example.algorithm)}={}){
+ async function open(next,{nativeReviewOnly=!!next.draft||isVectorReviewAlgorithm(next.example.algorithm)}={}){
   if(saving)return;close();const generation=++epoch;record=next;nativeInspection=nativeReviewOnly;nativeRetry=false;$('selection-native-review').textContent='Find on this page';$('selection-vector').checked=isVectorAlgorithm(next.example.algorithm);$('selection-vector').disabled=true;$('selection-scales').checked=includesScales(next.example.algorithm);$('selection-scales').disabled=true;$('selection-native-layer').checked=isVectorPageReviewAlgorithm(next.example.algorithm)?next.example.vectorReview.layerPolicy==='same-layer-name':next.example.vectorReview?.sourceLayerScope??true;$('selection-native-review').disabled=true;excluded=new Set(next.example.elements?.excluded||[]);mode='erase';shift=false;drag=null;$('selection-error').textContent='Loading selection…';$('selection-elements').textContent='…';$('selection-done').disabled=true;$('selection-erase-all').disabled=true;canvas.width=canvas.height=1;dialog.showModal();
-  if($('selection-native-scope'))$('selection-native-scope').value=isVectorPageReviewAlgorithm(next.example.algorithm)?'saved':'source';paintScope();
+  configureDraft();if(nativeInspection)$('selection-vector').checked=true;if($('selection-legacy-options'))$('selection-legacy-options').hidden=nativeInspection;if(next.draft)$('selection-native-layer').checked=false;
+  if($('selection-native-scope'))$('selection-native-scope').value=next.draft?.scope??(isVectorPageReviewAlgorithm(next.example.algorithm)?'saved':'source');paintScope();
   $('selection-scope-hint').textContent=nativeInspection?'Erase unwanted visible lines. Retained symbols require original-PDF verification.':isVectorReviewAlgorithm(next.example.algorithm)?'Click or drag to erase. Hold Shift to restore. Choose the pages to search; corrections are kept.':'Click or drag to erase. Hold Shift to restore. Done recounts all drawings in this discipline; corrections are kept.';
   const state=context().state,marks=state.countMarks.filter(m=>m.example_id===next.id&&m.item_id===next.item_id&&m.drawing_id===context().drawing?.id&&m.included);$('selection-matches').textContent=String(marks.length);$('selection-factor').textContent=String(next.multiplier||1);$('selection-total').textContent=String(marks.reduce((sum,m)=>sum+(m.quantity??1),0));
   const appearance=isAppearanceAlgorithm(next.example.algorithm);$('selection-erase').disabled=appearance;$('selection-restore').disabled=appearance;
@@ -64,7 +84,7 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
   try{const pdf=await loading.promise,page=await pdf.getPage(next.example.page),result=await inspectPdfElements({page,OPS:pdfjs.OPS,bounds:next.example.bounds,createCanvas:(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;},nativeReviewOnly:nativeInspection,cancelled:()=>generation!==epoch});if(generation!==epoch)return;
    if(next.example.elements&&(next.example.elements.renderer!==ELEMENT_RENDERER||JSON.stringify(next.example.elements.ids)!==JSON.stringify(result.elements.map(e=>e.id))))throw new Error('Selection element identity changed; this source needs review');
    model=result;preview=createSelectionPreview({render:ids=>result.render(ids),onPending(){previewImage=null;$('selection-error').textContent='Updating preview…';paint();},onReady(image){previewImage=image;$('selection-error').textContent='';paint();},onError(error){previewImage=null;$('selection-error').textContent=error.message;paint();}});preview.update(excluded);paint();
-  }catch(error){if(generation===epoch){$('selection-error').textContent=error.message;nativeRetry=!nativeInspection&&typeof reviewVector==='function'&&/obscured|hidden or redundant|text, images|clipped or composited drawings/.test(error.message);$('selection-native-review').disabled=!nativeRetry;if(nativeRetry)$('selection-native-review').textContent='Inspect visible vector elements';}}
+  }catch(error){if(generation===epoch){$('selection-error').textContent=error.message;nativeRetry=!nativeInspection&&typeof reviewVector==='function'&&/obscured|hidden or redundant|text, images|clipped or composited drawings/.test(error.message);$('selection-native-review').disabled=!nativeRetry;if(nativeRetry)$('selection-native-review').textContent='Inspect visible vector elements';offerFallback();}}
  }
  return {open,close};
 }

@@ -120,6 +120,12 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
     }
     return rejected;
   }
+  function reviewedNativeCreation(source,m,created) {
+    if(source?.algorithm===VECTOR_SELECTED_REVIEW_VERSION&&source.vectorReview.pages.some(p=>p.drawing_id===m.drawing_id&&p.page===m.page&&p.decisions.some(d=>d.x===m.x&&d.y===m.y&&d.included&&d.reviewed)))updateMark(created.id,{included:true,reviewed:true,version:created.version});
+  }
+  function assertNativeCreation(source) {
+    if(source?.algorithm===VECTOR_SELECTED_REVIEW_VERSION&&!source.vectorReview.pages.some(p=>p.decisions.length))fail('Include or reject a candidate before saving a new vector selection');
+  }
   function insertMark(itemId,disciplineId,m,origin,exampleId=null) {
     const d=validateMark(disciplineId,m,origin);
     if(db.prepare('SELECT id FROM count_marks WHERE item_id=? AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5').get(itemId,d.id,m.page,m.x,m.y))fail('This location is already counted for this item',409);
@@ -161,10 +167,10 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       if(!/^#[0-9a-f]{6}$/i.test(color))fail('Invalid item colour');
       if(!Array.isArray(matches)||matches.length>5000)fail('Too many match results');
       const encoded=example?exampleJSON(disciplineId,example):null;
-      if(example)validateNativeResults(example,matches);
+      if(example){validateNativeResults(example,matches);assertNativeCreation(example);}
       if(!example&&matches.length)fail('Automatic results require a source example');
       const id=randomUUID();db.exec('BEGIN');
-      try{const created=new Date().toISOString(),exampleId=encoded?randomUUID():null;db.prepare('INSERT INTO count_items (id,discipline_id,name,color,example,created) VALUES (?,?,?,?,?,?)').run(id,disciplineId,label,color,encoded,created);if(encoded)db.prepare('INSERT INTO count_examples (id,item_id,example,created) VALUES (?,?,?,?)').run(exampleId,id,encoded,created);for(const m of matches)insertMark(id,disciplineId,m,'automatic',exampleId);if(example)applyNativeRejections(id,disciplineId,example,exampleId);db.exec('COMMIT');}
+      try{const created=new Date().toISOString(),exampleId=encoded?randomUUID():null;db.prepare('INSERT INTO count_items (id,discipline_id,name,color,example,created) VALUES (?,?,?,?,?,?)').run(id,disciplineId,label,color,encoded,created);if(encoded)db.prepare('INSERT INTO count_examples (id,item_id,example,created) VALUES (?,?,?,?)').run(exampleId,id,encoded,created);for(const m of matches){const created=insertMark(id,disciplineId,m,'automatic',exampleId);reviewedNativeCreation(example,m,created);}if(example)applyNativeRejections(id,disciplineId,example,exampleId);db.exec('COMMIT');}
       catch(error){db.exec('ROLLBACK');throw error;}
       return item(id);
     },
@@ -173,7 +179,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
       if(example?.vectorReview?.retainedPages!==undefined)fail('Retained evidence is server managed');
       const encoded=exampleJSON(i.discipline_id,example);
       if(!Array.isArray(matches)||matches.length>5000)fail('Invalid match results');
-      validateNativeResults(example,matches);
+      validateNativeResults(example,matches);assertNativeCreation(example);
       let saved=db.prepare('SELECT * FROM count_examples WHERE item_id=? AND example=?').get(itemId,encoded);
       if(!saved&&db.prepare('SELECT count(*) AS n FROM count_examples WHERE item_id=?').get(itemId).n>=50)fail('Limit of 50 examples per heading reached');
       for(const m of matches)validateMark(i.discipline_id,m,'automatic');
@@ -185,7 +191,7 @@ export function takeoffStore(db,{drawing,requireEntity,name,AppError}) {
         for(const m of matches){
           validateMark(i.discipline_id,m,'automatic');
           const exists=db.prepare('SELECT * FROM count_marks WHERE (item_id=? OR original_item_id=? OR example_id=?) AND drawing_id=? AND page=? AND abs(x-?)<0.5 AND abs(y-?)<0.5 ORDER BY (original_item_id=?) DESC,created,id LIMIT 1').get(itemId,itemId,saved.id,m.drawing_id,m.page,m.x,m.y,itemId);
-          if(exists){if(exists.origin==='automatic'&&!exists.example_id&&exists.original_item_id===itemId){db.prepare('UPDATE count_marks SET example_id=?,version=version+1 WHERE id=?').run(saved.id,exists.id);db.prepare('INSERT INTO count_events VALUES (?,?,?,?,?,?)').run(randomUUID(),exists.id,'link-example',JSON.stringify(exists),JSON.stringify(mark(exists.id)),new Date().toISOString());linked++;}skipped++;continue;}insertMark(itemId,i.discipline_id,m,'automatic',saved.id);added++;
+          if(exists){if(exists.origin==='automatic'&&!exists.example_id&&exists.original_item_id===itemId){db.prepare('UPDATE count_marks SET example_id=?,version=version+1 WHERE id=?').run(saved.id,exists.id);db.prepare('INSERT INTO count_events VALUES (?,?,?,?,?,?)').run(randomUUID(),exists.id,'link-example',JSON.stringify(exists),JSON.stringify(mark(exists.id)),new Date().toISOString());linked++;}skipped++;continue;}const created=insertMark(itemId,i.discipline_id,m,'automatic',saved.id);reviewedNativeCreation(example,m,created);added++;
         }
         const rejected=applyNativeRejections(itemId,i.discipline_id,example,saved.id);
         if(isNew||added||linked||rejected)db.prepare('UPDATE count_items SET example=coalesce(example,?),version=version+1 WHERE id=?').run(encoded,itemId);

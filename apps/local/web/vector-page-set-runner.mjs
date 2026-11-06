@@ -1,13 +1,13 @@
 // Atomic, read-only review of an explicit set of original PDF pages. Browser
 // bytes use the server's digest-attested source route; injected test bytes are
 // independently hashed. No viewer document, saved matches or layer mutations.
-import {VECTOR_CONTEXT_MATCH_POLICY,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_MATCH_POLICY,VECTOR_SELECTED_REVIEW_VERSION} from './vector-review-policy.mjs';
+import {VECTOR_CONTEXT_MATCH_POLICY,VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_MATCH_POLICY,VECTOR_SELECTED_REVIEW_VERSION,validVectorReview} from './vector-review-policy.mjs';
 import {renderMatchSelection} from './pdf-match-tiles.mjs';
 import {inkImage,exampleImage} from './matcher.mjs';
 import {validElementSelection} from './pdf-elements.mjs';
 import {prepareVectorPattern,reviewVectorPatternPage,releaseVectorPattern} from './vector-pattern-review.mjs';
 
-export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',matchPolicy=example?.algorithm===VECTOR_SELECTED_REVIEW_VERSION?VECTOR_SELECTED_MATCH_POLICY:example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?VECTOR_CONTEXT_MATCH_POLICY:'strict',allowPolicyUpgrade=false,createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
+export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,elements=example?.elements,targets,layerPolicy='all-admitted',matchPolicy=example?.algorithm===VECTOR_SELECTED_REVIEW_VERSION?VECTOR_SELECTED_MATCH_POLICY:example?.algorithm===VECTOR_CONTEXT_REVIEW_VERSION?VECTOR_CONTEXT_MATCH_POLICY:'strict',allowPolicyUpgrade=false,sourceAnchor,createCanvas,run={cancelled:false},progress=()=>{},sourceData,targetData,maxMilliseconds=300000}={}){
  const validDrawing=d=>typeof d?.id==='string'&&d.id.length>0&&typeof d.digest==='string'&&/^[a-f0-9]{64}$/.test(d.digest);
  if(typeof allowPolicyUpgrade!=='boolean'||!pdfjs||typeof pdfjs.getDocument!=='function'||!pdfjs.OPS||typeof pdfjs.version!=='string'||typeof createCanvas!=='function'||typeof progress!=='function'||!run||typeof run!=='object'||!['strict',VECTOR_CONTEXT_MATCH_POLICY,VECTOR_SELECTED_MATCH_POLICY].includes(matchPolicy)||!['all-admitted','same-layer-name'].includes(layerPolicy)||!Number.isSafeInteger(maxMilliseconds)||maxMilliseconds<1||maxMilliseconds>300000)throw Error('Invalid page-set review dependencies or limits');
  if(!validDrawing(sourceDrawing)||example?.drawing_id!==sourceDrawing.id||example.digest!==sourceDrawing.digest)throw Error('Saved selection source is missing or changed');
@@ -15,6 +15,22 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
  if(!Array.isArray(targets)||targets.length<1||targets.length>20)throw Error('Review requires 1 to 20 explicit target pages');
  const policyUpgrade=allowPolicyUpgrade&&example.algorithm===VECTOR_CONTEXT_REVIEW_VERSION&&matchPolicy===VECTOR_SELECTED_MATCH_POLICY;
  if([VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example.algorithm)&&!policyUpgrade&&(example.vectorReview?.matchPolicy!==matchPolicy||!Array.isArray(example.vectorReview.sourceContextIds)))throw Error('Saved context policy cannot change during recount');
+ const validAnchor=anchor=>Array.isArray(anchor)&&anchor.length===2&&anchor.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e8)&&anchor[0]>=example.bounds[0]&&anchor[0]<=example.bounds[2]&&anchor[1]>=example.bounds[1]&&anchor[1]<=example.bounds[3];
+ let nativeAnchor=null;
+ if(example.algorithm==='new-vector-selection'){
+  // This sentinel is an unsaved native draft, never an existing saved example.
+  // Require the UI's exact native bounds centre; no ink/renderer-derived trim.
+  const midpoint=[(example.bounds[0]+example.bounds[2])/2,(example.bounds[1]+example.bounds[3])/2];
+  if(example.id!==undefined||example.vectorReview!==undefined||matchPolicy!==VECTOR_SELECTED_MATCH_POLICY||!validAnchor(sourceAnchor)||sourceAnchor.some((n,i)=>n!==midpoint[i]))throw Error('New native draft requires its exact bounds-centre source anchor');
+  nativeAnchor=[...sourceAnchor];
+ }else if(sourceAnchor!==undefined)throw Error('Explicit source anchor is only valid for a new native draft');
+ if(example.algorithm===VECTOR_SELECTED_REVIEW_VERSION){
+  const review=example.vectorReview;
+  if(review?.version!==VECTOR_SELECTED_REVIEW_VERSION||!validVectorReview(review)||!validAnchor(review.anchor)||!review.pages.some(p=>p.drawing_id===sourceDrawing.id&&p.page===example.page&&p.digest===sourceDrawing.digest))throw Error('Saved native source anchor or review provenance is invalid');
+  // Old v4 examples keep their originally saved pixel-derived anchor exactly.
+  // New v4 examples retain their native centre. A caller cannot overwrite either.
+  nativeAnchor=[...review.anchor];
+ }
  const contextual=[VECTOR_CONTEXT_MATCH_POLICY,VECTOR_SELECTED_MATCH_POLICY].includes(matchPolicy),savedContext=[VECTOR_CONTEXT_REVIEW_VERSION,VECTOR_SELECTED_REVIEW_VERSION].includes(example?.algorithm)?structuredClone(example.vectorReview?.sourceContextIds):null;
  const source={drawingId:sourceDrawing.id,digest:sourceDrawing.digest,page:example.page},selection={page:example.page,bounds:[...example.bounds],ids:[...elements.ids],excluded:[...elements.excluded]},drawings=new Map([[source.drawingId,source.digest]]),keys=new Set(),pages=targets.map(t=>{
   if(!validDrawing(t?.drawing)||!Number.isSafeInteger(t.page)||t.page<1||t.page>200)throw Error('Invalid original target drawing or page');
@@ -53,13 +69,15 @@ export async function runSavedVectorPageSetReview({pdfjs,sourceDrawing,example,e
  run.cancel=cancel;
  try{
   check();for(const [id,bytes]of bytesByDrawing){const digest=await awaitBounded(globalThis.crypto.subtle.digest('SHA-256',bytes),'Original PDF digest');if(Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('')!==drawings.get(id))throw Error('Injected original digest does not match the saved drawing');}
-  const original=await open(source,'source-open',0);let anchor;
-  try{
+  let anchor=nativeAnchor?[...nativeAnchor]:null;
+  if(!anchor){const original=await open(source,'source-open',0);
+   try{
    const page=await awaitBounded(original.doc.getPage(source.page),'Original source page'),viewport=page.getViewport({scale:2,rotation:0}),update=stageProgress('source-anchor',source,0);let timer,poll,image;update({phase:'source-anchor',completed:0,total:1});
    try{image=await renderMatchSelection({page,viewport,bounds:selection.bounds,createCanvas:canvasFactory,cancelled:()=>{check();return false;},onRender:task=>{activeRender=task;const stop=()=>{try{check();}catch{task.cancel();}};poll=setInterval(stop,25);timer=setTimeout(stop,Math.max(1,Math.ceil(deadline-performance.now())));stop();}});}
    finally{clearTimeout(timer);clearInterval(poll);activeRender=null;}
    check();const a=image.viewport.convertToViewportPoint(selection.bounds[0],selection.bounds[3]),b=image.viewport.convertToViewportPoint(selection.bounds[2],selection.bounds[1]),base=exampleImage(inkImage(image.data,image.width,image.height),[...a,...b]);anchor=image.viewport.convertToPdfPoint(base.left+base.width/2,base.top+base.height/2);update({phase:'source-anchor',completed:1,total:1});
-  }finally{await destroy(original.task);activeTask=null;}
+   }finally{await destroy(original.task);activeTask=null;}
+  }
   check();const sourceProof=await open(source,'pattern-open',0);
   try{
    const page=await awaitBounded(sourceProof.doc.getPage(source.page),'Original source proof page'),optionalContentConfig=await awaitBounded(sourceProof.doc.getOptionalContentConfig({intent:'display'}),'Original source layer configuration');

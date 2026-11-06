@@ -1,6 +1,13 @@
 # Recognition benchmark register — template and protocol
 2026-10-30. No real-world benchmark is implied by this template.
 
+
+### 2026-11-06 native-first creation defect fixed
+
+New Count selections previously entered raster matching before native editing. They now open an unsaved vector-element draft directly, preserve original path identity/exclusions and use a geometry midpoint anchor; saved v4 anchors remain unchanged. Native faint-path admission no longer depends on binary ink. Independent browser acceptance proves zero pixel workers/template/anchor extraction calls through create/add/recount/reopen; 208 checks, 85 stable source hashes, seven ledger rows/six included quantities and independently reconciled Excel. Draft cancellation writes nothing, stale targets fail safely, reviewed creation is atomic and old corrections survive. Full532/532 regression passes. All nine preview and116 regular-app marks preserved byte-identically during backed-up restarts. Exact reports/hashes in CURRENT_STATE.
+
+This is a workflow fix, not an accuracy gain: same36-label family remains35/0/1 raw,28/0/8 paint-admitted, five baseline and23 broader review-required proposals. Four wrong-detail controls still require human rejection; concealed recognition remains blocked. No new latency/memory or parity claim. Next: seven paint refusals plus one retained-geometry miss, preserving negative controls.
+
 ### 2026-11-06 retained-element review candidates
 
 Same frozen upright36 labels and43→1 source: production selected-geometry review yields35TP/0FP/1FN raw proposals,28TP/0FP/8FN after unchanged paint proof. Five baseline plus23 additional explicitly reviewed candidates; seven paint refusals. This is candidate recall (97.22%/77.78%), not automatic class accuracy. Four unchanged original wrong-detail negatives also pass broader geometry/paint and remain pending by default. Missing-quadrant control stays rejected. Full515/515 regression passed; actualChrome35-row preview→explicit oneInclude/oneReject→seven ledger rows/six quantities, nativeglyphs/recount/reopen/Excel preserved. Full receipts, hashes, timings and limits in CURRENT_STATE. No Countfire parity; concealed family and independent cross-project validation outstanding.

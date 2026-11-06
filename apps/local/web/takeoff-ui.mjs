@@ -23,9 +23,22 @@ import {appearanceTemplate} from './appearance-template.mjs';
 import {runSavedVectorPageSetReview} from './vector-page-set-runner.mjs';
 import {vectorReviewTargets} from './vector-page-set-ui.mjs';
 import {setupVectorReview} from './vector-review-ui.mjs';
-import {isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,VECTOR_SELECTED_MATCH_POLICY} from './vector-review-policy.mjs';
+import {isVectorReviewAlgorithm,isVectorPageReviewAlgorithm,VECTOR_SELECTED_MATCH_POLICY,VECTOR_SELECTED_REVIEW_VERSION} from './vector-review-policy.mjs';
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
+// Unsaved native selections are private UI drafts. Their synthetic IDs never
+// enter the saved heading/example ledger or a legacy matching request.
+export function createNativeSelectionDraft({drawing,page,bounds,targetItem=null,itemName='Symbol 1',color='#168a90',scope='source'}){
+  if(!drawing?.id||!drawing.digest||!Number.isInteger(page)||page<1||!Array.isArray(bounds)||bounds.length!==4||!bounds.every(Number.isFinite)||bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||!['source','drawing','discipline'].includes(scope))throw Error('Invalid native selection draft');
+  if(targetItem&&targetItem.discipline_id!==drawing.discipline_id)throw Error('Heading belongs to another discipline');
+  const id='draft:'+crypto.randomUUID();
+  return {id,version:0,item_id:targetItem?.id||id+':heading',draft:{itemName:targetItem?.name||itemName,color:targetItem?.color||color,scope,targetItemId:targetItem?.id??null,targetItemVersion:targetItem?.version??null},example:{drawing_id:drawing.id,page,bounds:[...bounds],digest:drawing.digest,algorithm:'new-vector-selection'}};
+}
+export function nativeDraftApplyRequest(record,payload,disciplineId){
+  if(!record?.draft||record.example?.algorithm!=='new-vector-selection'||payload?.vectorReview?.version!==VECTOR_SELECTED_REVIEW_VERSION||!payload.vectorReview.pages.some(p=>p.decisions.length))throw Error('Review at least one candidate before saving this selection');
+  const example={...record.example,algorithm:payload.vectorReview.version,elements:payload.elements,vectorReview:payload.vectorReview},matches=payload.matches;
+  return record.draft.targetItemId?{path:`/api/items/${record.draft.targetItemId}/examples`,body:{version:record.draft.targetItemVersion,example,matches}}:{path:`/api/disciplines/${disciplineId}/counts`,body:{name:record.draft.itemName,color:record.draft.color,example,matches}};
+}
 export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBaseMode,onVisibilityChange=()=>{}}) {
   let mode=null,action=null,selectedItem=null,drag=null,job=null,reviewing=null,editingItem=null,selectionTarget=null,reclassification=null,reclassifying=false,highlightedExample=null;
   const json=(method,body)=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -41,10 +54,14 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   const movement=setupSelectionMovement({context,api,reload,notice,onMoved:id=>{selectedItem=id;highlightedExample=null;paint();}});
   const deletion=setupSelectionDeletion({context,api,reload,notice});
   const removeSelection=async(record,options)=>{const result=await deletion.request(record,options);if(result){highlightedExample=null;paint();}return result;};
-  const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements,options)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements,...options}),cancelMatching:()=>cancelJob(),reviewVector:beginVectorReview});
-  const nativeReview=setupVectorReview({context,onSource:openExample,onChange:()=>paintOverlay(),onEdit:(record,elements)=>{const current=context().state.countExamples.find(e=>e.id===record.id);if(current)selectionEditor.open({...current,example:{...current.example,elements}});},onApply:async(payload,record)=>{
+  const selectionEditor=setupSelectionEditor({pdfjs,context,remove:removeSelection,apply:(record,elements,options)=>runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements,...options}),cancelMatching:()=>cancelJob(),reviewVector:beginVectorReview,rasterFallback:async record=>{
+    const target=record.draft.targetItemId?items().find(i=>i.id===record.draft.targetItemId):null;if(record.draft.targetItemId&&target?.version!==record.draft.targetItemVersion)throw Error('Heading changed. Select the example again.');
+    $('count-name').value=record.draft.itemName;$('count-scope').value=record.draft.scope==='discipline'?'discipline':'drawing';$('count-vector').checked=false;$('count-scales').checked=false;$('count-appearance').checked=false;
+    await runMatching(record.example.bounds,target,null,$('count-rotations').checked);
+  }});
+  const nativeReview=setupVectorReview({context,onSource:openExample,onChange:()=>paintOverlay(),onEdit:(record,elements)=>{const current=record.draft?record:context().state.countExamples.find(e=>e.id===record.id);if(current)selectionEditor.open({...current,example:{...current.example,elements}},{nativeReviewOnly:true});},onApply:async(payload,record)=>{
     if(job)throw Error('Wait for the current count to finish');const run={committing:true};job=run;paint();
-    try{const result=await api(`/api/examples/${record.id}/selection`,json('PATCH',payload));await reload();selectedItem=record.item_id;action=null;$('count-progress').textContent='Selection applied. Review unchecked matches.';notice(`${result.added} new matches saved. Existing corrections kept. Review unchecked symbols before export.`);}
+    try{let result;if(record.draft){const source=context().state.drawings.find(d=>d.id===record.example.drawing_id&&d.digest===record.example.digest);if(!source)throw Error('Selection source changed');const request=nativeDraftApplyRequest(record,payload,source.discipline_id);result=await api(request.path,json('POST',request.body));selectedItem=record.draft.targetItemId||result.id;}else{result=await api(`/api/examples/${record.id}/selection`,json('PATCH',payload));selectedItem=record.item_id;}await reload();action=null;if(record.draft&&!record.draft.targetItemId)$('count-name').value='';$('count-progress').textContent='Selection applied. Review unchecked matches.';notice(`${result.added??payload.matches.length} matches saved. Existing corrections kept. Review unchecked symbols before export.`);}
     finally{if(job===run)job=null;paint();}
   }});
   const previews=setupExamplePreviews({pdfjs,context,node,button,openExample,updateMatching:(record,rotations)=>isVectorReviewAlgorithm(record.example.algorithm)?beginVectorReview(record,record.example.elements,record.example.vectorReview.sourceLayerScope):runMatching(record.example.bounds,items().find(i=>i.id===record.item_id),{record,elements:record.example.elements,rotations}),editExample:record=>selectionEditor.open(record),removeSelection,movement,api,reload,notice});
@@ -131,8 +148,10 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     countInk.prepare();
   }
   async function beginVectorReview(record,elements,sourceLayerScope,scope='saved'){
-    if(job)throw Error('Wait for the current count to finish');const c=context(),drawing=c.state.drawings.find(d=>d.id===record.example.drawing_id),item=c.state.countItems.find(i=>i.id===record.item_id);
+    if(job)throw Error('Wait for the current count to finish');const c=context(),drawing=c.state.drawings.find(d=>d.id===record.example.drawing_id),item=record.draft&&!record.draft.targetItemId?{id:record.item_id,version:0,name:record.draft.itemName,color:record.draft.color}:c.state.countItems.find(i=>i.id===record.item_id);
     if(!drawing||drawing.digest!==record.example.digest||!item)throw Error('Selection source is missing or changed');
+    if(record.draft&&(!record.draft.itemName.trim()||record.draft.itemName.length>160||!/^#[0-9a-f]{6}$/i.test(record.draft.color)))throw Error('Enter a symbol name and colour before finding matches');
+    if(record.draft?.targetItemId&&item.version!==record.draft.targetItemVersion)throw Error('Heading changed. Select the example again.');
     const targets=vectorReviewTargets({state:c.state,record,scope}),pageSet=isVectorPageReviewAlgorithm(record.example.algorithm)||targets.length>1||scope==='drawing'||scope==='discipline';
     if(!pageSet&&c.state.countMarks.some(m=>m.example_id===record.id&&(m.drawing_id!==drawing.id||m.page!==record.example.page)))throw Error('This selection counts other pages. Choose all pages in this drawing or discipline to keep reviewing that scope. Existing counts are unchanged.');
     if(c.drawing?.id!==drawing.id||c.pageNumber!==record.example.page)await c.openDrawing(drawing,record.example.page,'count');
@@ -141,7 +160,7 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
     try{const options={pdfjs,drawing,example:record.example,elements,sourceLayerScope:sourceLayerScope??record.example.vectorReview?.sourceLayerScope??true,run,createCanvas:(w,h)=>{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas;},progress:({phase,completed,total,pageIndex,pageTotal})=>{$('count-progress').textContent=`Finding vector matches${pageTotal?` · page ${pageIndex}/${pageTotal}`:''} · ${phase}${total?` ${completed}/${total}`:''}`;}};
       const layerPolicy=sourceLayerScope===undefined?(record.example.vectorReview?.layerPolicy||'all-admitted'):(sourceLayerScope?'same-layer-name':'all-admitted');
       // Find is an explicit preview/Apply upgrade; automatic recounts retain their saved policy.
-      const review=await runSavedVectorPageSetReview({...options,sourceDrawing:drawing,targets,layerPolicy,matchPolicy:VECTOR_SELECTED_MATCH_POLICY,allowPolicyUpgrade:true});
+      const bounds=record.example.bounds,review=await runSavedVectorPageSetReview({...options,sourceDrawing:drawing,targets,layerPolicy,matchPolicy:VECTOR_SELECTED_MATCH_POLICY,allowPolicyUpgrade:true,...(record.draft?{sourceAnchor:[(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2]}:{})});
       if(run.cancelled)throw Error('Matching cancelled; no results saved');nativeReview.show({...snapshot,review});$('count-progress').textContent='Review the drawing, then Apply selection.';
     }finally{if(job===run)job=null;$('cancel-match').hidden=true;paint();}
   }
@@ -211,7 +230,10 @@ export function setupTakeoff({context,api,reload,node,button,notice,pdfjs,setBas
   surface.addEventListener('pointerdown',e=>{if(mode!=='count'||action!=='select'||job||e.button!==0||e.target.closest('button'))return;const p=point(e);if(!p)return;e.preventDefault();drag=[p,p];try{surface.setPointerCapture(e.pointerId);}catch{}paintOverlay();});
   surface.addEventListener('pointercancel',()=>{drag=null;paintOverlay();});
   surface.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);if(p){drag[1]=p;paintOverlay();}});
-  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);runMatching(bounds,selectionTarget,null,!e.shiftKey&&$('count-rotations').checked).catch(e=>notice(e.message,true));});
+  surface.addEventListener('pointerup',e=>{if(!drag)return;const p=point(e)||drag[1],a=drag[0];drag=null;paintOverlay();const bounds=[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[0],p[0]),Math.max(a[1],p[1])];if(bounds[2]-bounds[0]<3||bounds[3]-bounds[1]<3)return notice('Drag around the complete symbol.',true);
+    if($('count-appearance').checked){runMatching(bounds,selectionTarget,null,!e.shiftKey&&$('count-rotations').checked).catch(e=>notice(e.message,true));return;}
+    try{const c=context(),record=createNativeSelectionDraft({drawing:c.drawing,page:c.pageNumber,bounds,targetItem:selectionTarget,itemName:$('count-name').value.trim()||nextSymbolName(items()),scope:$('count-scope').value==='discipline'?'discipline':'drawing'});nativeReview.clear();action=null;paint();selectionEditor.open(record,{nativeReviewOnly:true}).catch(e=>notice(e.message,true));}catch(error){notice(error.message,true);}
+  });
   surface.addEventListener('click',async e=>{
     if(e.target.closest('button'))return;const p=point(e);if(!p)return;const c=context();
     if(mode==='count'&&action==='manual'&&selectedItem){try{await api(`/api/items/${selectedItem}/marks`,json('POST',{drawing_id:c.drawing.id,page:c.pageNumber,x:p[0],y:p[1]}));await reload();paint();}catch(error){notice(error.message,true);}return;}

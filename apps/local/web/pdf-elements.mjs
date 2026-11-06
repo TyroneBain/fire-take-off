@@ -83,8 +83,11 @@ async function inspectLargePdfElements({page,OPS,bounds,createCanvas,cancelled,v
  const cropViewport=viewport.clone({offsetX:(viewport.offsetX||0)-box[0],offsetY:(viewport.offsetY||0)-box[1]});
  async function crop(filter){check();const canvas=createCanvas(width,height),ctx=canvas.getContext('2d',{willReadFrequently:true});try{await render(canvas,ctx,cropViewport,filter);return ctx.getImageData(0,0,width,height);}finally{canvas.width=canvas.height=0;}}
  candidates=await refineElementCandidates(candidates,id=>crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),check,nativeReviewOnly);
- const original=await crop(),baseline=inkImage(original.data,width,height),trimmed=exampleImage(baseline,[0,0,width,height]),anchor=[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height),isolatedPaints=new Map();
- const originalNativePaint=nativeReviewOnly?nativePaintMask(original):null;
+ const original=await crop(),originalNativePaint=nativeReviewOnly?nativePaintMask(original):null;
+ // Native editing selects original PDF operation IDs. Binary image trimming
+ // must not reject faint vector paths or determine their recognition anchor.
+ const baseline=nativeReviewOnly?{data:originalNativePaint,width,height}:inkImage(original.data,width,height);
+ const trimmed=nativeReviewOnly?null:exampleImage(baseline,[0,0,width,height]),anchor=nativeReviewOnly?[width/2,height/2]:[trimmed.left+trimmed.width/2,trimmed.top+trimmed.height/2],elements=[],covered=new Uint8Array(width*height),isolatedPaints=new Map();
  for(const id of candidates){check();const rgba=await crop((index,list)=>!paint.has(list.fnArray[index])||structural.has(identity.rawId(index,list))||identity.rawId(index,list)===id),ink=nativeReviewOnly?nativePaintMask(rgba):inkImage(rgba.data,width,height).data;if(!ink.some(Boolean))continue;
   if(!nativeReviewOnly){
    // Identical overlaid paints can darken only antialiased edges, making each
