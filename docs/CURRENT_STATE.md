@@ -1,6 +1,14 @@
 # Current verified state — durable handover
 
+## Blank Manage selection on existing FS102 example — fixed 2026-11-06
+
+Actual authenticated preview reproduction: opening the existing FS102 saved thumbnail entered the legacy inspector, refused obscured paths and displayed a blank canvas. Manual “Inspect visible vector elements” revealed32 paths. New selections already used native inspection; the existing raw-example entry point did not. Fixed only default inspection of the three known binary-overlap algorithms with no saved constituent edits: open native directly, with PDF-layer restriction off unless explicitly selected. Stored algorithm/counts remain unchanged until an explicit reviewed Apply. Existing cleaned-element and explicit appearance selections retain their prior handling.
+
+Independent original-PDF tests: baseline2/5, fixed5/5 (616.436534ms); combined26 targeted editor/draft/pointer/preview tests pass1,408.832385ms. No fresh full-suite or accuracy claim for this small entry-point change. Actual external browser after refresh: click saved FS102 thumbnail → visible symbol,32 original elements,305 nontransparent preview pixels, enabledFind, uncheckedlayer, noerror. Cancel preserved complete live state byte-for-byte (nine marks/three drawings). Updated only frozen-preview selection-editor; servedSHA256 `51cfbeb6dcdcc778270f23ce45eb92194082ed4d0c3b835b86ca9886cc0b43ff`. New independent test `tests/selection-existing-native.test.mjs`. No matcher/persistence/export changes; D1capacity blocker remains unresolved.
+
 ## User-reported selection failures — 2026-11-06
+
+Published privately as `f7532558afe1e2cc9da72a085052f81bd4e4bfd2`, tree `28a327a444c8cbc5baad11069fc5a0fc4a37caa5`, with expected-head protection: six intended files,359 unrelated blobs unchanged. Canonical commit mirrored locally; HEAD/index preserved. Receipt `.local/selection-eraser-delivery-receipt.json`. Hosted [run42143572277](https://github.com/TyroneBain/fire-take-off/actions/runs/42143572277), job127649520646, was still running at the last check; no hosted pass claimed yet. This receipt is a local documentation-only addition after publication.
 
 Owner reported that selecting/erasing did not work. Actual password-protected browser inspection reproduced the latest D1-F-109 upload refusing native selection before editing: **1,218,070 operators / 1,030,162 paths**, above the current1,000,000-operator limit. This drawing remains unsupported for native selection/counting. A bounded compact-identity/region-filter experiment exceeded the unchanged120s inspection limit (120.654s) and was reverted; no capacity increase or filtered indexing implementation shipped. Ignored diagnostic copies are `.local/selection-capacity-experiment-*.mjs`. Next required large-sheet work is bounded indexing of the original paths and selected layers, with usable interaction latency; merely increasing caps is insufficient.
 

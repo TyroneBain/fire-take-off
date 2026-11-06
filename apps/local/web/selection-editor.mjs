@@ -1,8 +1,11 @@
-import {isVectorAlgorithm,includesScales} from './matcher.mjs';
+import {isVectorAlgorithm,includesScales,MATCHER_VERSION,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION} from './matcher.mjs';
 import {isAppearanceAlgorithm} from './appearance-policy.mjs';
 import {isVectorPageReviewAlgorithm,isVectorReviewAlgorithm} from './vector-review-policy.mjs';
 import {inspectPdfElements,ELEMENT_RENDERER,elementAt} from './pdf-elements.mjs';
 const $=id=>document.getElementById(id);
+// A raster example without saved constituent edits can be inspected natively
+// without changing its stored matching policy. Only explicit Apply saves it.
+const uneditedRasterExample=record=>!record.example.elements&&[MATCHER_VERSION,EXACT_MATCHER_VERSION,ROTATION_MATCHER_VERSION].includes(record.example.algorithm);
 // One render at a time per PDF page. Edits replace the queued request; stale
 // renders never enable Done or repaint a closed/new selection.
 export function createSelectionPreview({render,onPending,onReady,onError,delay=40}){
@@ -90,9 +93,9 @@ export function setupSelectionEditor({pdfjs,context,apply,remove,cancelMatching,
   try{if(empty){if(record?.draft){saving=false;return;}const deleted=await remove(record,{skipConfirmation:!!event?.shiftKey});saving=false;if(deleted)close();return;}await apply(record,{renderer:ELEMENT_RENDERER,ids:model.elements.map(e=>e.id).sort((a,b)=>a-b),excluded:[...excluded].sort((a,b)=>a-b)},{vector:$('selection-vector').checked,scales:$('selection-vector').checked&&$('selection-scales').checked});saving=false;close();}
   catch(error){$('selection-error').textContent=error.message;}finally{saving=false;if(dialog.open)paint();}
  };
- async function open(next,{nativeReviewOnly=!!next.draft||isVectorReviewAlgorithm(next.example.algorithm)}={}){
+ async function open(next,{nativeReviewOnly=!!next.draft||isVectorReviewAlgorithm(next.example.algorithm)||uneditedRasterExample(next)}={}){
   if(saving)return;close();const generation=++epoch;record=next;nativeInspection=nativeReviewOnly;nativeRetry=false;$('selection-native-review').textContent='Find on this page';$('selection-vector').checked=isVectorAlgorithm(next.example.algorithm);$('selection-vector').disabled=true;$('selection-scales').checked=includesScales(next.example.algorithm);$('selection-scales').disabled=true;$('selection-native-layer').checked=isVectorPageReviewAlgorithm(next.example.algorithm)?next.example.vectorReview.layerPolicy==='same-layer-name':next.example.vectorReview?.sourceLayerScope??true;$('selection-native-review').disabled=true;excluded=new Set(next.example.elements?.excluded||[]);mode='erase';shift=false;drag=null;$('selection-error').textContent='Loading selection…';$('selection-elements').textContent='…';$('selection-done').disabled=true;$('selection-erase-all').disabled=true;canvas.width=canvas.height=1;dialog.showModal();
-  configureDraft();if(nativeInspection)$('selection-vector').checked=true;if($('selection-legacy-options'))$('selection-legacy-options').hidden=nativeInspection;if(next.draft)$('selection-native-layer').checked=false;
+  configureDraft();if(nativeInspection)$('selection-vector').checked=true;if($('selection-legacy-options'))$('selection-legacy-options').hidden=nativeInspection;if(next.draft||nativeInspection&&uneditedRasterExample(next))$('selection-native-layer').checked=false;
   if($('selection-native-scope'))$('selection-native-scope').value=next.draft?.scope??(isVectorPageReviewAlgorithm(next.example.algorithm)?'saved':'source');paintScope();
   $('selection-scope-hint').textContent=nativeInspection?'Erase unwanted visible lines. Retained symbols require original-PDF verification.':isVectorReviewAlgorithm(next.example.algorithm)?'Click or drag to erase. Hold Shift to restore. Choose the pages to search; corrections are kept.':'Click or drag to erase. Hold Shift to restore. Done recounts all drawings in this discipline; corrections are kept.';
   const state=context().state,marks=state.countMarks.filter(m=>m.example_id===next.id&&m.item_id===next.item_id&&m.drawing_id===context().drawing?.id&&m.included);$('selection-matches').textContent=String(marks.length);$('selection-factor').textContent=String(next.multiplier||1);$('selection-total').textContent=String(marks.reduce((sum,m)=>sum+(m.quantity??1),0));
