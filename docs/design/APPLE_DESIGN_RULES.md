@@ -3,7 +3,7 @@
 **Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
 
 
-**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, the owner approved independent implementation of benchmarked takeoff workflows. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
 
 
 User instruction, 2026-10-29: “please stick to the apple info - save it remember it - for design and ui ux”. Read this file before every Fire Take Off design or interface change. Apply the findings to interaction structure, not merely colours, fonts and rounded corners.
@@ -30,7 +30,7 @@ The right-hand column is our design policy derived from the study and user feedb
 
 ## Specific correction to retain
 
-Tyrone has **not approved the current layout**. He identified that Count/Measure/Zone/Note sit at the top left while their working information appears far to the right. Prior A Compact work improved canvas width and inspector stability but did not resolve this task separation. Do not present its recommendation as settled or ask for approval of the unchanged arrangement again.
+the owner has **not approved the current layout**. He identified that Count/Measure/Zone/Note sit at the top left while their working information appears far to the right. Prior A Compact work improved canvas width and inspector stability but did not resolve this task separation. Do not present its recommendation as settled or ask for approval of the unchanged arrangement again.
 
 Next prototype refinement must address this relationship directly: evaluate a coherent tool/work panel with the mode selector, primary action, options and relevant list close together. Keeping the inspector on the right does not justify leaving its task selectors across the screen. Do not blindly move every global command to the right; group by task and scope. Preserve the user's visual identity and drawing priority while evaluating the resulting task flow.
 

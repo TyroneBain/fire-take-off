@@ -27,7 +27,7 @@ Git 2.50.1 (Apple Git-155), Node 24.22.0, npm 11.19.1, Codex CLI 0.163.0. gh, Ho
 
 Shell npm/npx requests fail with ENOTFOUND for registry.npmjs.org. Permitted curl downloads work. Downloaded official rea-agents 6.7.0 and the upstream main package-lock (also 6.7.0); checked every direct dependency specification matches the published package. The upstream lockfile is a mutable source, not a release tag: a v6.7.0 lockfile URL returned 404. Verified the REA archive against the official registry SHA-512 and all 149 downloaded production dependency archives against lockfile integrity hashes. Installed offline with lifecycle scripts and optional/dev dependencies disabled; npm reported 146 installed packages and exit 0. Earlier pruned-lock install attempts failed and were corrected by restoring the complete upstream lockfile.
 
-Runtime is local and ignored: `.local/rea-runtime/`. This is diagnostic tooling, not a product dependency. It is not a globally installed package and will not arrive with a fresh clone. Frida and optional native providers were not installed. No Hopper/Ghidra/IDA application was installed.
+Runtime is local and ignored: `.local/rea-runtime/`. This is diagnostic tooling, not a product dependency. It is not a globally installed package and will not arrive with a fresh checkout. Frida and optional native providers were not installed. No Hopper/Ghidra/IDA application was installed.
 
 `node .local/rea-runtime/scripts/rea.mjs --version` returned `6.7.0`.
 
@@ -35,8 +35,8 @@ Runtime is local and ignored: `.local/rea-runtime/`. This is diagnostic tooling,
 
 Before setup, `codex mcp list` returned no configured servers. REA dry-run proposed only:
 
-1. Add REA to `/Users/tyronebain/.codex/config.toml`, backing it up to `config.toml.rea.backup`.
-2. Install bundled instructions/references under `/Users/tyronebain/.agents/skills/reverse-engineer-anything`.
+1. Add REA to `$HOME/.codex/config.toml`, backing it up to `config.toml.rea.backup`.
+2. Install bundled instructions/references under `$HOME/.agents/skills/reverse-engineer-anything`.
 
 Applied the explicit authorised Codex scope with `setup --client codex --yes --json`. Result: exit 1, status `needs_human`, client failure reason `backup`, no applied actions. The execution profile grants read access to protected Codex/agents directories and setup could not create the required backup. No unrelated configuration was intentionally edited. No broken configuration was replaced or bypassed.
 
@@ -54,7 +54,7 @@ Original application: `fixtures/rea-smoke/`. It imports a calculation module, ex
 
 ```bash
 node .local/rea-runtime/scripts/rea.mjs analyze-javascript-application \
-  /Users/tyronebain/Projects/fire-take-off/fixtures/rea-smoke --json
+  $HOME/Projects/fire-take-off/fixtures/rea-smoke --json
 ```
 
 Exit 1: `cleanup_incomplete`. REA reported `process table could not be inspected: spawn EPERM` while checking worker PID 39127. A separate permitted direct `ps` inspection found no such worker or REA JavaScript analysis process; this does not retroactively turn REA's cleanup result into success.
@@ -89,20 +89,20 @@ Verified here: Bash syntax and `--plan-only` execution pass, and the official pl
 Run these from an ordinary macOS Terminal with access to your own Codex configuration (outside this restricted session):
 
 ```bash
-cd /Users/tyronebain/Projects/fire-take-off
+cd $HOME/Projects/fire-take-off
 node .local/rea-runtime/scripts/rea.mjs setup --client codex --dry-run --json
 node .local/rea-runtime/scripts/rea.mjs setup --client codex --yes --json
 node .local/rea-runtime/scripts/rea.mjs doctor --client codex --skill --json
 node .local/rea-runtime/scripts/rea.mjs analyze-javascript-application \
-  /Users/tyronebain/Projects/fire-take-off/fixtures/rea-smoke --json
+  $HOME/Projects/fire-take-off/fixtures/rea-smoke --json
 ```
 
-The local runtime is present on this machine. On a fresh clone, use the official pinned package runner `npx -y rea-agents@6.7.0` in place of `node .local/rea-runtime/scripts/rea.mjs` after normal npm connectivity is restored. Do not install native providers for this test.
+The local runtime is present on this machine. On a fresh checkout, use the official pinned package runner `npx -y rea-agents@6.7.0` in place of `node .local/rea-runtime/scripts/rea.mjs` after normal npm connectivity is restored. Do not install native providers for this test.
 
 Review the dry-run before applying. If setup/analysis succeeds, exit the current Codex CLI with `/quit`, then start a fresh session:
 
 ```bash
-cd /Users/tyronebain/Projects/fire-take-off
+cd $HOME/Projects/fire-take-off
 codex
 ```
 

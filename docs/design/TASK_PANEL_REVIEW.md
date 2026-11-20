@@ -1,6 +1,6 @@
 # One coherent task panel
 
-2026-10-29. Response to Tyrone's tool-distance criticism and instruction to keep the application simple, using the saved Apple design rules and Countfire as the workflow benchmark. Prototype only; production remains gated.
+2026-10-29. Response to the owner's tool-distance criticism and instruction to keep the application simple, using the saved Apple design rules and Countfire as the workflow benchmark. Prototype only; production remains gated.
 
 Open [the prototype](http://127.0.0.1:4174/) or [the visual walkthrough](http://127.0.0.1:4174/review/index.html). Offline walkthrough: [review/index.html](../../prototypes/workspace-v1/review/index.html).
 

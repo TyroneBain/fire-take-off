@@ -6,18 +6,18 @@
 **Latest user correction — 2026-10-29:** “too complicated - copy count fire exactly”. The right-panel interpretation is rejected. Match the observed Countfire layout, control hierarchy and normal user-facing interactions closely, with independent code and Fire Take Off branding. Do not add extra default workflow panels or steps. Earlier distinctive-layout preferences and prototype gates are superseded where inconsistent. Production work and private delivery remain authorised; catalogue remains deferred. Apple grouping/accessibility principles still apply but do not justify diverging from the requested reference.
 
 
-**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, Tyrone said “ok lets move on - copy how count fire works”. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
+**Active instruction — 2026-10-29, supersedes earlier prototype-only gates:** After reviewing the coherent task-panel revision, the owner approved independent implementation of benchmarked takeoff workflows. Production workflow development is now authorised. Retain the Apple-informed task grouping and restrained visual identity; implement observed Countfire workflows with original code, without importing fictional prototype policies. Catalogue remains deferred. Earlier dated approval gates below are historical.
 
 
 **Latest prototype — 2026-10-29:** [One coherent task panel](design/TASK_PANEL_REVIEW.md) addresses the tool-distance criticism. Await review of this changed layout; older toolbar comparison is archived. Next product stage remains verified Countfire count-heading/selection/check/save/output workflows after explicit production authorisation.
 
-**Current correction — 2026-10-29:** The layout is not approved. Tyrone requires the [permanent Apple design rules](design/APPLE_DESIGN_RULES.md) to govern future UI/UX work and rejects the separation of top-left tool selectors from right-side working controls. Refine that task relationship in the prototype; production remains gated.
+**Current correction — 2026-10-29:** The layout is not approved. the owner requires the [permanent Apple design rules](design/APPLE_DESIGN_RULES.md) to govern future UI/UX work and rejects the separation of top-left tool selectors from right-side working controls. Refine that task relationship in the prototype; production remains gated.
 
-**Previous refinement — 2026-10-29 (returned for revision):** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await Tyrone's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.
+**Previous refinement — 2026-10-29 (returned for revision):** A Compact is implemented only in the isolated prototype and compared against A/B at1280/1440/1920. [Final layout recommendation](design/A_COMPACT_REVIEW.md): Compact on laptops, full A on large displays, inspector consistently right. Await the owner's approval. Workflow parity must follow verified Countfire sequences after the layout decision; simulated scan/accept/export policies are not approved product requirements. Production and catalogue work remain gated.
 
 ## Active gate — interactive prototype review, 2026-10-29
 
-Tyrone provisionally approves A on larger displays adapting toward B on laptops. An independent interactive prototype is implemented and tested under `prototypes/workspace-v1/`, using fictional data and original schematic drawings. [Review report](design/INTERACTIVE_PROTOTYPE_REVIEW.md) records exact screen-space measurements, A/B tradeoffs and limits. **Next task: obtain Tyrone's prototype feedback; do not implement production UI.** No production functionality, calculation or data change is authorised by this prototype. Do not resume F076 or catalogue work. Original phase numbering/history below remains intact; this checkpoint does not declare broader Phase 1 complete.
+the owner provisionally approves A on larger displays adapting toward B on laptops. An independent interactive prototype is implemented and tested under `prototypes/workspace-v1/`, using fictional data and original schematic drawings. [Review report](design/INTERACTIVE_PROTOTYPE_REVIEW.md) records exact screen-space measurements, A/B tradeoffs and limits. **Next task: obtain the owner's prototype feedback; do not implement production UI.** No production functionality, calculation or data change is authorised by this prototype. Do not resume F076 or catalogue work. Original phase numbering/history below remains intact; this checkpoint does not declare broader Phase 1 complete.
 
 Current direction and standing permission: [authorisation and design gate](AUTHORIZATION.md). Only isolated fictional-data prototyping is authorised; production UI implementation awaits further approval. Historical observations and test results retain their original dates.
 
@@ -38,7 +38,7 @@ ADR-0008 changes sequencing after successful Phase 0: the project/PDF core may p
 
 ## Catalogue deferral — user instruction, 2026-10-28
 
-Do not implement the catalogue section yet; Tyrone will customise it later. F061 remains NOT STARTED, and catalogue-dependent portions of F043/F044 are deferred. Continue independent takeoff/drawing and estimating work; do not build substitute catalogue screens or populate product libraries. This is a sequencing exception to the full clone objective, not a completed feature.
+Do not implement the catalogue section yet; the owner will customise it later. F061 remains NOT STARTED, and catalogue-dependent portions of F043/F044 are deferred. Continue independent takeoff/drawing and estimating work; do not build substitute catalogue screens or populate product libraries. This is a sequencing exception to the full feature parity objective, not a completed feature.
 
 ## Initial priority
 
@@ -78,7 +78,7 @@ Private CI workflow added on 2026-10-27 under ADR-0017. Hosted run 40461405478 p
 
 2026-10-28: ADR-0019 length/zone multipliers passed 61/61 local plus browser checks. Continue project workflow/layout fidelity from the now-accessible authenticated reference; then remaining selection/revision workflows. No phase exit or full parity claim.
 
-2026-10-28: ADR-0020 sequences project lifecycle/table fidelity next after the tested quantity-factor increment. This addresses the user's explicit visual-clone requirement and the confirmed account's project workflow. Full estimating/assignment/catalogue remain open; working takeoff features are preserved.
+2026-10-28: ADR-0020 sequences project lifecycle/table fidelity next after the tested quantity-factor increment. This addresses the user's explicit earlier interface-fidelity objective and the confirmed account's project workflow. Full estimating/assignment/catalogue remain open; working takeoff features are preserved.
 
 2026-10-28: ADR-0020 project table/lifecycle passed 67/67 local and browser checks. Next: publish/observe its CI, then drawing workspace fidelity and revision comparison. Phase 1 research, representative benchmarks and full product gates remain open.
 

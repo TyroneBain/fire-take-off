@@ -1,6 +1,6 @@
 # Interactive workspace prototype — review checkpoint
 
-2026-10-29. **Prototype only; production implementation is not approved.** This follows the [research proposal](PHASE_1_UI_UX_RESEARCH.md) and Tyrone's provisional approval of A on larger displays, adapting toward B on laptops. The previous source register remains the basis for the design principles; the judgments below are design recommendations and observed prototype behaviour, not new research or estimator test results.
+2026-10-29. **Prototype only; production implementation is not approved.** This follows the [research proposal](PHASE_1_UI_UX_RESEARCH.md) and the owner's provisional approval of A on larger displays, adapting toward B on laptops. The previous source register remains the basis for the design principles; the judgments below are design recommendations and observed prototype behaviour, not new research or estimator test results.
 
 ## Open and try it
 

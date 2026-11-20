@@ -1,6 +1,6 @@
 # A Compact — final layout recommendation for approval
 
-2026-10-29. Focused refinement of the existing interactive study, following Tyrone's feedback. Production code, calculations and saved data remain untouched. This is a proposed layout decision, not production approval or Countfire workflow parity.
+2026-10-29. Focused refinement of the existing interactive study, following the owner's feedback. Production code, calculations and saved data remain untouched. This is a proposed layout decision, not production approval or Countfire workflow parity.
 
 **Recommendation: A Compact at 1280 and 1440; full A at 1920. Keep the quantity inspector on the right throughout.** B remains available for comparison, but should not be the automatic laptop adaptation. The small extra canvas area it provides is outweighed, in my design judgment, by replacing quantities with drawing navigation and moving the inspector to the opposite side. No estimator preference results are claimed.
 
@@ -77,4 +77,4 @@ Before production approval of high-volume workflows: test an owned fixture with5
 
 Remaining objections: the launcher adds48px of permanent overhead; temporary navigation obscures geometry; the1600 breakpoint is provisional; the compact type needs prolonged-use feedback; a search field does not replace a properly implemented heading/group hierarchy. Full A should remain an intentional choice for sustained cross-sheet work. The study's simulated workflow must be replaced by verified reference behaviour before anyone calls the product a functional clone.
 
-**Approval requested:** approve A Compact→A as the layout family, stable right inspection, the quieter quantity hierarchy and separate drawing/project status language. Treat workflow parity as the next explicit validation/implementation stage, not as approved by this visual prototype. Production remains gated until Tyrone explicitly authorises that work.
+**Approval requested:** approve A Compact→A as the layout family, stable right inspection, the quieter quantity hierarchy and separate drawing/project status language. Treat workflow parity as the next explicit validation/implementation stage, not as approved by this visual prototype. Production remains gated until the owner explicitly authorises that work.

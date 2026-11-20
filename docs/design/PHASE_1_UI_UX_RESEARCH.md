@@ -6,7 +6,7 @@
 
 Recommend **Concept A: Drawing + inspector**: stable drawing navigation on the left, a labelled horizontal tool strip, a large white PDF workspace, and a right inspector that keeps scoped quantities and review status visible. A collapsible bottom ledger supports reconciliation. Use graphite surfaces, restrained amber primary actions, separate blue selection/focus treatments, and explicit review/inclusion labels.
 
-This is an expert design hypothesis, not a usability-tested winner. Concept B may outperform it on laptops. Do not begin implementation until Tyrone approves the layout, visual system and interaction direction. The user's latest instruction supersedes the earlier requirement to reproduce Countfire's interface: functional competition remains the goal; the interface should be distinctly ours. Catalogue work remains deferred.
+This is an expert design hypothesis, not a usability-tested winner. Concept B may outperform it on laptops. Do not begin implementation until the owner approves the layout, visual system and interaction direction. The user's latest instruction supersedes the earlier requirement to reproduce Countfire's interface: functional competition remains the goal; the interface should be distinctly ours. Catalogue work remains deferred.
 
 The most important change is **making quantity meaning and uncertainty visible**, not changing colours. A reviewed detection, an included mark, an allocated quantity and an export-ready schedule are different things. The design must preserve those distinctions.
 
@@ -359,7 +359,7 @@ Run a separate performance study on agreed small/medium/large vector and raster 
 
 ## 10. Staged implementation strategy — only after approval
 
-1. **Approve direction and resolve semantics.** Agree concept, role-based palette and scope/review vocabulary. Review the fictional screens with Tyrone. This approval does not certify feature parity or approve new calculation policies.
+1. **Approve direction and resolve semantics.** Agree concept, role-based palette and scope/review vocabulary. Review the fictional screens with the owner. This approval does not certify feature parity or approve new calculation policies.
 2. **Prototype the risky interactions.** Build a disposable interactive prototype after approval: laptop panel switching, overlap priority, review queue and reconciliation. Test A against B. Keep app code untouched until the interaction model is credible.
 3. **Freeze preservation contracts.** Capture owned-fixture state/workbooks and geometry outcomes; add meaningful journey tests for mode switching, focus, save failure and scope. Retain all current 125 tests. Record presentation-only versus behavioural changes separately.
 4. **Introduce tokens and shell incrementally.** Semantic theme variables, consistent controls/icons, header/tool/navigation layout behind a reversible workspace option. Keep current store/schema/calculation modules and APIs. No framework rewrite by default.
