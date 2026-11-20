@@ -1,72 +1,52 @@
 # Fire Take Off
 
-Development direction: [independent product and IP boundaries](docs/AUTHORIZATION.md). Historical observations and test results retain their original dates.
+**Fire Take Off** is an independently developed, local-first drawing takeoff application focused on fire-protection estimating. It is an active engineering project, not a production-ready service.
 
-An independently implemented fire-protection estimating and drawing takeoff application. Automatic symbol recognition and colour-coded counts are core competitive requirements. The first runnable increment provides local projects, takeoffs, disciplines, persistent PDF import, a PDF viewer, page-space notes and editable page metadata. Full feature parity is not implemented.
+The goal is to make counting symbols, measuring drawing geometry, reviewing quantities and preparing exports easier to verify.
+
+## Current capabilities
+
+- Create local projects, takeoffs and disciplines; import and view PDFs.
+- Count drawing symbols using bounded example matching, with colour-coded marks and manual review/correction.
+- Capture point, length and area measurements with page-scale calibration.
+- Define zones and allocate quantities, including overlap rules and quantity multipliers.
+- Compare or overlay drawings, arrange related floor-plan sheets and recount revised drawings.
+- Export reviewed quantities and calculation history to Excel.
+
+**Important limitations:** Automatic symbol recognition is still a partial implementation and currently requires matching size/orientation. It has not demonstrated reliable accuracy across a representative set of real construction drawings. Users must review detections and validate measurements before relying on exports. Cloud collaboration, full revision management, production authentication and a complete estimating workflow are not implemented.
 
 ## Run locally
 
-Requires Node 24.22.x and npm. From this directory:
+Requires **Node.js 24.22.x** and npm.
 
 ```bash
 npm ci --ignore-scripts
 npm start
 ```
 
-Open **http://127.0.0.1:4173**. The service binds only to loopback. Project metadata, immutable PDF originals and pending imports stay in ignored `.local/app/`. Keep that directory when upgrading; it contains your saved work. For a separate store, set `FIRE_TAKE_OFF_DATA` before starting. Use `PORT` to change the loopback port.
+Open **http://127.0.0.1:4173**. The application binds to loopback rather than a public network interface. Its local project data and imported originals live in the ignored `.local/app/` directory; preserve that directory if you want to retain your local work.
 
-Create a project → takeoff → discipline, then import a PDF. This increment supports files up to 25 MiB / 200 pages, rejects same-discipline duplicates, checks source hashes and parses files in bounded child processes. Those are current local limits, not Countfire limits. The viewer supports page navigation, zoom, fit width, rotation and scrolling. Open Notes → Add note, click the drawing, enter text and save. Click a marker or sidebar entry to edit or remove it; notes stay attached through zoom, rotation and reopen. The Page panel saves page names/titles separately from the immutable PDF; Reset discards unsaved field edits. Drawing removal retains the immutable source for a future retention policy.
-
-Bounded symbol matching, manual corrections, calibration/measurements, zones and Excel export have partial tested implementations. Full recognition, revision workflows, estimating and collaboration remain incomplete. There is no backup/restore UI or complete project lifecycle yet. Do not assume the local store satisfies cloud access or full parity.
-
-## Verify
+To run the automated test suite:
 
 ```bash
 npm test
 ```
 
-Tests cover hierarchy/persistence, source bytes, bad and duplicate input, concurrent imports, source tampering, drawing removal, local HTTP protections, PDF coordinate round trips, note CRUD/conflicts, page metadata and database migrations. Browser observations are recorded separately in [core evidence](docs/evidence/local-core-2026-10-22.json). Native file-picker import has not been automated because the browser tool denies local upload paths; the actual import API and resulting browser display were tested.
+The repository includes automated tests, owned synthetic drawing fixtures, evidence records and an isolated UI prototype. Passing synthetic tests does not establish real-world takeoff accuracy.
 
-Start each development session with [AGENTS](AGENTS.md) and [CURRENT_STATE](docs/CURRENT_STATE.md). See [FEATURE_PARITY](docs/FEATURE_PARITY.md), [ROADMAP](docs/ROADMAP.md), [DECISIONS](docs/DECISIONS.md), [TEST_STRATEGY](docs/TEST_STRATEGY.md) and [third-party notices](THIRD_PARTY.md).
+## Engineering notes
 
-Repository: https://github.com/TyroneBain/fire-take-off. Verification details are recorded in [setup and evidence](docs/REA_SETUP.md). The included fixtures are original, with no competitor source code or customer drawings.
+- [Current implementation and known limitations](docs/CURRENT_STATE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Feature status](docs/FEATURE_PARITY.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Test strategy](docs/TEST_STRATEGY.md)
+- [Agent and development instructions](AGENTS.md)
+- [Independent development and IP boundaries](docs/AUTHORIZATION.md)
+- [Third-party dependencies](THIRD_PARTY.md)
 
-Count and measure: open a drawing, choose Count, enter an item name and drag one complete symbol example. Choose a drawing or discipline search scope, then inspect matches and save review decisions. Add missing matches manually. Measure supports points, connected lengths and simple polygon areas; set each page scale using a known length. Return to the takeoff to Export Excel; included matches must be reviewed and length/area pages calibrated. Matching currently requires the same symbol size/orientation and is limited to 20 pages and 4 million pixels/page.
+Development focuses on original implementation, reproducible testing and transparent reporting of unsupported workflows. Do not add credentials, private customer drawings or personal data to the repository.
 
-Zone tools: create discipline zone headings, draw page outlines and finish, then edit outlines or reorder headings to change overlap allocation. Earlier headings win; outside outlined regions are excluded. Separate zone columns appear in Excel. Quantities update after saving each outline operation. Pages without outlines include the whole page.
+## Reuse
 
-Count headings now accept multiple examples via **Add to current (2)**. **Edit heading** changes name/colour. Review a mark to change its heading, or use **Reclassify (R)** for a current-page queue: Tab/Shift+Tab navigate, number keys choose a heading, Escape exits. Decisions save immediately and retain the original classification. Additional matching preserves previous corrections. The acceptance suite covers the partial implementation; full Countfire parity remains unfinished.
-
-Expand **Selections** under a count heading to inspect saved examples and jump to their source location. Filter headings by name and use marker controls to reduce overlay clutter; these controls leave quantities unchanged and do not remove underlying PDF symbols.
-
-Navigate drawings with **Space + drag**, middle-button drag, or dragging in Navigate mode. **Ctrl/⌘ + wheel** zooms at the pointer; toolbar zoom retains the stage centre. **Space + 1/2/3/4** selects Count/Measure/Zone/Notes. Ordinary scrolling still pans.
-
-In Measure, **Edit** a listed measurement or right-click its geometry. Drag points or the whole shape, double-click edges to add nodes or nodes to remove them, then **Save measurement** or **Cancel edit**. Saved edits recalculate calibrated quantities, zone allocations and exports.
-
-Private GitHub Actions runs locked dependency installation and the acceptance suite for pushes and pull requests using Node 24.22.0 on Ubuntu 24.04. See CURRENT_STATE for observed run results; browser acceptance remains separate.
-
-Each saved selection has a **Multiplier**. Quantities, zones and exports use that factor while keeping the original match instances and audit trail. Older headings with ambiguous example ownership ask for an **Add to current** matching rerun before factor changes. Manual matches remain one each. Hosted evidence is recorded per commit in CURRENT_STATE.
-
-Edit a length to set its **Length multiplier**, then Save measurement. Under Zone, set a heading multiplier and Save multiplier; it applies to every outline under that heading across drawings. Allocated export quantities include the factor. Excel shows zone factors, red affected quantities and separate Quantity detail/Factor history sheets.
-
-The project workspace now uses **Active**, **Own** and **Archived** table views. Create/edit customer, building type, local owner label and due date; change status from the row control and archive/restore through its menu. Own means the Local user label in this single-user app. The project-lifecycle checkpoint passed 67 tests; see CURRENT_STATE for current suite results.
-
-Drawing review now opens in a full-width workspace with the Count/Measure/Zone/Note/Page tools on the left. **Fit drawing** fits the entire page; **Fit width** keeps the width-first option. The Fire Take Off button returns to projects, and **Drawings** returns to the takeoff.
-
-Layout → Compare now lets you choose an uploaded drawing/page, see original-only red/new-only blue/shared dark content and align with dragging or arrow keys. Save/Cancel/Reset/Remove affect this temporary view only; leaving the page clears it. Counts and source PDFs are unchanged. This bounded raster view does not automatically recount revisions.
-
-Layout → Overlay supports several temporary drawings with alignment, opacity and visibility controls. Overlays remain visible in Count/Measure/Zone/Note and clear when leaving the page. Their blue linework is a visual guide; it does not import quantities or change the source PDF.
-
-Layout → Floor plan now joins pages from one discipline into a saved arrangement. Add drawings, align with drag/arrows and Save/Cancel, hide or fit the group, and Open another member while retaining positions. Only the current sheet accepts counts and measurements; neighbouring sheets show source PDFs and saved annotations, which open their owning sheet for editing. Schema 10 stores versioned membership/positions and audit. Group merging, member scaling and cross-sheet measurement creation are not yet supported.
-
-Coverage review: select a count heading or a point measurement, set Coverage radius in metres, and press Enter or leave the field. Set the page scale first to display circles; zero removes them and Escape cancels an unsaved value. Saved radii apply to calibrated pages and floorplan neighbours without changing quantities. Annotated PDF output is not yet implemented.
-
-To clean a saved count selection, expand **Selections** and choose **Edit**. Click or drag to erase vector paths, use **Restore** or hold Shift to bring them back, and choose **Done** to recount the discipline. **Cancel** leaves saved data intact. Reviewed corrections and multipliers are retained; obsolete unchecked detections are removed. Text/image selections and clipped/composited drawings are not yet editable. Erase all then Done deletes the selection after confirmation, as does the × control on its row. Shift-click skips confirmation. Deletion removes all linked instances, including reviewed/reclassified results; manual and other-selection counts remain.
-
-The cleaned matcher ignores erased detail while checking retained linework and surrounding blank space. It currently requires the same size and orientation; review every result. Independent negative controls and the original six-symbol PDF pass, but realistic trade-drawing recognition and complete real-world workflow validation remain unfinished. Latest local suite: **125/125 passing** (2026-10-29).
-
-Drag a saved selection preview onto another heading to move the definition across drawings, or use **Move** to choose a heading with the keyboard. Factors, review decisions and individually reclassified matches are kept. Conflicting destination instances must be resolved first. Empty moved-from headings disappear from the sidebar while their names remain in the audit; Move can restore the original heading. Excel includes Selection moves history.
-
-Use **Create group (G)** to organise count headings. Drag a heading into a group or choose **Group** beside it; **Misc** holds ungrouped headings. Rename groups, collapse them, filter by group/item name or hide their markers without changing quantities. Move members out before deleting an empty group. Excel includes grouping and group history. Nested groups, manual reorder and automatic group suggestions are not yet implemented.
-
-For revised drawings, import the new PDF into the same discipline, open it and choose **Recount drawing**. Existing selections are reused across its pages; reviewed exclusions, reclassification, manual counts and multipliers remain. Other drawings stay unchanged. Review new matches before exporting. Cancellation saves nothing; conflicts require reload. Excel includes Drawing recounts history. This requires an explicit action, matching size/orientation, available original sources and at most50 selections/20 pages; automatic upload matching, source replacement and copying between disciplines remain unfinished.
+The source is publicly viewable, but no general open-source licence is provided by this repository. Obtain permission before redistributing or commercially reusing it. Third-party dependencies have their own licences, listed in [THIRD_PARTY.md](THIRD_PARTY.md).
