@@ -503,7 +503,7 @@
   ],
   "manualAutomation": {
     "dividerDrag": "Real Chrome drag to stable canvas target: width 320 \u2192 420; canvas955 \u2192 855. ArrowLeft resized420 \u2192 412; Restore returned320.",
-    "directFile": "file:///Users/tyronebain/Projects/fire-take-off/prototypes/workspace-v1/index.html loaded; diagnostics available; no errors/warnings.",
+    "directFile": "Local workspace prototype opened; diagnostics available; no errors/warnings.",
     "screenshots": "Three exact viewport Auto screenshots visually inspected; fictional data only."
   },
   "preservation": {
@@ -529,7 +529,7 @@
     "No real estimator usability results, screen-reader certification, large-file or thousands-of-symbol performance results"
   ],
   "delivery": {
-    "privateRepository": "TyroneBain/fire-take-off",
+    "repository": "TyroneBain/fire-take-off",
     "expectedParent": "d97f6b5a8bbca19d5435e0daafb5dcd5dd2aa968",
     "state": "Published; fresh remote ref readback confirmed",
     "commit": "bc58881f246af56e16286fcc726be1df33bcea45",

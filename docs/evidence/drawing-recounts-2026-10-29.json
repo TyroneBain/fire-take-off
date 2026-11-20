@@ -95,7 +95,7 @@
     "at most50 selections/20 pages/5000 results/4M pixels per page",
     "legacy cleaned algorithm requires explicit re-edit",
     "no migration of manual corrections between drawings",
-    "full visual/functional clone incomplete; catalogue deferred"
+    "full competitive feature parity incomplete; catalogue deferred"
   ],
   "delivery": {
     "parent": "a1eea4bc7e364b96454e24b1097b1cfc6f3c75e4",

@@ -13,9 +13,9 @@
   "registrations": [
     {
       "client": "codex",
-      "config_path": "/Users/tyronebain/.codex/config.toml",
+      "config_path": "$HOME/.codex/config.toml",
       "command": [
-        "/Users/tyronebain/Projects/fire-take-off/.local/rea-runtime/scripts/rea.mjs",
+        "$HOME/Projects/fire-take-off/.local/rea-runtime/scripts/rea.mjs",
         "mcp"
       ],
       "state": "aligned",

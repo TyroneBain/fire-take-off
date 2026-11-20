@@ -50,7 +50,7 @@
     "registrations": [
       {
         "client": "codex",
-        "config_path": "/Users/tyronebain/.codex/config.toml",
+        "config_path": "$HOME/.codex/config.toml",
         "command": [],
         "state": "missing",
         "remediation": "Run rea setup to refresh this registration, then restart the client."
