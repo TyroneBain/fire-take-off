@@ -1,6 +1,6 @@
 # Public reference rules — 2026-10-22
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Development policy: [independent implementation and IP boundaries](AUTHORIZATION.md). Historical observations and test results retain their original dates.
 
 Read through normal Chrome pages in the public help centre. These are documented reference requirements, not live behavior tests or Fire Take Off acceptance results. Article dates below are those displayed by the source. Third-party images, animations and output templates were not copied. Beta behavior may differ.
 

@@ -1,6 +1,6 @@
 # Architecture — local core adopted; later candidates remain under evaluation
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Development policy: [independent implementation and IP boundaries](AUTHORIZATION.md). Historical observations and test results retain their original dates.
 
 ADR-0008 adopts a reversible first increment: Node 24.22, built-in SQLite, immutable source files, browser-native ES modules and PDF.js 6.4.299. The app is local and single-user. React/TypeScript, packaging, computer vision and workbook candidates below remain unadopted. The earlier recommendation table is retained as alternatives for later evidence-led decisions.
 

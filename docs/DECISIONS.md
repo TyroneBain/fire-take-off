@@ -59,9 +59,9 @@ Persist discipline-level ordered zone headings and per-page simple polygon outli
 
 Adopt polygon-clipping 0.15.7 (MIT) for server-side polygon union/intersection/difference, including concavity and holes in derived regions; original segment splitting handles lengths. Use analytic independent tests and conservation checks. Return derived allocation rows in the application state and write those exact rows into zone-aware XLSX, keeping raw instances as audit evidence. Preserve no-zone export compatibility. This addresses documented zone scope and priority; it does not establish reference boundary/tie parity, itemisation, zone multipliers or copy workflows.
 
-## ADR-0012 — Standing permission for a private functional and visual clone (accepted 2026-10-23)
+## ADR-0012 — Retired product-direction decision (superseded 2026-10-29)
 
-Record Tyrone's explicit standing permission in AUTHORIZATION.md and align all current project guidance with it. The objective includes Countfire's interface and interactions as well as functional workflows; a generic substitute or mockup is insufficient. Proceed with routine authorised research, implementation, tests and private-repository delivery without requesting the same permission again. Independent implementation and licensed dependencies remain the method. This records user authorisation, not an unprovided third-party source licence, a tool-policy override or evidence of completed parity. Earlier permission descriptions are superseded; historical evidence remains factual and unchanged.
+This earlier product direction is retired. Current authorisation and intellectual-property safeguards are defined in `docs/AUTHORIZATION.md` and ADR-0036.
 
 ## ADR-0013 — Additional examples and auditable match reclassification (accepted 2026-10-23)
 
@@ -129,7 +129,7 @@ The normal reference Overlay chooser exposes Project → Takeoff → Discipline 
 
 ## ADR-0025 — Defer the catalogue for later customisation (accepted 2026-10-28)
 
-Tyrone explicitly instructed: “dont do the catalogue section yet - we will cusomise this later”. Do not build catalogue UI, populate product libraries or implement catalogue-dependent imports/kit management now. Preserve the feature inventory with NOT STARTED status and a user-directed deferral; do not label this a technical blocker or completed parity. Continue independent takeoff, drawing and estimating work. No catalogue code exists to remove.
+the owner explicitly instructed: “dont do the catalogue section yet - we will cusomise this later”. Do not build catalogue UI, populate product libraries or implement catalogue-dependent imports/kit management now. Preserve the feature inventory with NOT STARTED status and a user-directed deferral; do not label this a technical blocker or completed parity. Continue independent takeoff, drawing and estimating work. No catalogue code exists to remove.
 
 ## ADR-0026 — Persistent same-discipline floorplans (accepted 2026-10-28)
 
@@ -202,14 +202,14 @@ One transaction validates the target digest, complete selection set and selectio
 
 ## ADR-0036 — User-directed design research gate (accepted scope change, 2026-10-29)
 
-Tyrone explicitly requests competitive functional capability with a distinctive premium modern interface, superseding ADR-0012's visual-copying objective. Pause development for authoritative research, a current-app audit, three layout alternatives, visual/interaction proposals, accessibility/usability evaluation and a staged preservation plan. Stop for overall design approval before interface implementation/refactoring or calculation changes. This user instruction supersedes the previous autonomous next-feature sequencing, including F076. Catalogue remains deferred.
+the owner explicitly requests competitive functional capability with a distinctive premium modern interface, superseding earlier interface-fidelity objectives. Pause development for authoritative research, a current-app audit, three layout alternatives, visual/interaction proposals, accessibility/usability evaluation and a staged preservation plan. Stop for overall design approval before interface implementation/refactoring or calculation changes. This user instruction supersedes the previous autonomous next-feature sequencing, including F076. Catalogue remains deferred.
 
 [Research proposal](design/PHASE_1_UI_UX_RESEARCH.md), [complete existing-feature audit](design/FEATURE_AUDIT.md), [sources](design/SOURCE_REGISTER.md) and seven original static wireframes are design artifacts only. Concept A is recommended for evaluation; B remains a close alternative and wins the report's general weighted heuristic. No concept, token palette, framework migration, undo architecture, new allocation policy or performance budget has been accepted. No production source/test/fixture/package changes are part of this checkpoint. Existing 125 tests pass; recognition/accessibility/full-parity limitations remain.
 
 
 ## ADR-0037 — Isolated interactive design validation (accepted scope, 2026-10-29)
 
-Tyrone provisionally approves A on large displays adapting toward B on smaller desktops, and authorises an interactive fictional-data prototype only. Build in `prototypes/workspace-v1`, with no production imports, API requests, database access, dependencies or persistent project storage. Use original schematic drawings and a small independent in-memory demonstration model; label simulated recognition/export/failure behaviour. Preserve production files with a SHA256 baseline and the existing saved-state hash. Keep local preview on a separate loopback port. Offer Auto/A/B arrangement comparison, panel resizing/collapse/restore, three viewport presets, direct selection/review/correction, and reconciliation. Existing data calculations remain untouched. No production feature status promotion. Stop after prototype delivery for user review.
+the owner provisionally approves A on large displays adapting toward B on smaller desktops, and authorises an interactive fictional-data prototype only. Build in `prototypes/workspace-v1`, with no production imports, API requests, database access, dependencies or persistent project storage. Use original schematic drawings and a small independent in-memory demonstration model; label simulated recognition/export/failure behaviour. Preserve production files with a SHA256 baseline and the existing saved-state hash. Keep local preview on a separate loopback port. Offer Auto/A/B arrangement comparison, panel resizing/collapse/restore, three viewport presets, direct selection/review/correction, and reconciliation. Existing data calculations remain untouched. No production feature status promotion. Stop after prototype delivery for user review.
 
 Design hypothesis: a compact global header and labelled tool strip; A splits navigation and inspection, B places one work panel on the left. Auto uses a documented breakpoint, preserves context and defers relocation during an active draft. A user override always wins. Prototype testing is engineering verification, not estimator usability research.
 
@@ -228,14 +228,14 @@ User explicitly requires the Apple UI/UX study to be saved and followed. `design
 
 ## ADR-0040 — One coherent task panel, prototype only (2026-10-29)
 
-Tyrone requests action on the Apple-informed design, with Countfire's simplicity as the benchmark. Remove the distant top-left tool strip. Place Count/Measure/Zone/Note at the top of their work panel with local commands and information beneath; retain global project and view actions in the shell. Keep selection as direct manipulation within Count rather than another primary mode. Hide count-specific tabs while measuring/zoning/noting. Reduce default instructional content without hiding quantity provenance or uncertainty. Preserve all production files/data and independent prototype calculations. Validate actual task sequences and keyboard/panel recovery before presenting; no perfection, full parity or production-approval claim.
+the owner requests action on the Apple-informed design, with Countfire's simplicity as the benchmark. Remove the distant top-left tool strip. Place Count/Measure/Zone/Note at the top of their work panel with local commands and information beneath; retain global project and view actions in the shell. Keep selection as direct manipulation within Count rather than another primary mode. Hide count-specific tabs while measuring/zoning/noting. Reduce default instructional content without hiding quantity provenance or uncertainty. Preserve all production files/data and independent prototype calculations. Validate actual task sequences and keyboard/panel recovery before presenting; no perfection, full parity or production-approval claim.
 
 ADR-0040 outcome: four tool families now share one work panel with their local actions/information; global view controls moved to56px header, full-width42px tool strip removed. Direct Count selection replaces separate Select primary mode. Count tabs hidden for other tools. Default Auto canvas907×646/1067×746/1358×926 at1280/1440/1920. Eleven model tests and75 browser checks pass, plus36 layout/mode placements and actual keyboard check. Production85-file and saved-state hashes unchanged. Further production approval remains pending; no perfection or workflow parity claim.
 
 
 ## ADR-0041 — Resume production with drawing-first counting
 
-2026-10-29, authorised by Tyrone’s “ok lets move on - copy how count fire works”. Supersedes the prototype-only gate, not catalogue deferral. Start with F008/F010/F012 rather than copying demo scan/review policies. The current beta empty Count state instructs drawing a box to count across drawings; prior normal observations document Add to current and editable headings.
+2026-10-29, authorised by the owner's instruction to advance benchmarked takeoff workflows. Supersedes the prototype-only gate, not catalogue deferral. Start with F008/F010/F012 rather than copying demo scan/review policies. The current beta empty Count state instructs drawing a box to count across drawings; prior normal observations document Add to current and editable headings.
 
 Implement direct box selection on entering Count, default same-discipline scope, an explicit New symbol action, and repeat selections under the current heading. A unique neutral Symbol N name is our fallback, editable after counting; it is not Smart Select naming. Retain the existing matcher, budgets, durable APIs, corrections and export rules. Do not imply rotation/floating-reference support or exact save parity. Group production tool selectors above the right work panel as in the reviewed prototype; collapse it from the header. Keep existing Measure/Zone/Note/Layout/Page functionality and no schema migration. Test real PDF matching, scope isolation, correction retention, cancellation, pan and tool switching using a separate owned acceptance store, not saved user projects.
 

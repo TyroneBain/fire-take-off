@@ -36,7 +36,7 @@ Implement a staged, independently designed proof of concept:
 - Build an original, efficient UI using docs/design/APPLE_DESIGN_RULES.md for general usability principles, not Apple's proprietary assets. Similar generic controls and functional steps may be necessary; do not deliberately recreate distinctive visual expression.
 - Do not assume independent code eliminates patent, contract, design or trade-mark risk. Flag uncertain rights issues for professional review before commercial launch.
 - Use original or properly licensed test fixtures and dependencies; record licence provenance.
-- Never describe the product as a Countfire clone in new product-facing copy.
+- Present the product as independently developed; do not make unsupported claims of feature parity or ownership.
 
 ## Engineering workflow
 1. Inspect the existing repository, docs/CURRENT_STATE.md, docs/ROADMAP.md and docs/FEATURE_PARITY.md before edits.
@@ -44,11 +44,11 @@ Implement a staged, independently designed proof of concept:
 3. Implement changes in small, testable increments, keeping data formats and saved work compatible.
 4. Add automated tests for count accuracy, colour mapping, manual corrections, persistence and export reconciliation.
 5. Document measured outcomes, limitations, tests and next steps accurately. Do not claim tests ran unless observed.
-6. Keep the repository private; do not commit credentials or customer drawings. Do not force-push or discard unrelated changes.
+6. Do not commit credentials, customer drawings or personal data. Do not force-push or discard unrelated changes.
 7. The catalogue remains deferred until the user requests it.
 
 ## Historical records
-Earlier project documents contain requests for a visual Countfire clone. Those instructions are superseded by this independent-product objective. Preserve historical evidence and user decision records as history, not as current implementation instructions.
+Earlier product-direction notes are superseded by this independent-product objective. Retain technical evidence and relevant decisions for context, not as current implementation instructions.
 
 ## Standing product decisions — owner confirmation, 2026-10-30
 - Fire Take Off is a legitimate independent competitor in the construction takeoff market. Aim to equal Countfire's practical symbol selection, element inclusion/exclusion, automatic recognition, review and colour-coded counting capabilities, and ultimately improve on accuracy and usability.

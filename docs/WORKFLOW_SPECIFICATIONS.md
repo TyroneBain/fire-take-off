@@ -1,6 +1,6 @@
 # Countfire workflow specifications — initial observed baseline
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Development policy: [independent implementation and IP boundaries](AUTHORIZATION.md). Historical observations and test results retain their original dates.
 
 Observed 2026-10-22 through the user's authenticated Chrome using Chrome DevTools MCP. Reference: **beta.countfire.com**, not a claim that every production release behaves identically. Only normal user-visible controls, text and navigation were inspected. No application bundles, network payloads, proprietary source, cookies or credentials were extracted. Private project identifiers, customer data, catalogue prices and drawing content are excluded from this specification.
 

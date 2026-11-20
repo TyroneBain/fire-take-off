@@ -10,4 +10,4 @@ Research public documentation and use authorised access only in accordance with 
 Routine development, testing, documentation and private repository delivery are authorised. Preserve existing functionality and user data, avoid unrelated changes, and keep the catalogue deferred. Do not publish the repository or include customer drawings or credentials.
 
 ## Historical direction
-Earlier instructions requested a private functional and visual Countfire clone, including close layout reproduction. These are historical and superseded by the active direction above. Existing dated research, tests and evidence remain historical records rather than claims of legal clearance.
+Earlier interface-fidelity objectives are superseded by the active independent-product direction above. Existing dated research, tests and evidence remain historical records rather than claims of legal clearance.

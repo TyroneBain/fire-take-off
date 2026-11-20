@@ -1,6 +1,6 @@
 # Development rules
 
-Standing user permission: [private functional and visual Countfire clone](AUTHORIZATION.md). Routine project work is authorised; historical observations and test results retain their original dates.
+Development policy: [independent implementation and IP boundaries](AUTHORIZATION.md). Historical observations and test results retain their original dates.
 
 AGENTS.md is the persistent operating contract. Recover state from version-controlled documents at session start and update it after meaningful work.
 
